@@ -7,5 +7,6 @@ setup(
     license="CC-BY-4.0",
     author="Simone Parisi",
     packages=["gym_minatar"],
-    install_requires=["gymnasium", "pygame", "pynput"],
+    install_requires=["gymnasium", "pygame"],
+    extras_require={"playground": ["pynput", "imageio"]},
 )
