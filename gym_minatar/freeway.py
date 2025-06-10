@@ -16,12 +16,6 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)
 
-# add ramp difficulty
-# randomize colors
-# this is different from minatar: there cars have slower speeds (for example, a car can take
-# 2 frames to move) and it's much easier. It uses different shades of color to denote spees
-
-
 
 class Freeway(gym.Env):
     metadata = {
@@ -44,8 +38,8 @@ class Freeway(gym.Env):
 
         self.action_space = gym.spaces.Discrete(5)
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols), dtype=np.int64,
-        )
+            -1, 1, (self.n_rows, self.n_cols, 2), dtype=np.int64,
+        ) # obs[0] for chicken, obs[1] for cars (-1 going left, 1 going right)
 
         self.render_mode = render_mode
         self.window_surface = None
@@ -69,10 +63,10 @@ class Freeway(gym.Env):
         # A car is denoted by (row, col, speed, direction, timer)
         # No car in first and last row
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        speeds = self.np_random.integers(1, self.max_car_speed + 1, self.n_rows - 2)
+        speeds = self.np_random.integers(self.max_car_speed - 2, self.max_car_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
-        self.cars = [[r, c, s, d] for r, c, s, d in zip(rows, cols, speeds, dirs)]
+        self.cars = [[r, c, s, d, 0] for r, c, s, d in zip(rows, cols, speeds, dirs)]
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -96,9 +90,14 @@ class Freeway(gym.Env):
         board = np.zeros((self.n_rows, self.n_cols, 2))
         board[self.chicken_row, self.chicken_col, 0] = 1
         for car in self.cars:
-            row, col, speed, dir = car
+            row, col, speed, dir, timer = car
+            if speed <= 0:
+                if timer != speed:
+                    speed = 0
+                else:
+                    speed = 1
             for step in range(speed + 1):
-                board[row, (col - step * dir) % self.n_cols, 1] = dir
+                board[row, (col + step * dir) % self.n_cols, 1] = dir
         return board
 
     def step(self, action: int):
@@ -111,12 +110,21 @@ class Freeway(gym.Env):
 
         # Move cars
         for car in self.cars:
-            row, col, speed, dir = car
+            row, col, speed, dir, timer = car
+            if speed <= 0:
+                if timer != speed:
+                    car[-1] -= 1
+                    continue
+                else:
+                    car[-1] = 0
+                    speed = 1
             for step in range(speed):
                 col = (col + dir) % self.n_cols  # move car
                 if [row, col] == [self.chicken_row, self.chicken_col]:
                     self.chicken_row = self.n_rows - 1  # send chicken back to beginning
                     terminated = True
+                    self.max_car_speed = 1
+                    self.reset()
                     break
             car[1] = col
 
@@ -171,11 +179,16 @@ class Freeway(gym.Env):
 
         # Draw cars and their trail
         for car in self.cars:
-            row, col, speed, dir = car
+            row, col, speed, dir, timer = car
             pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
             pygame.draw.rect(self.window_surface, RED, rect)
-            for step in range(speed):
+            if speed <= 0:
+                if timer != speed:
+                    continue
+                else:
+                    speed = 1
+            for step in range(max(0, speed)):
                 col = (col - dir) % self.n_cols  # backward for trail
                 pos = (col * self.tile_size[0], row * self.tile_size[1])
                 rect = pygame.Rect(pos, self.tile_size)#.scale_by(1.0 - (step + 1) / self.max_car_speed)

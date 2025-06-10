@@ -26,7 +26,7 @@ class Breakout(gym.Env):
 
     def __init__(
         self,
-        size: tuple = (8, 8),
+        size: tuple = (10, 10),
         brick_rows: int = 3,
         levels: int = 3,
         immortal: bool = False,
