@@ -151,7 +151,7 @@ class Seaquest(gym.Env):
     def collision_player(self, row, col):
         return (
             [row, col] == [self.player_row, self.player_col] or
-            [row, col] == [self.player_row, self.player_col + 1]
+            [row, col] == [self.player_row, self.player_col + self.player_dir]
         )
 
     def collision_bullet(self, row, col):
