@@ -1,13 +1,14 @@
 ## Overview
 
-Reimplementation of [MinAtar](https://github.com/kenjyoung/MinAtar) games as
-[gymnasium](https://github.com/Farama-Foundation/Gymnasium) environments.
-This implementation is much faster than the original, has better dynamics,
-more features, and renders all games with `pygame` instead of `matplotlib`.
+Reimplementation of [MinAtar](https://github.com/kenjyoung/MinAtar) fully
+compatible with [Gymnasium](https://github.com/Farama-Foundation/Gymnasium).
+This implementation is faster than the original, has better dynamics,
+more features, renders all games with `PyGame` instead of `Matplotlib`, and
+it is compatible with the last `NumPy`.
 
-The observation is not a matrix of channels...
+### Gym-MinAtar vs MinAtar
 
-### BreakOut
+### Breakout
 The default class `Gridworld` implements a "go-to-goal" task where the agent has
 five actions (left, right, up, down, stay) and default transition function
 (e.g., doing "stay" in goal states ends the episode).  
@@ -20,7 +21,7 @@ For example, in `RiverSwim` there are only two actions and no terminal state.
 
 To install the environments run
 ```
-pip install -e .
+pip install -e .[playground]
 ```
 
 Run `python` and then
