@@ -9,13 +9,6 @@ NOP = 0
 LEFT = 1
 RIGHT = 2
 
-# state IDs
-EMPTY = 0
-PADDLE = 1
-BALL = 2
-TRAIL = 3
-BRICK = 4
-
 # color IDs
 RED = (255, 0, 0)
 PINK = (255, 155, 155)
@@ -44,17 +37,17 @@ class Breakout(gym.Env):
         self.brick_rows = brick_rows
         self.immortal = immortal
 
-        # one empty row before and after the bricks, one row for the paddle
+        # One empty row before and after the bricks, one row for the paddle
         assert (
             self.brick_rows + 3 < self.n_rows
         ), f"cannot fit {brick_rows} brick rows in a board with {self.n_rows} rows"
 
         self.action_space = gym.spaces.Discrete(3)
         self.observation_space = gym.spaces.Box(
-            0, 4, (self.n_rows, self.n_cols), dtype=np.int64,
-        )
+            -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
+        ) # obs[0] for bricks, obs[1] for paddle, obs[2] for ball (-1 going up, 1 going down)
 
-        self.bricks = None
+        self.bricks = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
         self.paddle_pos = None
         self.ball_pos = None
         self.last_ball_pos = []
@@ -64,7 +57,7 @@ class Breakout(gym.Env):
         # These two variable control the ball speed: when ball_timesteps == ball_delay,
         # the ball moves. A delay of 3 means that the paddle moves x4 times
         # faster than the ball.
-        # When the difficulty increases, ball_delay decreases and can become negative.
+        # When difficulty increases, ball_delay decreases and can become negative.
         # Negative delay means that the ball is now faster than the paddle.
         self.ball_delay_levels = np.arange(levels - 1, -1, -1) - levels // 2
         self.level = 0
@@ -83,45 +76,34 @@ class Breakout(gym.Env):
             self.window_size[1] // self.n_rows,
         )  # fmt: skip
 
-    def set_state(self, state):
-        self.bricks[:] = 0
-        self.bricks[state == BRICK] = BRICK
-        self.agent_pos = tuple(np.argwhere(state == PADDLE).flatten())
-        self.ball_pos = tuple(np.argwhere(state == BALL).flatten())
-        self.last_ball_pos = [tuple(pos) for pos in np.argwhere(state == TRAIL)]
-        if len(self.ball_pos) == 0:
-            self.ball_pos = None
-        if len(self.last_ball_pos) == 0:
-            self.last_ball_pos = []
-
     def get_state(self):
-        state = np.copy(self.bricks)
-        state[self.paddle_pos] = PADDLE
-        for pos in self.last_ball_pos:
-            state[pos] = TRAIL
-        if self.ball_pos is not None:
-            state[self.ball_pos] = BALL  # this may overwrite last_ball_pos
+        state = np.zeros((self.n_rows, self.n_cols, 3), dtype=np.int64)
+        state[..., 0] = self.bricks
+        state[self.paddle_pos[0], self.paddle_pos[1], 1] = 1
+        state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
+        for ball_pos in self.last_ball_pos:
+            state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0]
         return state
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
 
-        self.paddle_pos = (
+        self.paddle_pos = [
             self.n_rows - 1,
             self.np_random.integers((self.n_cols)),
-        )
-        self.ball_pos = (
+        ]
+        self.ball_pos = [
             self.np_random.integers(self.brick_rows + 1, self.n_rows - 1),
             self.np_random.integers(self.n_cols),
-        )  # do not spawn in paddle or brick rows
-        self.ball_dir = (
+        ]  # do not spawn in paddle or brick rows
+        self.ball_dir = [
             -1,
             self.np_random.choice((-1, 1)),
-        )  # always spawn going up
+        ]  # always spawn going up
         self.ball_delay = self.ball_delay_levels[self.level]
         self.ball_timesteps = self.ball_delay
-        self.bricks = np.full((self.n_rows, self.n_cols), EMPTY)
-        self.bricks[1 : self.brick_rows + 1, :] = BRICK
+        self.bricks[:] = 0
+        self.bricks[1 : self.brick_rows + 1, :] = 1
         self.last_action = None
         self.last_ball_pos = []
 
@@ -143,15 +125,9 @@ class Breakout(gym.Env):
         if action == NOP:
             pass
         elif action == LEFT:
-            self.paddle_pos = (
-                self.n_rows - 1,
-                max(self.paddle_pos[1] - 1, 0),
-            )
+            self.paddle_pos[1] = max(self.paddle_pos[1] - 1, 0)
         elif action == RIGHT:
-            self.paddle_pos = (
-                self.n_rows - 1,
-                min(self.paddle_pos[1] + 1, self.n_cols - 1),
-            )
+            self.paddle_pos[1] = min(self.paddle_pos[1] + 1, self.n_cols - 1)
         else:
             raise ValueError("illegal action")
 
@@ -165,28 +141,28 @@ class Breakout(gym.Env):
         else:
             ball_steps = abs(self.ball_delay) + 1
 
-        def mid_ball_pos(position, direction):
-            front_pos = (  # vertical
+        def where_ball_is_going(position, direction):
+            front_pos = [  # vertical
                 position[0] + direction[0],
                 position[1],
-            )
-            diag_pos = (
+            ]
+            diag_pos = [
                 position[0] + direction[0],
                 position[1] + direction[1],
-            )
-            side_pos = (  # horizontal
+            ]
+            side_pos = [  # horizontal
                 position[0],
                 position[1] + direction[1],
-            )
+            ]
             return front_pos, diag_pos, side_pos
 
         self.last_ball_pos = []
         for steps in range(ball_steps):
             self.last_ball_pos.append(self.ball_pos)
-            new_ball_pos = (
+            new_ball_pos = [
                 self.ball_pos[0] + self.ball_dir[0],
                 self.ball_pos[1] + self.ball_dir[1],
-            )
+            ]
 
             # Collision with bricks cannot happen when collision with ceiling or
             # floor happen
@@ -194,59 +170,36 @@ class Breakout(gym.Env):
 
             # Collision with side walls
             if new_ball_pos[1] < 0 or new_ball_pos[1] >= self.n_cols:
-                new_ball_pos = (
-                    new_ball_pos[0],
-                    min(max(new_ball_pos[1], 0), self.n_cols - 1),
-                )
-                self.ball_dir = (
-                    self.ball_dir[0],
-                    self.ball_dir[1] * (-1),
-                )  # bounce
+                new_ball_pos[1] = min(max(new_ball_pos[1], 0), self.n_cols - 1)
+                self.ball_dir[1] *= -1  # bounce
 
             # Collision with ceiling
             if new_ball_pos[0] < 0:
-                new_ball_pos = (0, new_ball_pos[1])
-                self.ball_dir = (
-                    self.ball_dir[0] * (-1),
-                    self.ball_dir[1],
-                )
+                new_ball_pos[0] = 0
+                self.ball_dir[0] *= -1
                 check_for_bricks = False
 
             # Collision with floor or paddle
             elif new_ball_pos[0] == self.n_rows - 1:
                 check_for_bricks = False
                 game_over = True
-                front_pos, diag_pos, side_pos = mid_ball_pos(self.ball_pos, self.ball_dir)
+                front_pos, diag_pos, side_pos = where_ball_is_going(self.ball_pos, self.ball_dir)
                 if front_pos == self.paddle_pos:  # keep side direction and bounce up
                     new_ball_pos = self.ball_pos
-                    self.ball_dir = (
-                        self.ball_dir[0] * (-1),
-                        self.ball_dir[1],
-                    )
+                    self.ball_dir[0] *= -1
                     game_over = False
                 elif diag_pos == self.paddle_pos:  # bounce back (diagonally)
                     new_ball_pos = self.ball_pos
-                    self.ball_dir = (
-                        self.ball_dir[0] * (-1),
-                        self.ball_dir[1] * (-1),
-                    )
+                    self.ball_dir[0] *= -1
+                    self.ball_dir[1] *= -1
                     game_over = False
                 elif side_pos == self.paddle_pos:  # keep down direction and side bounce
                     new_ball_pos = self.ball_pos
-                    self.ball_dir = (
-                        self.ball_dir[0],
-                        self.ball_dir[1] * (-1),
-                    )
+                    self.ball_dir[1] *= -1
                     game_over = True  # hitting the paddle from the side does not save the ball
                 elif self.immortal:  # paddle missed ball, but if immortal bounce on the floor
-                    new_ball_pos = (
-                        self.ball_pos[0],
-                        new_ball_pos[1],
-                    )
-                    self.ball_dir = (
-                        self.ball_dir[0] * (-1),
-                        self.ball_dir[1],
-                    )
+                    new_ball_pos[0] = self.ball_pos[0]
+                    self.ball_dir[0] *= -1
                     game_over = False
                     reward = -1.0  # penalize for missing
 
@@ -257,31 +210,23 @@ class Breakout(gym.Env):
 
             # Collision with brick (must check after wall collision)
             if check_for_bricks:
-                front_pos, diag_pos, side_pos = mid_ball_pos(self.ball_pos, self.ball_dir)
-                if self.bricks[front_pos] == BRICK:
+                front_pos, diag_pos, side_pos = where_ball_is_going(self.ball_pos, self.ball_dir)
+                if self.bricks[front_pos[0], front_pos[1]]:
                     reward = 1.0
-                    self.bricks[front_pos] = EMPTY
+                    self.bricks[front_pos[0], front_pos[1]] = 0
                     new_ball_pos = self.ball_pos
-                    self.ball_dir = (
-                        self.ball_dir[0] * -1,
-                        self.ball_dir[1],
-                    )
-                elif self.bricks[diag_pos] == BRICK:
+                    self.ball_dir[0] *= -1
+                elif self.bricks[diag_pos[0], diag_pos[1]]:
                     reward = 1.0
-                    self.bricks[diag_pos] = EMPTY
+                    self.bricks[diag_pos[0], diag_pos[1]] = 0
                     new_ball_pos = self.ball_pos
-                    self.ball_dir = (
-                        self.ball_dir[0] * -1,
-                        self.ball_dir[1] * -1,
-                    )
-                elif self.bricks[side_pos] == BRICK:
+                    self.ball_dir[0] *= -1
+                    self.ball_dir[1] *= -1
+                elif self.bricks[side_pos[0], side_pos[1]]:
                     reward = 1.0
-                    self.bricks[side_pos] = EMPTY
+                    self.bricks[side_pos[0], side_pos[1]] = 0
                     new_ball_pos = self.ball_pos
-                    self.ball_dir = (
-                        self.ball_dir[0],
-                        self.ball_dir[1] * -1,
-                    )
+                    self.ball_dir[1] *= -1
 
             self.ball_pos = new_ball_pos
             if self.bricks.sum() == 0:
@@ -331,22 +276,33 @@ class Breakout(gym.Env):
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
-        state = self.get_state()
+        # Draw background
+        rect = pygame.Rect((0, 0), self.window_size)
+        pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        for y in range(self.n_rows):
-            for x in range(self.n_cols):
-                pos = (x * self.tile_size[0], y * self.tile_size[1])
-                rect = pygame.Rect(pos, self.tile_size)
-                if state[y][x] == BRICK:
+        # Draw bricks
+        for x in range(1, self.brick_rows + 1):
+            for y in range(self.n_cols):
+                if self.bricks[x, y]:
+                    pos = (y * self.tile_size[0], x * self.tile_size[1])
+                    rect = pygame.Rect(pos, self.tile_size)
                     pygame.draw.rect(self.window_surface, GRAY, rect)
-                elif state[y][x] == PADDLE:
-                    pygame.draw.rect(self.window_surface, GREEN, rect)
-                elif state[y][x] == TRAIL:
-                    pygame.draw.rect(self.window_surface, PINK, rect)
-                elif state[y][x] == BALL:
-                    pygame.draw.rect(self.window_surface, RED, rect)
-                elif state[y][x] == EMPTY:
-                    pygame.draw.rect(self.window_surface, BLACK, rect)
+
+        # Draw paddle
+        pos = (self.paddle_pos[1] * self.tile_size[0], self.paddle_pos[0] * self.tile_size[1])
+        rect = pygame.Rect(pos, self.tile_size)
+        pygame.draw.rect(self.window_surface, GREEN, rect)
+
+        # Draw ball
+        pos = (self.ball_pos[1] * self.tile_size[0], self.ball_pos[0] * self.tile_size[1])
+        rect = pygame.Rect(pos, self.tile_size)
+        pygame.draw.rect(self.window_surface, RED, rect)
+
+        # Draw trail
+        for trail in self.last_ball_pos:
+            pos = (trail[1] * self.tile_size[0], trail[0] * self.tile_size[1])
+            rect = pygame.Rect(pos, self.tile_size)
+            pygame.draw.rect(self.window_surface, PINK, rect)
 
         if mode == "human":
             pygame.event.pump()
