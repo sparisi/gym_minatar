@@ -140,9 +140,9 @@ class Seaquest(gym.Env):
         else:
             col = self.n_cols - 1
             direction = -1
-        if self.np_random.random() < 1.0 / 3.0:
+        if self.np_random.random() < 0.5:
             self.fishes.append([row, col, direction])
-        elif self.np_random.random() < 2.0 / 3.0:
+        elif self.np_random.random() < 0.75:
             self.submarines.append([row, col, direction, None])
         else:
             self.divers.append([row, col, direction])
@@ -151,7 +151,7 @@ class Seaquest(gym.Env):
     def collision_player(self, row, col):
         return (
             [row, col] == [self.player_row, self.player_col] or
-            [row, col] == [self.player_row, self.player_col + self.player_dir]
+            [row, col] == [self.player_row, self.player_col - self.player_dir]
         )
 
     def collision_bullet(self, row, col):
