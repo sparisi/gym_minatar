@@ -32,15 +32,12 @@ class Freeway(gym.Env):
     def __init__(
         self,
         render_mode: Optional[str] = None,
-        size: tuple = (8, 8),
+        size: tuple = (10, 10),
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
 
-        self.max_car_speed = 3
-        # speed are in [max_speed_levels[level] - 2, max_speed_levels[level]]
-        self.level = 0
-        self.max_speed_levels = [0, 1, 2, 3]
+        self.max_car_speed = 1
         self.cars = None
         self.chicken_row = None
         self.chicken_col = None
@@ -126,7 +123,9 @@ class Freeway(gym.Env):
         # Win
         if self.chicken_row == 0:
             reward = 1.0
-            terminated = True
+            self.max_car_speed += 1
+            self.reset()
+            # terminated = True
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -179,7 +178,7 @@ class Freeway(gym.Env):
             for step in range(speed):
                 col = (col - dir) % self.n_cols  # backward for trail
                 pos = (col * self.tile_size[0], row * self.tile_size[1])
-                rect = pygame.Rect(pos, self.tile_size).scale_by(1.0 - (step + 1) / self.max_car_speed)
+                rect = pygame.Rect(pos, self.tile_size)#.scale_by(1.0 - (step + 1) / self.max_car_speed)
                 pygame.draw.rect(self.window_surface, PINK, rect)
 
         # Draw chicken
