@@ -5,10 +5,10 @@ from typing import Optional
 
 # Action IDs
 NOP = 0
-UP = 1
-DOWN = 2
-LEFT = 3
-RIGHT = 4
+LEFT = 1
+RIGHT = 2
+UP = 3
+DOWN = 4
 SHOOT = 5
 
 BLACK = (0, 0, 0)

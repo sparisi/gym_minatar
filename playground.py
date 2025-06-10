@@ -14,9 +14,6 @@ parser.add_argument("env")
 parser.add_argument("--record", action="store_true")
 args = parser.parse_args()
 
-# TODO mapping actions to other games
-
-
 env_id = args.env.lower()
 if "seaquest" in env_id:
     env_id = "Gym-MinAtar/Seaquest-v1"
@@ -33,11 +30,13 @@ else:
 
 env = gymnasium.make(env_id, render_mode="human")
 if args.record:
-    # gymnasium human rendering does not return RGB array, so we must make a copy
+    # Gymnasium human rendering does not return RGB array, so we must make a copy
     env_record = gymnasium.make(env_id, render_mode="rgb_array")
     frames = []
 
 def step(action):
+    if not env.action_space.contains(action):
+        return
     env.step(action)
     if args.record:
         env_record.step(action)
@@ -54,25 +53,23 @@ def reset():
         if frame is not None:
             frames.append(frame)
 
-reset()
-
 def on_press(key):
     try:
         action = None
         if key == keyboard.Key.space:
             step(5)
         elif key == keyboard.Key.up:
-            step(1)
-        elif key == keyboard.Key.down:
-            step(2)
-        elif key == keyboard.Key.left:
             step(3)
-        elif key == keyboard.Key.right:
+        elif key == keyboard.Key.down:
             step(4)
+        elif key == keyboard.Key.left:
+            step(1)
+        elif key == keyboard.Key.right:
+            step(2)
         elif key == keyboard.Key.enter:
             step(0)
         elif key == keyboard.Key.esc:
-            # can't call env.close() or pygame will freeze everything
+            # Can't call env.close() or pygame will freeze everything
             program_running[0] = False
             return False
         elif key.char.isalpha() and key.char == "r":
@@ -83,12 +80,15 @@ def on_press(key):
         pass
 
 print(
+    "\n"
     "Move: ← ↑ → ↓\n"
     "Stay: ENTER\n"
     "Fire: SPACEBAR\n"
     "Reset: R\n"
     "Exit: ESC\n"
 )
+
+reset()
 
 # Start listener in a non-blocking way
 listener = keyboard.Listener(on_press=on_press)
@@ -97,7 +97,8 @@ listener.start()
 try:
     while program_running[0]:
         time.sleep(0.05)
-finally:  # cleanup in main thread
+finally:
+    # Cleanup in main thread
     if args.record:
         imageio.mimsave(args.env + ".gif", frames, fps=30)
     listener.stop()
