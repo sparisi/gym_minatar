@@ -87,7 +87,7 @@ class Freeway(gym.Env):
             raise ValueError("illegal action")
 
     def get_state(self):
-        board = np.zeros((self.n_rows, self.n_cols, 2))
+        board = np.zeros((self.n_rows, self.n_cols, 2), dtype=np.int64)
         board[self.chicken_row, self.chicken_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car
