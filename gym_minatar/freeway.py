@@ -33,32 +33,21 @@ class Freeway(gym.Env):
         self,
         render_mode: Optional[str] = None,
         size: tuple = (8, 8),
-        max_car_speed: int = None,
-        side_movements: bool = True,
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
-        if max_car_speed is None:
-            max_car_speed = self.n_cols // 2
-        self.max_car_speed = max_car_speed
 
-        # ensure the game is winnable
-        assert (
-            self.max_car_speed <= self.n_cols // 2
-        ), f"max car speed ({max_car_speed}) higher than half road width ({self.n_cols})"
-
-        self.board = None
-        self.car_cols = None
-        self.chicken_id = max_car_speed + 1
+        self.max_car_speed = 3
+        # speed are in [max_speed_levels[level] - 2, max_speed_levels[level]]
+        self.level = 0
+        self.max_speed_levels = [0, 1, 2, 3]
+        self.cars = None
         self.chicken_row = None
         self.chicken_col = None
 
-        self.action_space = gym.spaces.Discrete(5 if side_movements else 3)
+        self.action_space = gym.spaces.Discrete(5)
         self.observation_space = gym.spaces.Box(
-            -max_car_speed,
-            max_car_speed + 1,  # +1 for the chicken ID
-            (self.n_rows, self.n_cols),
-            dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols), dtype=np.int64,
         )
 
         self.render_mode = render_mode
@@ -76,22 +65,21 @@ class Freeway(gym.Env):
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
         self.last_action = None
-        self.board = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
 
         self.chicken_row = self.n_rows - 1
         self.chicken_col = self.n_cols // 2
-        self.board[self.chicken_row, self.chicken_col] = self.chicken_id
 
-        # no car in first and last row
-        self.car_cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        for i, car_col in enumerate(self.car_cols):
-            speed = self.np_random.integers(1, self.max_car_speed + 1)
-            direction = np.sign(float(i >= self.n_rows // 2) - 0.5).astype(np.int64)
-            self.board[i + 1, car_col] = direction * speed
+        # A car is denoted by (row, col, speed, direction, timer)
+        # No car in first and last row
+        cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
+        speeds = self.np_random.integers(1, self.max_car_speed + 1, self.n_rows - 2)
+        dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
+        rows = np.arange(1, self.n_rows - 1)
+        self.cars = [[r, c, s, d] for r, c, s, d in zip(rows, cols, speeds, dirs)]
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
-        return self.board.copy(), {}
+        return self.get_state(), {}
 
     def move(self, a):
         if a == LEFT:
@@ -107,40 +95,42 @@ class Freeway(gym.Env):
         else:
             raise ValueError("illegal action")
 
+    def get_state(self):
+        board = np.zeros((self.n_rows, self.n_cols, 2))
+        board[self.chicken_row, self.chicken_col, 0] = 1
+        for car in self.cars:
+            row, col, speed, dir = car
+            for step in range(speed + 1):
+                board[row, (col - step * dir) % self.n_cols, 1] = dir
+        return board
+
     def step(self, action: int):
         reward = 0.0
         terminated = False
         self.last_action = action
 
-        # Move chicken but don't update the board yet
+        # Move chicken
         self.move(action)
 
         # Move cars
-        for i in range(len(self.car_cols)):
-            car_col = self.car_cols[i]
-            speed = self.board[i + 1, car_col]
-            direction = np.sign(speed).astype(np.int64)
-            self.board[i + 1, car_col] = 0  # remove car from current position
-            for car_step in range(abs(speed)):
-                car_col = (car_col + direction) % self.n_cols  # move car
-                if [i + 1, car_col] == [self.chicken_row, self.chicken_col]:  # check for collision with chicken
+        for car in self.cars:
+            row, col, speed, dir = car
+            for step in range(speed):
+                col = (col + dir) % self.n_cols  # move car
+                if [row, col] == [self.chicken_row, self.chicken_col]:
                     self.chicken_row = self.n_rows - 1  # send chicken back to beginning
                     terminated = True
                     break
-            self.car_cols[i] = car_col
-            self.board[i + 1, car_col] = speed  # place car back on board
+            car[1] = col
 
-        # Check for winning condition
+        # Win
         if self.chicken_row == 0:
             reward = 1.0
             terminated = True
 
-        # Finally, place chicken back on the board
-        self.board[self.chicken_row, self.chicken_col] = self.chicken_id
-
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
-        return self.board.copy(), reward, terminated, False, {}
+        return self.get_state(), reward, terminated, False, {}
 
     def render(self):
         if self.render_mode is None:
@@ -181,19 +171,15 @@ class Freeway(gym.Env):
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
         # Draw cars and their trail
-        for i in range(len(self.car_cols)):
-            car_col = self.car_cols[i]
-            speed = self.board[i + 1, car_col]
-            direction = np.sign(speed).astype(np.int64)
-
-            pos = (car_col * self.tile_size[0], (i + 1) * self.tile_size[1])
+        for car in self.cars:
+            row, col, speed, dir = car
+            pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
             pygame.draw.rect(self.window_surface, RED, rect)
-
-            for car_step in range(abs(speed)):
-                car_col = (car_col - direction) % self.n_cols  # move backward to track car trail
-                pos = (car_col * self.tile_size[0], (i + 1) * self.tile_size[1])
-                rect = pygame.Rect(pos, self.tile_size)
+            for step in range(speed):
+                col = (col - dir) % self.n_cols  # backward for trail
+                pos = (col * self.tile_size[0], row * self.tile_size[1])
+                rect = pygame.Rect(pos, self.tile_size).scale_by(1.0 - (step + 1) / self.max_car_speed)
                 pygame.draw.rect(self.window_surface, PINK, rect)
 
         # Draw chicken
