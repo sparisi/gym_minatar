@@ -29,13 +29,11 @@ class Breakout(gym.Env):
         size: tuple = (10, 10),
         brick_rows: int = 3,
         levels: int = 3,
-        immortal: bool = False,
         render_mode: Optional[str] = None,
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
         self.brick_rows = brick_rows
-        self.immortal = immortal
 
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
@@ -211,12 +209,6 @@ class Breakout(gym.Env):
                     new_ball_pos = self.ball_pos
                     self.ball_dir[1] *= -1
                     game_over = True  # Hitting the paddle from the side does not save the ball
-                elif self.immortal:  # Paddle missed ball, but if immortal bounce on the floor
-                    new_ball_pos[0] = self.ball_pos[0]
-                    self.ball_dir[0] *= -1
-                    game_over = False
-                    reward = -1.0  # Penalize for missing
-
                 if game_over:
                     terminated = True
                     self.level_one()
