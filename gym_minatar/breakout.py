@@ -81,13 +81,21 @@ class Breakout(gym.Env):
         )  # fmt: skip
 
     def get_state(self):
-        board = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[..., 0] = self.bricks
         state[self.paddle_pos[0], self.paddle_pos[1], 1] = 1
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
         for ball_pos in self.last_ball_pos:
             state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0]
         return state
+
+    def level_one(self):
+        self.level = 0
+        self.reset()
+
+    def level_up(self):
+        self.level = min(self.level + 1, len(self.ball_delay_levels - 1))
+        self.reset()
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -99,11 +107,11 @@ class Breakout(gym.Env):
         self.ball_pos = [
             self.np_random.integers(self.brick_rows + 1, self.n_rows - 1),
             self.np_random.integers(self.n_cols),
-        ]  # do not spawn in paddle or brick rows
+        ]  # Do not spawn in paddle or brick rows
         self.ball_dir = [
             -1,
             self.np_random.choice((-1, 1)),
-        ]  # always spawn going up
+        ]  # Always spawn going up
         self.ball_delay = self.ball_delay_levels[self.level]
         self.ball_timesteps = self.ball_delay
         self.bricks[:] = 0
@@ -126,6 +134,7 @@ class Breakout(gym.Env):
         terminated = False
         reward = 0.0
 
+        # Move paddle
         if action == NOP:
             pass
         elif action == LEFT:
@@ -135,6 +144,7 @@ class Breakout(gym.Env):
         else:
             raise ValueError("illegal action")
 
+        # Check if it's time to move the ball
         if self.ball_delay > 0:
             if self.ball_timesteps != self.ball_delay:
                 self.ball_timesteps += 1
@@ -188,29 +198,29 @@ class Breakout(gym.Env):
                 check_for_bricks = False
                 game_over = True
                 front_pos, diag_pos, side_pos = where_ball_is_going(self.ball_pos, self.ball_dir)
-                if front_pos == self.paddle_pos:  # keep side direction and bounce up
+                if front_pos == self.paddle_pos:  # Keep side direction and bounce up
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     game_over = False
-                elif diag_pos == self.paddle_pos:  # bounce back (diagonally)
+                elif diag_pos == self.paddle_pos:  # Bounce back (diagonally)
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     self.ball_dir[1] *= -1
                     game_over = False
-                elif side_pos == self.paddle_pos:  # keep down direction and side bounce
+                elif side_pos == self.paddle_pos:  # Keep down direction and side bounce
                     new_ball_pos = self.ball_pos
                     self.ball_dir[1] *= -1
-                    game_over = True  # hitting the paddle from the side does not save the ball
-                elif self.immortal:  # paddle missed ball, but if immortal bounce on the floor
+                    game_over = True  # Hitting the paddle from the side does not save the ball
+                elif self.immortal:  # Paddle missed ball, but if immortal bounce on the floor
                     new_ball_pos[0] = self.ball_pos[0]
                     self.ball_dir[0] *= -1
                     game_over = False
-                    reward = -1.0  # penalize for missing
+                    reward = -1.0  # Penalize for missing
 
                 if game_over:
-                    self.level = 0
-                    self.reset()
-                    return self.get_state(), reward, True, False, {}
+                    terminated = True
+                    self.level_one()
+                    return self.get_state(), reward, terminated, False, {}
 
             # Collision with brick (must check after wall collision)
             if check_for_bricks:
@@ -234,13 +244,10 @@ class Breakout(gym.Env):
 
             self.ball_pos = new_ball_pos
             if self.bricks.sum() == 0:
-                self.level += 1
                 if self.level == len(self.ball_delay_levels):
-                    self.level -= 1
                     terminated = True
                 else:
-                    self.reset()
-                    # terminated = True
+                    self.level_up()
 
         return self.get_state(), reward, terminated, False, {}
 

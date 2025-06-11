@@ -92,9 +92,17 @@ class Freeway(gym.Env):
         else:
             raise ValueError("illegal action")
 
+    def level_one(self):
+        self.max_car_speed = 1
+        self.reset()
+
+    def level_up(self):
+        self.max_car_speed = min(self.max_car_speed + 1, self.n_rows - 1)
+        self.reset()
+
     def get_state(self):
-        board = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
-        board[self.player_row, self.player_col, 0] = 1
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state[self.player_row, self.player_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car
             if speed <= 0:
@@ -103,8 +111,8 @@ class Freeway(gym.Env):
                 else:
                     speed = 1
             for step in range(speed + 1):
-                board[row, (col + step * dir) % self.n_cols, 1] = dir
-        return board
+                state[row, (col + step * dir) % self.n_cols, 1] = dir
+        return state
 
     def collision(self, row, col, action):
         # Must check horizontal movement, otherwise the player may "step over"
@@ -136,19 +144,15 @@ class Freeway(gym.Env):
             for step in range(speed):
                 col = (col + dir) % self.n_cols
                 if self.collision(row, col, action):
-                    self.player_row = self.n_rows - 1
                     terminated = True
-                    self.max_car_speed = 1
-                    self.reset()
+                    self.level_one()
                     break
             car[1] = col
 
         # Win
         if self.player_row == 0:
             reward = 1.0
-            self.max_car_speed += 1
-            self.reset()
-            # terminated = True
+            self.level_up()
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()

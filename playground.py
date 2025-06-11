@@ -53,6 +53,16 @@ def reset():
         if frame is not None:
             frames.append(frame)
 
+def level_up():
+    env.unwrapped.level_up()
+    if args.record:
+        env_record.unwrapped.level_up()
+
+def level_one():
+    env.unwrapped.level_one()
+    if args.record:
+        env_record.unwrapped.level_one()
+
 def on_press(key):
     try:
         action = None
@@ -68,6 +78,10 @@ def on_press(key):
             step(2)
         elif key == keyboard.Key.enter:
             step(0)
+        elif key == keyboard.Key.shift_r:
+            level_up()
+        elif key == keyboard.Key.backspace:
+            level_one()
         elif key == keyboard.Key.esc:
             # Can't call env.close() or pygame will freeze everything
             program_running[0] = False
@@ -81,11 +95,13 @@ def on_press(key):
 
 print(
     "\n"
-    "Move: ← ↑ → ↓\n"
-    "Stay: ENTER\n"
-    "Fire: SPACEBAR\n"
-    "Reset: R\n"
-    "Exit: ESC\n"
+    "Move: \t\t← ↑ → ↓\n"
+    "Stay: \t\tENTER\n"
+    "Fire: \t\tSPACEBAR\n"
+    "Reset Board: \tR\n"
+    "Level Up: \tRIGHT SHIFT\n"
+    "Reset Level: \tBACKSPACE\n"
+    "Exit: \t\tESC\n"
 )
 
 reset()

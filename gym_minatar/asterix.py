@@ -64,8 +64,8 @@ class Asterix(gym.Env):
         )  # fmt: skip
 
     def get_state(self):
-        board = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
-        board[self.player_row, self.player_col, 0] = 1
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state[self.player_row, self.player_col, 0] = 1
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
             if speed <= 0:
@@ -76,8 +76,8 @@ class Asterix(gym.Env):
             for step in range(speed + 1):
                 if not 0 <= col + step * dir < self.n_cols:
                     break
-                board[row, col + step * dir, 2 if is_tres else 1] = dir
-        return board
+                state[row, col + step * dir, 2 if is_tres else 1] = dir
+        return state
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -117,6 +117,16 @@ class Asterix(gym.Env):
         else:
             raise ValueError("illegal action")
 
+    def level_one(self):
+        self.difficulty_timer = 0
+        self.max_entity_speed = 2
+        self.cooldown = 3
+
+    def level_up(self):
+        self.difficulty_timer = 0
+        self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
+        self.cooldown = max(self.cooldown - 1, 0)
+
     def despawn(self, entity):
         entity[1] = -1
         entity[6] = self.cooldown
@@ -152,9 +162,7 @@ class Asterix(gym.Env):
 
         self.difficulty_timer += 1
         if self.difficulty_timer == self.difficulty_increase_steps:
-            self.difficulty_timer = 0
-            self.max_entity_speed += 1
-            self.cooldown -= 1
+            self.level_up()
 
         # Move player
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
@@ -196,9 +204,8 @@ class Asterix(gym.Env):
                         reward = 1.0
                         break
                     else:
-                        self.player_row = self.n_rows - 1
                         terminated = True
-                        self.max_entity_speed = 1
+                        self.level_one()
                         self.reset()
                         break
 
