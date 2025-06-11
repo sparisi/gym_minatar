@@ -81,7 +81,7 @@ class Breakout(gym.Env):
         )  # fmt: skip
 
     def get_state(self):
-        state = np.zeros((self.n_rows, self.n_cols, 3), dtype=np.int64)
+        board = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[..., 0] = self.bricks
         state[self.paddle_pos[0], self.paddle_pos[1], 1] = 1
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]

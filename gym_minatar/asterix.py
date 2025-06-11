@@ -64,7 +64,7 @@ class Asterix(gym.Env):
         )  # fmt: skip
 
     def get_state(self):
-        board = np.zeros((self.n_rows, self.n_cols, 3), dtype=np.int64)
+        board = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         board[self.player_row, self.player_col, 0] = 1
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
@@ -239,8 +239,6 @@ class Asterix(gym.Env):
 
         if self.clock is None:
             self.clock = pygame.time.Clock()
-
-        state = self.get_state()
 
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
