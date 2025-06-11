@@ -11,14 +11,12 @@ UP = 3
 DOWN = 4
 
 RED = (255, 0, 0)
-PINK = (255, 155, 155)
+PALE_RED = (255, 155, 155)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)
 BLUE = (0, 0, 255)
 CYAN = (0, 255, 255)
-
-# add ramp difficulty
 
 class Asterix(gym.Env):
     metadata = {
@@ -33,6 +31,8 @@ class Asterix(gym.Env):
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
+        assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
+        assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
         self.cooldown = 3
@@ -89,7 +89,7 @@ class Asterix(gym.Env):
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
         # Entries (treasures and enemies) are denoted by (row, col, speed, direction, is_treasure, timer, cooldown)
-        # Timer is for entries with negative speed (they move slower than the player),
+        # Timer is for entries with negative speed (they move slower than the player)
         # Cooldown is for respawing
         # First and last row of the board are empty
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
@@ -246,14 +246,17 @@ class Asterix(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
+        def draw_tile(row, col, color):
+            pos = (col * self.tile_size[0], row * self.tile_size[1])
+            rect = pygame.Rect(pos, self.tile_size)
+            pygame.draw.rect(self.window_surface, color, rect)
+
         # Draw entities and their trail
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
             if col == -1:
                 continue
-            pos = (col * self.tile_size[0], row * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            pygame.draw.rect(self.window_surface, BLUE if is_tres else RED, rect)
+            draw_tile(row, col, BLUE if is_tres else RED)
             if speed <= 0:
                 if timer != speed:
                     continue
@@ -263,17 +266,10 @@ class Asterix(gym.Env):
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     continue
-                pos = (col * self.tile_size[0], row * self.tile_size[1])
-                rect = pygame.Rect(pos, self.tile_size)
-                pygame.draw.rect(self.window_surface, CYAN if is_tres else PINK, rect)
+                draw_tile(row, col, CYAN if is_tres else PALE_RED)
 
         # Draw player
-        pos = (
-            self.player_col * self.tile_size[0],
-            self.player_row * self.tile_size[1],
-        )
-        rect = pygame.Rect(pos, self.tile_size)
-        pygame.draw.rect(self.window_surface, GREEN, rect)
+        draw_tile(self.player_row, self.player_col, GREEN)
 
         if mode == "human":
             pygame.event.pump()

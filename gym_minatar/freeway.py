@@ -11,7 +11,7 @@ UP = 3
 DOWN = 4
 
 RED = (255, 0, 0)
-PINK = (255, 155, 155)
+PALE_RED = (255, 155, 155)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)
@@ -30,7 +30,8 @@ class Freeway(gym.Env):
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
-
+        assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
+        assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
         self.max_car_speed = 1
         self.cars = None
         self.player_row = None
@@ -191,12 +192,15 @@ class Freeway(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
+        def draw_tile(row, col, color):
+            pos = (col * self.tile_size[0], row * self.tile_size[1])
+            rect = pygame.Rect(pos, self.tile_size)
+            pygame.draw.rect(self.window_surface, color, rect)
+
         # Draw cars and their trail
         for car in self.cars:
             row, col, speed, dir, timer = car
-            pos = (col * self.tile_size[0], row * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            pygame.draw.rect(self.window_surface, RED, rect)
+            draw_tile(row, col, RED)
             if speed <= 0:
                 if timer != speed:
                     continue
@@ -204,17 +208,10 @@ class Freeway(gym.Env):
                     speed = 1
             for step in range(max(0, speed)):
                 col = (col - dir) % self.n_cols  # backward for trail
-                pos = (col * self.tile_size[0], row * self.tile_size[1])
-                rect = pygame.Rect(pos, self.tile_size)#.scale_by(1.0 - (step + 1) / self.max_car_speed)
-                pygame.draw.rect(self.window_surface, PINK, rect)
+                draw_tile(row, col, PALE_RED)
 
         # Draw player
-        pos = (
-            self.player_col * self.tile_size[0],
-            self.player_row * self.tile_size[1],
-        )
-        rect = pygame.Rect(pos, self.tile_size)
-        pygame.draw.rect(self.window_surface, GREEN, rect)
+        draw_tile(self.player_row, self.player_col, GREEN)
 
         if mode == "human":
             pygame.event.pump()

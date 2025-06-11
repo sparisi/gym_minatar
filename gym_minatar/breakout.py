@@ -11,7 +11,7 @@ RIGHT = 2
 
 # color IDs
 RED = (255, 0, 0)
-PINK = (255, 155, 155)
+PALE_RED = (255, 155, 155)
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -37,15 +37,19 @@ class Breakout(gym.Env):
         self.brick_rows = brick_rows
         self.immortal = immortal
 
-        # One empty row before and after the bricks, one row for the paddle
-        assert (
+        assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
+        assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
+        assert (  # One empty row before and after the bricks, one row for the paddle
             self.brick_rows + 3 < self.n_rows
         ), f"cannot fit {brick_rows} brick rows in a board with {self.n_rows} rows"
 
-        self.action_space = gym.spaces.Discrete(3)
+        # First channel for bricks
+        # Second channel for paddle pos
+        # Third channel for ball and trail (-1 moving up, 1 moving down)
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
-        ) # obs[0] for bricks, obs[1] for paddle, obs[2] for ball (-1 going up, 1 going down)
+        )
+        self.action_space = gym.spaces.Discrete(3)
 
         self.bricks = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
         self.paddle_pos = None
@@ -280,29 +284,26 @@ class Breakout(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
+        def draw_tile(row, col, color):
+            pos = (col * self.tile_size[0], row * self.tile_size[1])
+            rect = pygame.Rect(pos, self.tile_size)
+            pygame.draw.rect(self.window_surface, color, rect)
+
         # Draw bricks
         for x in range(1, self.brick_rows + 1):
             for y in range(self.n_cols):
                 if self.bricks[x, y]:
-                    pos = (y * self.tile_size[0], x * self.tile_size[1])
-                    rect = pygame.Rect(pos, self.tile_size)
-                    pygame.draw.rect(self.window_surface, GRAY, rect)
+                    draw_tile(x, y, GRAY)
 
         # Draw paddle
-        pos = (self.paddle_pos[1] * self.tile_size[0], self.paddle_pos[0] * self.tile_size[1])
-        rect = pygame.Rect(pos, self.tile_size)
-        pygame.draw.rect(self.window_surface, GREEN, rect)
+        draw_tile(self.paddle_pos[0], self.paddle_pos[1], GREEN)
 
         # Draw ball
-        pos = (self.ball_pos[1] * self.tile_size[0], self.ball_pos[0] * self.tile_size[1])
-        rect = pygame.Rect(pos, self.tile_size)
-        pygame.draw.rect(self.window_surface, RED, rect)
+        draw_tile(self.ball_pos[0], self.ball_pos[1], RED)
 
         # Draw trail
         for trail in self.last_ball_pos:
-            pos = (trail[1] * self.tile_size[0], trail[0] * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            pygame.draw.rect(self.window_surface, PINK, rect)
+            draw_tile(trail[0], trail[1], PALE_RED)
 
         if mode == "human":
             pygame.event.pump()
