@@ -19,12 +19,6 @@ BLUE = (0, 0, 255)
 CYAN = (0, 255, 255)
 
 # add ramp difficulty
-# randomize colors
-# this is different from minatar: there enemies have slower speeds (for example, a enemy can take
-# 2 frames to move) and it's much easier. It uses different shades of color to denote spees
-
- # +1 because first row is always empty
-
 
 class Asterix(gym.Env):
     metadata = {
@@ -35,39 +29,27 @@ class Asterix(gym.Env):
     def __init__(
         self,
         render_mode: Optional[str] = None,
-        size: tuple = (8, 8),
-        max_speed: int = None,
-        spawn_time: int = 3,
+        size: tuple = (10, 10),
         **kwargs,
     ):
-        assert spawn_time > 0, f"spawn time must be positive (received {spawn_time})"
-        self.spawn_time = spawn_time
-
         self.n_rows, self.n_cols = size
-        if max_speed is None:
-            max_speed = self.n_cols // 2
-        self.max_speed = max_speed
-
-        # ensure the game is winnable
-        assert (
-            self.max_speed <= self.n_cols // 2
-        ), f"max speed ({max_speed}) higher than half board width ({self.n_cols})"
-
-        self.board = None
-        self.entry_cols = None  # stores location of enemies / treasures
-        self.is_treasure = None  # is_treasure[i] = True if entry_cols[i] is a treasure (False if enemy)
-        self.player_id = max_speed + 1
+        self.difficulty_timer = 0
+        self.difficulty_increase_steps = 100
+        self.cooldown = 3
+        self.max_entity_speed = 2
+        self.entities = None
         self.player_row = None
         self.player_col = None
-        self.cooldowns = None
+        self.player_row_old = None
+        self.player_col_old = None
 
-        self.action_space = gym.spaces.Discrete(5)
+        # First channel for player pos
+        # Second channel for enemies pos and trail (-1 moving left, 1 moving right)
+        # Third channel for treasures pos and trail (-1 moving left, 1 moving right)
         self.observation_space = gym.spaces.Box(
-            -max_speed,
-            max_speed + 1,  # +1 for the player ID
-            (self.n_rows, self.n_cols),
-            dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
         )
+        self.action_space = gym.spaces.Discrete(5)
 
         self.render_mode = render_mode
         self.window_surface = None
@@ -81,27 +63,45 @@ class Asterix(gym.Env):
             self.window_size[1] // self.n_rows,
         )  # fmt: skip
 
+    def get_state(self):
+        board = np.zeros((self.n_rows, self.n_cols, 3), dtype=np.int64)
+        board[self.player_row, self.player_col, 0] = 1
+        for entity in self.entities:
+            row, col, speed, dir, is_tres, timer, cooldown = entity
+            if speed <= 0:
+                if timer != speed:
+                    speed = 0
+                else:
+                    speed = 1
+            for step in range(speed + 1):
+                if not 0 <= col + step * dir < self.n_cols:
+                    break
+                board[row, col + step * dir, 2 if is_tres else 1] = dir
+        return board
+
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
         self.last_action = None
-        self.board = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
 
+        self.difficulty_timer = 0
         self.player_row = self.n_rows - 1
         self.player_col = self.n_cols // 2
-        self.board[self.player_row, self.player_col] = self.player_id
+        self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
-        # First and last row are always empty
-        self.cooldowns = np.full((self.n_rows - 2,), -1, dtype=np.int64)
-        self.entry_cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        self.is_treasure = self.np_random.random(self.n_rows - 2) < 0.5
-        for i, entry_col in enumerate(self.entry_cols):
-            speed = self.np_random.integers(1, self.max_speed + 1)
-            direction = np.sign(float(i >= self.n_rows // 2) - 0.5).astype(np.int64)
-            self.board[i + 1, entry_col] = direction * speed
+        # Entries (treasures and enemies) are denoted by (row, col, speed, direction, is_treasure, timer, cooldown)
+        # Timer is for entries with negative speed (they move slower than the player),
+        # Cooldown is for respawing
+        # First and last row of the board are empty
+        cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
+        speeds = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1, self.n_rows - 2)
+        dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
+        rows = np.arange(1, self.n_rows - 1)
+        is_tres = self.np_random.random(self.n_rows - 2) < 1.0 / 3.0
+        self.entities = [[r, c, s, d, i, 0, -1] for r, c, s, d, i in zip(rows, cols, speeds, dirs, is_tres)]
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
-        return self.board.copy(), {}
+        return self.get_state(), {}
 
     def move(self, a):
         if a == LEFT:
@@ -117,79 +117,94 @@ class Asterix(gym.Env):
         else:
             raise ValueError("illegal action")
 
-    def despawn(self, i):
-        self.cooldowns[i] = self.spawn_time
-        self.entry_cols[i] = -1
+    def despawn(self, entity):
+        entity[1] = -1
+        entity[6] = self.cooldown
 
-    def spawn(self, i):
-        speed = self.np_random.integers(1, self.max_speed + 1)
+    def respawn(self, entity):
+        speed = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1)
         if self.np_random.random() < 0.5:
             col = 0
-            direction = 1
+            dir = 1
         else:
             col = self.n_cols - 1
-            direction = -1
-        self.cooldowns[i] = -1
-        self.entry_cols[i] = col
-        self.is_treasure[i] = self.np_random.random() < 1.0 / 3.0
-        self.board[i + 1, col] = speed * direction
+            dir = -1
+        is_tres = self.np_random.random() < 1.0 / 3.0
+        entity[1] = col
+        entity[2] = speed
+        entity[3] = dir
+        entity[4] = is_tres
+        entity[5] = 0
+        entity[6] = self.cooldown
 
-    def check_collision(self, entry_idx, col):
-        hit_car, hit_treasure = False, False
-        if [entry_idx + 1, col] == [self.player_row, self.player_col]:
-            if not self.is_treasure[entry_idx]:  # enemy sends player back to beginning
-                self.player_row = self.n_rows - 1
-                hit_car = True
-            else:
-                hit_treasure = True
-                self.despawn(entry_idx)
-        return hit_car, hit_treasure
+    def collision(self, row, col, action):
+        # Must check horizontal movement, otherwise the player may "step over"
+        # an entity and collision won't be detected
+        return (
+            ([row, col] == [self.player_row, self.player_col]) or
+            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
+        )
 
     def step(self, action: int):
         reward = 0.0
         terminated = False
         self.last_action = action
 
-        # Move the player but don't update the board yet
+        self.difficulty_timer += 1
+        if self.difficulty_timer == self.difficulty_increase_steps:
+            self.difficulty_timer = 0
+            self.max_entity_speed += 1
+            self.cooldown -= 1
+
+        # Move player
+        self.player_row_old, self.player_col_old = self.player_row, self.player_col
         self.move(action)
 
         # Move enemies and treasures
-        for i in range(len(self.entry_cols)):
-            # Check cooldown and spawn
-            if self.cooldowns[i] > 0:  # still cooling down
-                self.cooldowns[i] -= 1
-                continue
-            elif self.cooldowns[i] == 0:
-                self.cooldowns[i] = -1
-                self.spawn(i)
-                hit_car, hit_treasure = self.check_collision(i, self.entry_cols[i])
-                if hit_treasure:  # if the player is where an entry spawns, it may die or get the reward
-                    reward = 1.0
-                continue  # after spawn, do not move immediately
+        for entity in self.entities:
+            row, col, speed, dir, is_tres, timer, cooldown = entity
 
-            # Move one step at the time
-            entry_col = self.entry_cols[i]
-            speed = self.board[i + 1, entry_col]
-            direction = np.sign(speed).astype(np.int64)
-            for entry_step in range(abs(speed)):
-                self.board[i + 1, entry_col] = 0  # remove entry from current position
-                entry_col = (entry_col + direction)
-                if not (0 <= entry_col < self.n_cols):  # moving out of bounds
-                    self.despawn(i)
+            # Check if the entity is out of bounds, and if so check if it's time to respawn
+            if col == -1:
+                cooldown -= 1
+                entity[6] = cooldown
+                if cooldown > 0:
+                    continue
+                else:
+                    self.respawn(entity)
+                    continue
+
+            # If the speed is negative, check if the entity has waited enough before moving it
+            if speed <= 0:
+                if timer != speed:
+                    entity[5] -= 1
+                    continue
+                else:
+                    entity[5] = 0
+                    speed = 1
+
+            # Finally move the entity
+            for step in range(speed):
+                col += dir
+                entity[1] = col
+                if not 0 <= col < self.n_cols:
+                    self.despawn(entity)
                     break
-                hit_car, hit_treasure = self.check_collision(i, entry_col)
-                if hit_treasure:  # if the player is where an entry spawns, it may die or get the reward
-                    reward = 1.0
-                    break  # check_collision() already despawn treasures
-                self.entry_cols[i] = entry_col
-                self.board[i + 1, entry_col] = speed  # place entry back on board
-
-        # Finally, place the player back on the board
-        self.board[self.player_row, self.player_col] = self.player_id
+                if self.collision(row, col, action):
+                    if is_tres:
+                        self.despawn(entity)
+                        reward = 1.0
+                        break
+                    else:
+                        self.player_row = self.n_rows - 1
+                        terminated = True
+                        self.max_entity_speed = 1
+                        self.reset()
+                        break
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
-        return self.board.copy(), reward, terminated, False, {}
+        return self.get_state(), reward, terminated, False, {}
 
     def render(self):
         if self.render_mode is None:
@@ -215,7 +230,7 @@ class Asterix(gym.Env):
             pygame.init()
             if mode == "human":
                 pygame.display.init()
-                pygame.display.set_caption("NewFreeway")
+                pygame.display.set_caption(self.unwrapped.spec.id)
                 self.window_surface = pygame.display.set_mode(self.window_size)
             elif mode == "rgb_array":
                 self.window_surface = pygame.Surface(self.window_size)
@@ -225,27 +240,32 @@ class Asterix(gym.Env):
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
+        state = self.get_state()
+
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        # Draw enemies/treasures and their trail
-        for i in range(len(self.entry_cols)):
-            entry_col = self.entry_cols[i]
-            speed = self.board[i + 1, entry_col]
-            direction = np.sign(speed).astype(np.int64)
-
-            pos = (entry_col * self.tile_size[0], (i + 1) * self.tile_size[1])
+        # Draw entities and their trail
+        for entity in self.entities:
+            row, col, speed, dir, is_tres, timer, cooldown = entity
+            if col == -1:
+                continue
+            pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
-            color = BLUE if self.is_treasure[i] else RED
-            pygame.draw.rect(self.window_surface, color, rect)
-
-            for entry_step in range(abs(speed)):
-                entry_col = (entry_col - direction) % self.n_cols  # move backward to track trail
-                pos = (entry_col * self.tile_size[0], (i + 1) * self.tile_size[1])
+            pygame.draw.rect(self.window_surface, BLUE if is_tres else RED, rect)
+            if speed <= 0:
+                if timer != speed:
+                    continue
+                else:
+                    speed = 1
+            for step in range(max(0, speed)):
+                col -= dir
+                if not 0 <= col < self.n_cols:
+                    continue
+                pos = (col * self.tile_size[0], row * self.tile_size[1])
                 rect = pygame.Rect(pos, self.tile_size)
-                color = CYAN if self.is_treasure[i] else PINK
-                pygame.draw.rect(self.window_surface, color, rect)
+                pygame.draw.rect(self.window_surface, CYAN if is_tres else PINK, rect)
 
         # Draw player
         pos = (

@@ -345,7 +345,7 @@ class Seaquest(gym.Env):
             pygame.init()
             if mode == "human":
                 pygame.display.init()
-                pygame.display.set_caption("Seaquest")
+                pygame.display.set_caption(self.unwrapped.spec.id)
                 self.window_surface = pygame.display.set_mode(self.window_size)
             elif mode == "rgb_array":
                 self.window_surface = pygame.Surface(self.window_size)

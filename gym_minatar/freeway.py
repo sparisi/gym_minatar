@@ -33,13 +33,17 @@ class Freeway(gym.Env):
 
         self.max_car_speed = 1
         self.cars = None
-        self.chicken_row = None
-        self.chicken_col = None
+        self.player_row = None
+        self.player_col = None
+        self.player_row_old = None
+        self.player_col_old = None
 
-        self.action_space = gym.spaces.Discrete(5)
+        # First channel for player pos
+        # Second channel for cars pos and trail (-1 moving left, 1 moving right)
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 2), dtype=np.int64,
-        ) # obs[0] for chicken, obs[1] for cars (-1 going left, 1 going right)
+        )
+        self.action_space = gym.spaces.Discrete(5)
 
         self.render_mode = render_mode
         self.window_surface = None
@@ -57,11 +61,12 @@ class Freeway(gym.Env):
         super().reset(seed=seed, **kwargs)
         self.last_action = None
 
-        self.chicken_row = self.n_rows - 1
-        self.chicken_col = self.n_cols // 2
+        self.player_row = self.n_rows - 1
+        self.player_col = self.n_cols // 2
+        self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
         # A car is denoted by (row, col, speed, direction, timer)
-        # No car in first and last row
+        # No car in first and last row of the board
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
         speeds = self.np_random.integers(self.max_car_speed - 2, self.max_car_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
@@ -74,13 +79,13 @@ class Freeway(gym.Env):
 
     def move(self, a):
         if a == LEFT:
-            self.chicken_col = max(self.chicken_col - 1, 0)
+            self.player_col = max(self.player_col - 1, 0)
         elif a == DOWN:
-            self.chicken_row = min(self.chicken_row + 1, self.n_rows - 1)
+            self.player_row = min(self.player_row + 1, self.n_rows - 1)
         elif a == RIGHT:
-            self.chicken_col = min(self.chicken_col + 1, self.n_cols - 1)
+            self.player_col = min(self.player_col + 1, self.n_cols - 1)
         elif a == UP:
-            self.chicken_row = max(self.chicken_row - 1, 0)
+            self.player_row = max(self.player_row - 1, 0)
         elif a == NOP:
             pass
         else:
@@ -88,7 +93,7 @@ class Freeway(gym.Env):
 
     def get_state(self):
         board = np.zeros((self.n_rows, self.n_cols, 2), dtype=np.int64)
-        board[self.chicken_row, self.chicken_col, 0] = 1
+        board[self.player_row, self.player_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car
             if speed <= 0:
@@ -100,12 +105,21 @@ class Freeway(gym.Env):
                 board[row, (col + step * dir) % self.n_cols, 1] = dir
         return board
 
+    def collision(self, row, col, action):
+        # Must check horizontal movement, otherwise the player may "step over"
+        # an entity and collision won't be detected
+        return (
+            ([row, col] == [self.player_row, self.player_col]) or
+            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
+        )
+
     def step(self, action: int):
         reward = 0.0
         terminated = False
         self.last_action = action
 
-        # Move chicken
+        # Move player
+        self.player_row_old, self.player_col_old = self.player_row, self.player_col
         self.move(action)
 
         # Move cars
@@ -113,15 +127,15 @@ class Freeway(gym.Env):
             row, col, speed, dir, timer = car
             if speed <= 0:
                 if timer != speed:
-                    car[-1] -= 1
+                    car[4] -= 1
                     continue
                 else:
-                    car[-1] = 0
+                    car[4] = 0
                     speed = 1
             for step in range(speed):
-                col = (col + dir) % self.n_cols  # move car
-                if [row, col] == [self.chicken_row, self.chicken_col]:
-                    self.chicken_row = self.n_rows - 1  # send chicken back to beginning
+                col = (col + dir) % self.n_cols
+                if self.collision(row, col, action):
+                    self.player_row = self.n_rows - 1
                     terminated = True
                     self.max_car_speed = 1
                     self.reset()
@@ -129,7 +143,7 @@ class Freeway(gym.Env):
             car[1] = col
 
         # Win
-        if self.chicken_row == 0:
+        if self.player_row == 0:
             reward = 1.0
             self.max_car_speed += 1
             self.reset()
@@ -163,7 +177,7 @@ class Freeway(gym.Env):
             pygame.init()
             if mode == "human":
                 pygame.display.init()
-                pygame.display.set_caption("NewFreeway")
+                pygame.display.set_caption(self.unwrapped.spec.id)
                 self.window_surface = pygame.display.set_mode(self.window_size)
             elif mode == "rgb_array":
                 self.window_surface = pygame.Surface(self.window_size)
@@ -194,10 +208,10 @@ class Freeway(gym.Env):
                 rect = pygame.Rect(pos, self.tile_size)#.scale_by(1.0 - (step + 1) / self.max_car_speed)
                 pygame.draw.rect(self.window_surface, PINK, rect)
 
-        # Draw chicken
+        # Draw player
         pos = (
-            self.chicken_col * self.tile_size[0],
-            self.chicken_row * self.tile_size[1],
+            self.player_col * self.tile_size[0],
+            self.player_row * self.tile_size[1],
         )
         rect = pygame.Rect(pos, self.tile_size)
         pygame.draw.rect(self.window_surface, GREEN, rect)
