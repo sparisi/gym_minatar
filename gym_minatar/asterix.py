@@ -270,7 +270,7 @@ class Asterix(gym.Env):
             for step in range(max(0, speed)):
                 col -= dir
                 if not 0 <= col < self.n_cols:
-                    continue
+                    break
                 draw_tile(row, col, CYAN if is_tres else PALE_RED)
 
         # Draw player
