@@ -74,9 +74,9 @@ class Asterix(gym.Env):
                 else:
                     speed = 1
             for step in range(speed + 1):
-                if not 0 <= col + step * dir < self.n_cols:
+                if not 0 <= col - step * dir < self.n_cols:
                     break
-                state[row, col + step * dir, 2 if is_tres else 1] = dir
+                state[row, col - step * dir, 2 if is_tres else 1] = dir
         return state
 
     def reset(self, seed: int = None, **kwargs):
