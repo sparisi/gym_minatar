@@ -10,8 +10,8 @@ LEFT = 1
 RIGHT = 2
 
 # color IDs
-RED = (255, 0, 0)
-PALE_RED = (255, 155, 155)
+BLUE = (0, 0, 255)
+CYAN = (0, 255, 255)
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -55,6 +55,7 @@ class Breakout(gym.Env):
         self.last_ball_pos = []
         self.ball_dir = None
         self.last_action = None
+        self.contact_pos = None  # Used to store ball contact with brick or paddle
 
         # These two variable control the ball speed: when ball_timesteps == ball_delay,
         # the ball moves. A delay of 3 means that the paddle moves x4 times
@@ -83,6 +84,8 @@ class Breakout(gym.Env):
         state[..., 0] = self.bricks
         state[self.paddle_pos[0], self.paddle_pos[1], 1] = 1
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
+        if self.contact_pos is not None:
+            state[self.contact_pos[0], self.contact_pos[1], 2] = self.ball_dir[0]
         for ball_pos in self.last_ball_pos:
             state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0]
         return state
@@ -116,6 +119,7 @@ class Breakout(gym.Env):
         self.bricks[1 : self.brick_rows + 1, :] = 1
         self.last_action = None
         self.last_ball_pos = []
+        self.contact_pos = None
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -128,6 +132,7 @@ class Breakout(gym.Env):
         return obs, reward, terminated, truncated, info
 
     def _step(self, action: int):
+        self.contact_pos = None
         self.last_action = action
         terminated = False
         reward = 0.0
@@ -200,15 +205,18 @@ class Breakout(gym.Env):
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     game_over = False
+                    self.contact_pos = front_pos
                 elif diag_pos == self.paddle_pos:  # Bounce back (diagonally)
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     self.ball_dir[1] *= -1
                     game_over = False
+                    self.contact_pos = diag_pos
                 elif side_pos == self.paddle_pos:  # Keep down direction and side bounce
                     new_ball_pos = self.ball_pos
                     self.ball_dir[1] *= -1
                     game_over = True  # Hitting the paddle from the side does not save the ball
+                    self.contact_pos = side_pos
                 if game_over:
                     terminated = True
                     self.level_one()
@@ -222,17 +230,20 @@ class Breakout(gym.Env):
                     self.bricks[front_pos[0], front_pos[1]] = 0
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
+                    self.contact_pos = front_pos
                 elif self.bricks[diag_pos[0], diag_pos[1]]:
                     reward = 1.0
                     self.bricks[diag_pos[0], diag_pos[1]] = 0
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     self.ball_dir[1] *= -1
+                    self.contact_pos = diag_pos
                 elif self.bricks[side_pos[0], side_pos[1]]:
                     reward = 1.0
                     self.bricks[side_pos[0], side_pos[1]] = 0
                     new_ball_pos = self.ball_pos
                     self.ball_dir[1] *= -1
+                    self.contact_pos = side_pos
 
             self.ball_pos = new_ball_pos
             if self.bricks.sum() == 0:
@@ -278,6 +289,7 @@ class Breakout(gym.Env):
 
         if self.clock is None:
             self.clock = pygame.time.Clock()
+        state = self.get_state()
 
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
@@ -294,15 +306,19 @@ class Breakout(gym.Env):
                 if self.bricks[x, y]:
                     draw_tile(x, y, GRAY)
 
-        # Draw paddle
-        draw_tile(self.paddle_pos[0], self.paddle_pos[1], GREEN)
-
-        # Draw ball
-        draw_tile(self.ball_pos[0], self.ball_pos[1], RED)
-
         # Draw trail
         for trail in self.last_ball_pos:
-            draw_tile(trail[0], trail[1], PALE_RED)
+            draw_tile(trail[0], trail[1], CYAN)
+
+        # Draw ball
+        draw_tile(self.ball_pos[0], self.ball_pos[1], BLUE)
+
+        # Draw trail if there was a collision
+        if self.contact_pos is not None:
+            draw_tile(self.contact_pos[0], self.contact_pos[1], CYAN)
+
+        # Draw paddle
+        draw_tile(self.paddle_pos[0], self.paddle_pos[1], GREEN)
 
         if mode == "human":
             pygame.event.pump()
