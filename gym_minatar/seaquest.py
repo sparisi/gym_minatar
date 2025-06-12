@@ -11,21 +11,30 @@ UP = 3
 DOWN = 4
 SHOOT = 5
 
+# Entity IDs
+FISH = 1
+SUBMARINE = 2
+DIVER = 3
+
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)  # surface
-RED = (255, 0, 0)  # submarines
-PINK = (255, 155, 155)  # submarines trail
-YELLOW = (255, 255, 0)  # submarines bullet
+RED = (255, 0, 0)  # submarine
+PALE_RED = (255, 155, 155)  # submarine trail
+YELLOW = (255, 255, 0)  # submarine bullet
 PURPLE = (102, 51, 153)
 PALE_PURPLE = (200, 155, 255)  # fish trail
-BLUE = (0, 0, 255)  # divers
-CYAN = (0, 255, 255)  # divers trail
-PALE_CYAN = (200, 255, 255)  # divers bar
+BLUE = (0, 0, 255)  # diver
+CYAN = (0, 255, 255)  # diver trail
+PALE_CYAN = (200, 255, 255)  # diver bar
 GREEN = (0, 255, 0)  # player front
-DARK_GREEN = (0, 155, 0)  # player back
-PALE_GREEN = (200, 255, 200)  # player oxygen
+PALE_GREEN = (200, 255, 200)  # player back
 WHITE = (255, 255, 255)  # player bullet
+# PALE_GRAY = (235, 235, 235)  # player bullet trail
+PALE_YELLOW = (255, 255, 200)  # player oxygen
 
+# Bullets don't have a trail because their direction can be inferred from the
+# submarine / player position. Bullets travel faster than the entity that shot them,
+# so a bullet to the left of the agent can only be going left.
 
 class Seaquest(gym.Env):
     metadata = {
@@ -39,42 +48,42 @@ class Seaquest(gym.Env):
         size: tuple = (10, 10),
         **kwargs,
     ):
+        # Last row is for oxygen and divers bar, first row is the surface
         self.n_rows, self.n_cols = size
-        self.n_rows += 2  # 2 bottom rows are for oxygen and divers carried
+        assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
+        assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
+        self.n_rows += 2
 
-        self.player_dir = None
+        self.n_rows, self.n_cols = size
+        self.difficulty_timer = 0
+        self.difficulty_increase_steps = 100
+        self.spawn_cooldown = 3
+        self.max_entity_speed = 1
+        self.entities = None
         self.player_row = None
         self.player_col = None
-        self.cooldowns = None
-
-        # Lists of [row, col, direction, bullet_col] (bullets only for submarines)
-        self.bullets = []  # shot by the player
-        self.fishes = []  # do not shoot
-        self.submarines = []  # shoot
-        self.divers = []  # can be picked
-
-        self.enemy_speed = 1  # fish and submarines
-        self.enemy_speed_start = 1
-        self.diver_speed = 1
-
+        self.player_dir = None
+        self.player_row_old = None
+        self.player_col_old = None
+        self.player_bullets = None
+        self.shoot_cooldown = 3
+        self.shoot_timer = 0
         self.oxygen_max = 10
-        self.oxygen_decay = 10  # number of steps before oxygen goes down by 1
-        self.shoot_cooldown_max = 5
+        self.oxygen_decay = 10  # Number of steps before oxygen goes down by 1
         self.divers_carried_max = 6
-        self.spawn_cooldown = 5
-
-        self.oxygen = 0
+        self.oxygen = self.oxygen_max
         self.oxygen_counter = 0
-        self.shoot_cooldown = 0
         self.divers_carried = 0
-        self.cooldowns = []
 
-        self.action_space = gym.spaces.Discrete(6)
+        # First channel for oxygen and diver bars, player and its bullet.
+        # Second channel for fishes and their trail.
+        # Third channel for submarines and their trail.
+        # Fourth channel for divers and their trail.
+        # For moving entities, -1 means movement to the left, +1 to the right.
         self.observation_space = gym.spaces.Box(
-            0, 99,
-            (self.n_rows, self.n_cols),
-            dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
         )
+        self.action_space = gym.spaces.Discrete(6)
 
         self.render_mode = render_mode
         self.window_surface = None
@@ -88,40 +97,97 @@ class Seaquest(gym.Env):
             self.window_size[1] // self.n_rows,
         )
 
+    def get_state(self):
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state[self.player_row, self.player_col, 0] = self.player_dir
+        state[self.player_row, self.player_col - self.player_dir, 0] = self.player_dir
+        for bullet in self.player_bullets:
+            row, col, dir = bullet
+            state[row, col, 0] = dir
+        for entity in self.entities:
+            row, col, speed, dir, id, timer, cooldown, b_col = entity
+            if col is None:
+                continue
+            if speed <= 0:
+                if timer != speed:
+                    speed = 0
+                else:
+                    speed = 1
+            for step in range(speed + 1):
+                if not 0 <= col - step * dir < self.n_cols:
+                    break
+                state[row, col - step * dir, id] = dir
+            if b_col is not None and 0 <= b_col < self.n_cols:
+                state[row, b_col, id] = dir
+        return state
+
+    def level_one(self):
+        self.difficulty_timer = 0
+        self.max_entity_speed = 1
+        self.cooldown = 3
+
+    def level_up(self):
+        self.difficulty_timer = 0
+        self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
+        self.cooldown = max(self.cooldown - 1, 0)
+
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
         self.last_action = None
 
-        self.player_row = self.n_rows - 2  # last row is for oxygen and divers carried
+        self.shoot_timer = 0
+        self.player_bullets = []  # Dynamic list because there can be many bullets on the board
+        self.player_row = self.n_rows - 2
         self.player_dir = 1 if self.np_random.random() < 0.5 else -1
-        if self.player_dir == 1:  # facing right
-            self.player_col = self.np_random.integers(self.n_cols - 1)
-        else:  # facing left
+        if self.player_dir == 1:  # Facing right
             self.player_col = self.np_random.integers(1, self.n_cols)
+        else:  # Facing left
+            self.player_col = self.np_random.integers(0, self.n_cols - 1)
+        self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
-        # Start with empty board and random spawns (last row is for oxygen and divers carried, first row for surface)
-        self.cooldowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
-        self.bullets = []  # shot by the player
-        self.fishes = []  # do not shoot
-        self.submarines = []  # shoot
-        self.divers = []  # can be picked
-        self.shoot_cooldown = 0
+        # Entries are denoted by (row, col, speed, direction, id, timer, cooldown, bullet_col).
+        # Timer is for entries with negative speed (they move slower than the player).
+        # Cooldown is for respawing.
+        # Bullet column is None except for submarines.
+        # First and last row of the board are empty.
+        # Board is empty at the beginning (col is None) with random cooldowns,
+        # so entries will spawn little by little.
+        speeds = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1, self.n_rows - 2)
+        dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
+        rows = np.arange(1, self.n_rows - 1)
+        ids = self.np_random.random(self.n_rows - 2)
+        ids = (ids[None] < np.array([0.25, 0.5, 1.0])[..., None]).sum(0)  # 50% fish, 25% submarines, 25% divers
+        cdowns = self.np_random.integers(self.spawn_cooldown - 2, self.spawn_cooldown + 1, self.n_rows - 2)
+        self.entities = [[r, None, s, d, i, 0, cd, None] for r, s, d, i, cd in zip(rows, speeds, dirs, ids, cdowns)]
+
         self.oxygen = self.oxygen_max
         self.oxygen_counter = 0
         self.divers_carried = 0
-        self.enemy_speed = self.enemy_speed_start
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
         return self.get_state(), {}
 
+    def shoot(self):
+        if self.shoot_timer > 0:
+            self.shoot_timer -= 1
+        if self.shoot_timer > 0:
+            return
+        self.shoot_timer = self.shoot_cooldown
+        col = self.player_col + self.player_dir
+        if not (0 <= col < self.n_cols):
+            return
+        if self.collision_with_entity(self.player_row_old, col):
+            return
+        self.player_bullets.append([self.player_row, col, self.player_dir])
+
     def move(self, a):
         if a == LEFT:
             self.player_col = max(self.player_col - 1, 0)
-            if self.player_dir == 1:  # turn
+            if self.player_dir == 1:  # Turn
                 self.player_dir = -1
         elif a == DOWN:
-            self.player_row = min(self.player_row + 1, self.n_rows - 2)  # last row is for oxygen and divers carried
+            self.player_row = min(self.player_row + 1, self.n_rows - 2)
         elif a == RIGHT:
             self.player_col = min(self.player_col + 1, self.n_cols - 1)
             if self.player_dir == -1:
@@ -133,55 +199,53 @@ class Seaquest(gym.Env):
         else:
             raise ValueError("illegal action")
 
-    def spawn(self, row):
+    def despawn(self, entity):
+        entity[1] = None
+        entity[6] = self.spawn_cooldown
+
+    def respawn(self, entity):
+        speed = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1)
         if self.np_random.random() < 0.5:
             col = 0
-            direction = 1
+            dir = 1
         else:
             col = self.n_cols - 1
-            direction = -1
-        if self.np_random.random() < 0.5:
-            self.fishes.append([row, col, direction])
-        elif self.np_random.random() < 0.75:
-            self.submarines.append([row, col, direction, None])
+            dir = -1
+        id = self.np_random.random()
+        if id < 0.5:
+            id = FISH
+        elif id < 0.75:
+            id = SUBMARINE
         else:
-            self.divers.append([row, col, direction])
-        self.cooldowns[row - 1] = self.n_cols + self.spawn_cooldown + 1  # first row is for surface
+            id = DIVER
+        entity[1] = col
+        entity[2] = speed
+        entity[3] = dir
+        entity[4] = id
+        entity[5] = 0
+        entity[6] = self.spawn_cooldown
+        entity[7] = None
 
-    def collision_player(self, row, col):
+    def collision_with_player(self, row, col, action):
+        # Must check horizontal movement, otherwise the player may "step over"
+        # an entity and collision won't be detected.
+        # No need to check for old direction (back of the player).
         return (
-            [row, col] == [self.player_row, self.player_col] or
-            [row, col] == [self.player_row, self.player_col - self.player_dir]
+            ([row, col] == [self.player_row, self.player_col]) or
+            ([row, col] == [self.player_row, self.player_col - self.player_dir]) or
+            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
         )
 
-    def collision_bullet(self, row, col):
-        for i in range(len(self.bullets)):
-            b_row, b_col, b_dir = self.bullets[i]
-            if [row, col] == [b_row, b_col]:
-                return i
-        return None
-
-    def ramp_difficulty(self):
-        return
-
-    def shooting(self, action):
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= 1
-        if self.shoot_cooldown > 0 or action != SHOOT:
-            return
-        b_col = self.player_col + self.player_dir
-        if not (0 <= b_col < self.n_rows):  # out of bound bullet
-            return
-        self.shoot_cooldown = self.shoot_cooldown_max
-        self.bullets.append([self.player_row, b_col, self.player_dir])
-
-    def get_state(self):
-        return np.zeros((self.n_rows, self.n_cols))
+    def collision_with_entity(self, row, col):
+        # Used for player bullets
+        for entity in self.entities:
+            # Divers are not hit by bullets
+            if [row, col] == [entity[0], entity[1]] and entity[4] != 3:
+                self.despawn(entity)
+                return True
+        return False
 
     def step(self, action: int):
-        if self.player_row == -1:  # game ended but not reset yet
-            return self.get_state(), -1.0, True, False, {}
-
         reward = 0.0
         terminated = False
         self.last_action = action
@@ -191,131 +255,123 @@ class Seaquest(gym.Env):
         if self.oxygen_counter == self.oxygen_decay:
             self.oxygen_counter = 0
             self.oxygen -= 1
-        if self.oxygen < 0:
+        if self.oxygen <= 0:
             terminated = True
+            self.level_one()
+            self.reset()
 
-        # Move player bullet (note: they don't collide with submarines bullets)
-        for i in range(len(self.bullets) - 1, -1, -1):
-            row, col, dir = self.bullets[i]
-            stop_moving = False
-            for j in range(2):  # player moves at speed 1, its bullet at twice speed
+        # Move player bullet
+        for i in range(len(self.player_bullets) - 1, -1, -1):
+            row, col, dir = self.player_bullets[i]
+            for step in range(2):  # Player bullet moves by 2 tiles
                 col += dir
-                self.bullets[i][1] = col
-                if not (0 <= col < self.n_cols):  # out of bounds
-                    self.bullets.pop(i)
+                if not 0 <= col < self.n_cols or self.collision_with_entity(row, col):
+                    self.player_bullets.pop(i)
                     break
-                for k in range(len(self.fishes) -1, -1, -1):
-                    enemy_row, enemy_col, enemy_dir = self.fishes[k]
-                    if [enemy_row, enemy_col] == [row, col]:
-                        self.fishes.pop(k)
-                        self.bullets.pop(i)
-                        stop_moving = True
+                self.player_bullets[i][1] = col
+
+        # Shoot or move
+        if action == SHOOT:
+            self.shoot()
+        else:
+            self.player_row_old, self.player_col_old = self.player_row, self.player_col
+            self.move(action)
+
+        # Difficulty increases every time the player emerges.
+        # Once out, the player can stay at the surface as long as it wants.
+        # But as soon as it submerges again, it must collect at least one diver
+        # or it will be game over.
+        if self.player_row == 0:
+            self.oxygen = self.oxygen_max
+            self.oxygen_counter = 0
+            if self.player_row_old != 0:
+                if self.divers_carried == 0:  # Game over
+                    terminated = True
+                    self.level_one()
+                    self.reset()
+                else:  # Level up
+                    self.level_up()
+                    if self.divers_carried == self.divers_carried_max:  # Big reward
+                        self.divers_carried = 0
+                        reward += self.oxygen
+                    else:
+                        self.divers_carried -= 1
+
+        # Move entities
+        for entity in self.entities:
+            row, col, speed, dir, id, timer, cooldown, b_col = entity
+
+            # Check if out of bounds, and if so check if it's time to respawn
+            if col == None:
+                cooldown -= 1
+                entity[6] = cooldown
+                if cooldown > 0:
+                    continue
+                else:
+                    self.respawn(entity)
+                    continue
+
+            # Submarines always shoot if they haven't (no cooldown).
+            # When they shoot, they don't move.
+            if b_col is None and id == SUBMARINE and 0 <= col + dir < self.n_cols:
+                entity[7] = col + dir
+                if self.collision_with_player(row, b_col, action):
+                    terminated = True
+                    self.level_one()
+                    self.reset()
+                    break
+                continue
+
+            # Move bullets (one tile faster than its submarine, and never at negative speed)
+            if b_col is not None:
+                for step in range(max(speed, 0) + 1):
+                    b_col += dir
+                    if not 0 <= b_col < self.n_cols:
+                        entity[7] = None
                         break
-                for k in range(len(self.submarines) - 1, -1, -1):
-                    enemy_row, enemy_col, enemy_dir, enemy_bullet_col = self.submarines[k]
-                    if [enemy_row, enemy_col] == [row, col]:
-                        self.submarines.pop(k)
-                        self.bullets.pop(i)
-                        stop_moving = True
+                    entity[7] = b_col
+                    if self.collision_with_player(row, b_col, action):
+                        terminated = True
+                        self.level_one()
+                        self.reset()
                         break
-                    elif [enemy_bullet_col, enemy_col] == [row, col]:
-                        # self.submarines[k][3] = None  # remove submarine bullet
-                        self.bullets.pop(i)
+
+            # If the speed is negative, check if the entity has waited enough before moving it
+            if speed <= 0:
+                if timer != speed:
+                    entity[5] -= 1
+                    continue
+                else:
+                    entity[5] = 0
+                    speed = 1
+
+            # Finally move the entity
+            stop_moving = False
+            for step in range(speed):
+                col += dir
+                entity[1] = col
+                if not 0 <= col < self.n_cols:
+                    self.despawn(entity)
+                    break
+                if self.collision_with_player(row, col, action):
+                    if id == DIVER:  # Divers are collected if the player has enough room
+                        if self.divers_carried < self.divers_carried_max:
+                            self.despawn(entity)
+                            self.divers_carried += 1
+                            break
+                    else:
+                        terminated = True
+                        self.level_one()
+                        self.reset()
+                        break
+                for i in range(len(self.player_bullets) - 1, -1, -1):
+                    if [self.player_bullets[i][0], self.player_bullets[i][1]] == [row, col] and id != DIVER:
+                        self.player_bullets.pop(i)
+                        self.despawn(entity)
                         stop_moving = True
                         break
                 if stop_moving:
                     break
-
-        # Move player or shoot
-        old_player_row = self.player_row
-        self.shooting(action)
-        self.move(action)
-
-        # At the surface
-        if self.player_row == 0:
-            if self.divers_carried == 0:
-                if old_player_row == 0:  # once out, the player can stay at the surface as long as it wants
-                    self.oxygen = self.oxygen_max
-                    self.oxygen_counter = 0
-                else:  # but if submerged, it cannot re-emerge without having collected at least one diver
-                    terminated = True
-            else:
-                if self.divers_carried == self.divers_carried_max:
-                    reward += self.oxygen
-                    self.divers_carried = 0
-                else:
-                    self.divers_carried -= 1
-                self.oxygen = self.oxygen_max
-                self.oxygen_counter = 0
-                self.ramp_difficulty()
-
-        # Move fishes
-        for i in range(len(self.fishes) - 1, -1, -1):
-            row, col, direction = self.fishes[i]
-            for j in range(self.enemy_speed):
-                col += direction
-                self.fishes[i][1] = col
-                if not (0 <= col < self.n_cols):  # out of bounds
-                    self.fishes.pop(i)
-                    self.cooldowns[row - 1] = self.spawn_cooldown
-                    break
-                if self.collision_player(row, col):
-                    terminated = True
-                bullet = self.collision_bullet(row, col)
-                if bullet is not None:
-                    reward += 1.0
-                    self.bullets.pop(bullet)
-                    self.fishes.pop(i)
-
-        # Move submarines and their bullets
-        for i in range(len(self.submarines) - 1, -1, -1):
-            row, col, direction, bullet_col = self.submarines[i]
-            if bullet_col is None:  # always shoot, unless their bullet is still on the board
-                self.submarines[i][3] = col + direction
-            else:
-                for j in range(self.enemy_speed):
-                    col += direction
-                    self.submarines[i][1] = col
-                    bullet_col += direction + self.enemy_speed * direction  # bullets move twice as fast
-                    self.submarines[i][3] = bullet_col
-                    if not (0 <= bullet_col < self.n_cols):  # out of bounds
-                        self.submarines[i][3] = None
-                    if not (0 <= col < self.n_cols):  # out of bounds
-                        self.submarines.pop(i)
-                        self.cooldowns[row - 1] = self.spawn_cooldown
-                        break
-                    if self.collision_player(row, col) or self.collision_player(row, bullet_col):
-                        terminated = True
-                    bullet = self.collision_bullet(row, col)  # collision with player bullet
-                    if bullet is not None:
-                        reward += 1.0
-                        self.bullets.pop(bullet)
-                        self.submarines.pop(i)
-
-        # Move divers
-        for i in range(len(self.divers) - 1, -1, -1):
-            row, col, direction = self.divers[i]
-            for j in range(self.diver_speed):
-                col += direction
-                self.divers[i][1] = col
-                if not (0 <= col < self.n_cols):  # out of bounds
-                    self.divers.pop(i)
-                    self.cooldowns[row - 1] = self.spawn_cooldown
-                    break
-                if self.collision_player(row, col):
-                    if self.divers_carried < self.divers_carried_max:
-                        self.divers_carried += 1
-                        self.divers.pop(i)
-
-        # Spawn enemies and divers
-        for i in range(len(self.cooldowns)):
-            if self.cooldowns[i] > 0:  # still cooling down
-                self.cooldowns[i] -= 1
-            else:
-                self.spawn(i + 1)
-
-        if terminated:
-            self.player_row = -1
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -355,6 +411,8 @@ class Seaquest(gym.Env):
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
+        state = self.get_state()
+
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
@@ -369,7 +427,7 @@ class Seaquest(gym.Env):
             (0, (self.n_rows - 1) * self.tile_size[1]),
             ((self.window_size[0] // 2) * percentage_full, self.tile_size[1]),
         )
-        pygame.draw.rect(self.window_surface, PALE_GREEN, rect)
+        pygame.draw.rect(self.window_surface, PALE_YELLOW, rect)
 
         # Draw divers bar
         percentage_full = self.divers_carried / self.divers_carried_max
@@ -384,34 +442,42 @@ class Seaquest(gym.Env):
             rect = pygame.Rect(pos, self.tile_size)
             pygame.draw.rect(self.window_surface, color, rect)
 
-        # Draw fishes
-        for i in range(len(self.fishes)):
-            row, col, direction = self.fishes[i]
-            draw_tile(row, col, PURPLE)
-            draw_tile(row, col - direction, PALE_PURPLE)
-
-        # Draw submarines
-        for i in range(len(self.submarines)):
-            row, col, direction, b_col = self.submarines[i]
-            draw_tile(row, col, RED)
-            draw_tile(row, col - direction, PINK)
+        # Draw entities and their trail
+        for entity in self.entities:
+            row, col, speed, dir, id, timer, cooldown, b_col = entity
             if b_col is not None:
                 draw_tile(row, b_col, YELLOW)
+            if col == None:
+                continue
+            if id == DIVER:
+                color = BLUE
+                color_trail = CYAN
+            elif id == SUBMARINE:
+                color = RED
+                color_trail = PALE_RED
+            else:
+                color = PURPLE
+                color_trail = PALE_PURPLE
+            draw_tile(row, col, color)
+            if speed <= 0:
+                if timer != speed:
+                    continue
+                else:
+                    speed = 1
+            for step in range(max(0, speed)):
+                col -= dir
+                if not 0 <= col < self.n_cols:
+                    break
+                draw_tile(row, col, color_trail)
 
-        # Draw divers
-        for i in range(len(self.divers)):
-            row, col, direction = self.divers[i]
-            draw_tile(row, col, BLUE)
-            draw_tile(row, col - direction, CYAN)
-
-        # Draw player's bullet
-        for i in range(len(self.bullets)):
-            row, col, direction = self.bullets[i]
+        # Draw player bullet
+        for i in range(len(self.player_bullets)):
+            row, col, dir = self.player_bullets[i]
             draw_tile(row, col, WHITE)
 
         # Draw player
         draw_tile(self.player_row, self.player_col, GREEN)
-        draw_tile(self.player_row, self.player_col - self.player_dir, DARK_GREEN)
+        draw_tile(self.player_row, self.player_col - self.player_dir, PALE_GREEN)
 
         if mode == "human":
             pygame.event.pump()
