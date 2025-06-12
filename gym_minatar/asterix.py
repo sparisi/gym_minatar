@@ -36,16 +36,17 @@ class Asterix(gym.Env):
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
         self.cooldown = 3
-        self.max_entity_speed = 2
+        self.max_entity_speed = 1
         self.entities = None
         self.player_row = None
         self.player_col = None
         self.player_row_old = None
         self.player_col_old = None
 
-        # First channel for player pos
-        # Second channel for enemies pos and trail (-1 moving left, 1 moving right)
-        # Third channel for treasures pos and trail (-1 moving left, 1 moving right)
+        # First channel for player position.
+        # Second channel for enemies position and their trail.
+        # Third channel for treasures position and their trail.
+        # For moving entities, -1 means movement to the left, +1 to the right.
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
         )
@@ -68,6 +69,8 @@ class Asterix(gym.Env):
         state[self.player_row, self.player_col, 0] = 1
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
+            if col is None:
+                break
             if speed <= 0:
                 if timer != speed:
                     speed = 0
@@ -88,10 +91,10 @@ class Asterix(gym.Env):
         self.player_col = self.n_cols // 2
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
-        # Entries (treasures and enemies) are denoted by (row, col, speed, direction, is_treasure, timer, cooldown)
-        # Timer is for entries with negative speed (they move slower than the player)
-        # Cooldown is for respawing
-        # First and last row of the board are empty
+        # Entries are denoted by (row, col, speed, direction, is_treasure, timer, cooldown).
+        # Timer is for entries with negative speed (they move slower than the player).
+        # Cooldown is for respawing.
+        # First and last row of the board are empty.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
         speeds = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
@@ -128,7 +131,7 @@ class Asterix(gym.Env):
         self.cooldown = max(self.cooldown - 1, 0)
 
     def despawn(self, entity):
-        entity[1] = -1
+        entity[1] = None
         entity[6] = self.cooldown
 
     def respawn(self, entity):
@@ -173,7 +176,7 @@ class Asterix(gym.Env):
             row, col, speed, dir, is_tres, timer, cooldown = entity
 
             # Check if the entity is out of bounds, and if so check if it's time to respawn
-            if col == -1:
+            if col == None:
                 cooldown -= 1
                 entity[6] = cooldown
                 if cooldown > 0:
@@ -259,7 +262,7 @@ class Asterix(gym.Env):
         # Draw entities and their trail
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
-            if col == -1:
+            if col == None:
                 continue
             draw_tile(row, col, BLUE if is_tres else RED)
             if speed <= 0:

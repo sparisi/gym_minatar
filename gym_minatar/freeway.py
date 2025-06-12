@@ -66,8 +66,8 @@ class Freeway(gym.Env):
         self.player_col = self.n_cols // 2
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
-        # A car is denoted by (row, col, speed, direction, timer)
-        # No car in first and last row of the board
+        # A car is denoted by (row, col, speed, direction, timer).
+        # No car in the first and last row of the board.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
         speeds = self.np_random.integers(self.max_car_speed - 2, self.max_car_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
@@ -211,7 +211,7 @@ class Freeway(gym.Env):
                 else:
                     speed = 1
             for step in range(max(0, speed)):
-                col = (col - dir) % self.n_cols  # backward for trail
+                col = (col - dir) % self.n_cols  # Backward for trail
                 draw_tile(row, col, PALE_RED)
 
         # Draw player

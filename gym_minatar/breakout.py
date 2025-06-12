@@ -3,13 +3,11 @@ import gymnasium as gym
 from gymnasium.error import DependencyNotInstalled
 from typing import Optional
 
-
-# action IDs
+# Action IDs
 NOP = 0
 LEFT = 1
 RIGHT = 2
 
-# color IDs
 BLUE = (0, 0, 255)
 CYAN = (0, 255, 255)
 GREEN = (0, 255, 0)
@@ -41,9 +39,9 @@ class Breakout(gym.Env):
             self.brick_rows + 3 < self.n_rows
         ), f"cannot fit {brick_rows} brick rows in a board with {self.n_rows} rows"
 
-        # First channel for bricks
-        # Second channel for paddle pos
-        # Third channel for ball and trail (-1 moving up, 1 moving down)
+        # First channel for bricks.
+        # Second channel for paddle position.
+        # Third channel for ball and its trail (-1 moving up, 1 moving down).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
         )
@@ -58,10 +56,10 @@ class Breakout(gym.Env):
         self.contact_pos = None  # Used to store ball contact with brick or paddle
 
         # These two variable control the ball speed: when ball_timesteps == ball_delay,
-        # the ball moves. A delay of 3 means that the paddle moves x4 times
+        # the ball moves. A delay of 1 means that the paddle moves x2 times
         # faster than the ball.
         # When difficulty increases, ball_delay decreases and can become negative.
-        # Negative delay means that the ball is now faster than the paddle.
+        # Negative delay means that the ball is faster than the paddle.
         self.ball_delay_levels = np.arange(levels - 1, -1, -1) - levels // 2
         self.level = 0
         self.ball_delay = self.ball_delay_levels[self.level]
@@ -159,7 +157,7 @@ class Breakout(gym.Env):
             ball_steps = abs(self.ball_delay) + 1
 
         def where_ball_is_going(position, direction):
-            front_pos = [  # vertical
+            front_pos = [  # Vertical
                 position[0] + direction[0],
                 position[1],
             ]
@@ -167,7 +165,7 @@ class Breakout(gym.Env):
                 position[0] + direction[0],
                 position[1] + direction[1],
             ]
-            side_pos = [  # horizontal
+            side_pos = [  # Horizontal
                 position[0],
                 position[1] + direction[1],
             ]
@@ -181,14 +179,13 @@ class Breakout(gym.Env):
                 self.ball_pos[1] + self.ball_dir[1],
             ]
 
-            # Collision with bricks cannot happen when collision with ceiling or
-            # floor happen
+            # Collision with bricks can't happen when collision with ceiling or floor happens
             check_for_bricks = True
 
             # Collision with side walls
             if new_ball_pos[1] < 0 or new_ball_pos[1] >= self.n_cols:
                 new_ball_pos[1] = min(max(new_ball_pos[1], 0), self.n_cols - 1)
-                self.ball_dir[1] *= -1  # bounce
+                self.ball_dir[1] *= -1  # Bounce
 
             # Collision with ceiling
             if new_ball_pos[0] < 0:
