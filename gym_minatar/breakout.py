@@ -92,7 +92,7 @@ class Breakout(gym.Env):
         self.reset()
 
     def level_up(self):
-        self.level = min(self.level + 1, len(self.ball_delay_levels - 1))
+        self.level = min(self.level + 1, len(self.ball_delay_levels) - 1)
         self.reset()
 
     def reset(self, seed: int = None, **kwargs):
@@ -243,7 +243,7 @@ class Breakout(gym.Env):
 
             self.ball_pos = new_ball_pos
             if self.bricks.sum() == 0:
-                if self.level == len(self.ball_delay_levels):
+                if self.level == len(self.ball_delay_levels) - 1:
                     terminated = True
                 else:
                     self.level_up()
