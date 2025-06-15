@@ -23,3 +23,9 @@ register(
     entry_point="gym_minatar.seaquest:Seaquest",
     max_episode_steps=10_000,
 )
+
+register(
+    id="Gym-MinAtar/SpaceInvaders-v1",
+    entry_point="gym_minatar.space_invaders:SpaceInvaders",
+    max_episode_steps=10_000,
+)
