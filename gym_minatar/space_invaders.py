@@ -15,6 +15,7 @@ GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)
+YELLOW = (255, 255, 0)  # submarine bullet
 
 
 class SpaceInvaders(gym.Env):
@@ -42,13 +43,14 @@ class SpaceInvaders(gym.Env):
 
         # First channel for player position.
         # Second channel for aliens (-1 moving left, 1 moving right).
-        # Third channel for bullets (-1 moving up, 1 moving down).
+        # Third channel for player bullets (-1, always moving up).
+        # Fourh channel for aliens bullets (1, always moving down).
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
         )
-        self.action_space = gym.spaces.Discrete(3)
+        self.action_space = gym.spaces.Discrete(4)
 
-        self.aliens = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
+        self.state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         self.aliens_dir = None
         self.leftmost_alien = None
         self.rightmost_alien = None
@@ -56,12 +58,14 @@ class SpaceInvaders(gym.Env):
         self.aliens_move_down = None
         self.player_pos = None
         self.last_action = None
+        self.player_shoot_cooldown = 3
+        self.player_shoot_timer = 0
 
         # These two variable control the ball speed: when aliens_timesteps == aliens_delay,
-        # the ball moves. A delay of 1 means that the player moves x2 times
-        # faster than the ball.
+        # the aliens move. A delay of 1 means that the player moves x2 times
+        # faster than the aliens.
         # When difficulty increases, aliens_delay decreases and can become negative.
-        # Negative delay means that the ball is faster than the player.
+        # Negative delay means that the aliens are faster than the player.
         self.aliens_delay_levels = np.arange(levels - 1, -1, -1) - levels // 2
         self.level = 0
         self.aliens_delay = self.aliens_delay_levels[self.level]
@@ -80,10 +84,7 @@ class SpaceInvaders(gym.Env):
         )  # fmt: skip
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
-        state[..., 1] = self.aliens
-        state[self.player_pos[0], self.player_pos[1], 1] = 1
-        return state
+        return self.state.copy()
 
     def level_one(self):
         self.level = 0
@@ -96,17 +97,21 @@ class SpaceInvaders(gym.Env):
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
 
+        self.shoot_timer = 0
+        self.state[:] = 0
+
         self.player_pos = [
             self.n_rows - 1,
             self.np_random.integers((self.n_cols)),
         ]
+        self.state[self.player_pos[0], self.player_pos[1], 0] = 1
+
         self.aliens_delay = self.aliens_delay_levels[self.level]
         self.aliens_timesteps = self.aliens_delay
-        self.aliens[:] = 0
         self.aliens_dir = 1 if self.np_random.random() < 0.5 else -1
-        self.aliens[1 : self.aliens_rows + 1, :] = self.aliens_dir
-        self.aliens[:, 0] = 0  # First and last column are empty
-        self.aliens[:, -1] = 0
+        self.state[1 : self.aliens_rows + 1, :, 1] = self.aliens_dir
+        self.state[:, 0, 1] = 0  # First and last column are empty
+        self.state[:, -1, 1] = 0
         self.leftmost_alien = 1
         self.rightmost_alien = self.n_cols - 2
         self.bottom_alien = self.aliens_rows
@@ -123,12 +128,24 @@ class SpaceInvaders(gym.Env):
             self.render()
         return obs, reward, terminated, truncated, info
 
+    def shoot(self):
+        if self.player_shoot_timer > 0:
+            return
+        self.player_shoot_timer = self.player_shoot_cooldown
+        # Row is the same as player's because the bullet will be moved up in the same turn
+        self.state[self.player_pos[0], self.player_pos[1], 2] = -1
+
     def _step(self, action: int):
         self.last_action = action
         terminated = False
         reward = 0.0
 
+        # Cooldown
+        if self.player_shoot_timer > 0:
+            self.player_shoot_timer -= 1
+
         # Move player
+        self.state[self.player_pos[0], self.player_pos[1], 0] = 0
         if action == NOP:
             pass
         elif action == LEFT:
@@ -136,9 +153,10 @@ class SpaceInvaders(gym.Env):
         elif action == RIGHT:
             self.player_pos[1] = min(self.player_pos[1] + 1, self.n_cols - 1)
         elif action == SHOT:
-            pass
+            self.shoot()
         else:
             raise ValueError("illegal action")
+        self.state[self.player_pos[0], self.player_pos[1], 0] = 1
 
         # Check if it's time to move the aliens
         if self.aliens_delay > 0:
@@ -151,24 +169,39 @@ class SpaceInvaders(gym.Env):
         else:
             aliens_steps = abs(self.aliens_delay) + 1
 
+        # Move aliens down/left/right
         for steps in range(aliens_steps):
             if self.aliens_move_down:
-                self.aliens = np.roll(self.aliens, 1, 0)  # Move down
+                self.state[..., 1] = np.roll(self.state[..., 1], 1, 0)
                 self.bottom_alien += 1
                 self.aliens_move_down = False
             else:
-                self.aliens = np.roll(self.aliens, self.aliens_dir, 1)
+                self.state[..., 1] = np.roll(self.state[..., 1], self.aliens_dir, 1)
                 self.leftmost_alien -= self.aliens_dir
                 self.rightmost_alien -= self.aliens_dir
                 if self.leftmost_alien == 0 or self.rightmost_alien == self.n_cols - 1:
+                    self.state[..., 1] *= -1
                     self.aliens_dir *= -1  # Change direction
                     self.aliens_move_down = True
 
-        # Win or game over
-        if self.aliens.sum() == 0:
+        # Move bullets
+        self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullet up
+        self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
+        self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Alien bullet down
+        self.state[0, :, 3] = 0  # Remove if rolled back to top
+
+        # Detect aliens hit by player bullets
+        alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
+        self.state[..., 1] *= (1 - alien_hits)
+        self.state[..., 2] *= (1 - alien_hits)
+
+        # Win or game over conditions
+        if self.state[self.player_pos[0], self.player_pos[1], 3] != 0:  # Player hit
+            terminated = True
+        elif self.state[..., 1].sum() == 0:  # All aliens destroyed
             terminated = True
             self.level_one()
-        elif self.bottom_alien == self.n_rows - 1:
+        elif self.bottom_alien == self.n_rows - 1:  # Aliens reached the bottom
             if self.level == len(self.aliens_delay_levels):
                 terminated = True
             else:
@@ -217,6 +250,9 @@ class SpaceInvaders(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
+        # for i in range(self.state.shape[-1]):
+        #     print(self.state[..., i])
+
         def draw_tile(row, col, color):
             pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
@@ -225,14 +261,16 @@ class SpaceInvaders(gym.Env):
         # Draw aliens
         for x in range(self.bottom_alien - self.aliens_rows + 1, self.bottom_alien + 1):
             for y in range(self.n_cols):
-                if self.aliens[x, y]:
+                if self.state[x, y, 1]:
                     draw_tile(x, y, RED if self.aliens_dir == 1 else PALE_RED)
 
-        # Draw alien bullets
-        # draw_tile(self.aliens_pos[0], self.aliens_pos[1], BLUE)
-
-        # Draw player bullets
-        # draw_tile(self.aliens_pos[0], self.aliens_pos[1], BLUE)
+        # Draw bullets (bullets that go past aliens are not drawn)
+        for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
+            for y in range(self.n_cols):
+                if self.state[x, y, 2] == 1:
+                    draw_tile(x, y, YELLOW)
+                elif self.state[x, y, 2] == -1:
+                    draw_tile(x, y, WHITE)
 
         # Draw player
         draw_tile(self.player_pos[0], self.player_pos[1], GREEN)
