@@ -170,8 +170,6 @@ class Seaquest(gym.Env):
 
     def shoot(self):
         if self.shoot_timer > 0:
-            self.shoot_timer -= 1
-        if self.shoot_timer > 0:
             return
         self.shoot_timer = self.shoot_cooldown
         col = self.player_col + self.player_dir
@@ -249,6 +247,10 @@ class Seaquest(gym.Env):
         reward = 0.0
         terminated = False
         self.last_action = action
+
+        # Cooldown
+        if self.shoot_timer > 0:
+            self.shoot_timer -= 1
 
         # Deplete oxygen
         self.oxygen_counter += 1
