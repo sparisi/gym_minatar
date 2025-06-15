@@ -51,7 +51,7 @@ class SpaceInvaders(gym.Env):
 
         self.state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         self.aliens_dir = None
-        self.bottom_alien = None
+        self.bottom_alien = None  # Keep track of how much the aliens moved down for faster rendering
         self.aliens_move_down = None
         self.player_pos = None
         self.last_action = None
@@ -60,7 +60,7 @@ class SpaceInvaders(gym.Env):
         self.alien_shoot_cooldown = 5
         self.alien_shoot_timer = 0
 
-        # These two variable control the ball speed: when aliens_timesteps == aliens_delay,
+        # These two variable control the aliens speed: when aliens_timesteps == aliens_delay,
         # the aliens move. A delay of 1 means that the player moves x2 times
         # faster than the aliens.
         # When difficulty increases, aliens_delay decreases and can become negative.
@@ -90,7 +90,7 @@ class SpaceInvaders(gym.Env):
         self.reset()
 
     def level_up(self):
-        self.level = min(self.level + 1, len(self.aliens_delay_levels - 1))
+        self.level = min(self.level + 1, len(self.aliens_delay_levels) - 1)
         self.reset()
 
     def reset(self, seed: int = None, **kwargs):
