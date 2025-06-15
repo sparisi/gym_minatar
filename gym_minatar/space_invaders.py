@@ -51,15 +51,13 @@ class SpaceInvaders(gym.Env):
 
         self.state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         self.aliens_dir = None
-        self.leftmost_alien = None
-        self.rightmost_alien = None
         self.bottom_alien = None
         self.aliens_move_down = None
         self.player_pos = None
         self.last_action = None
-        self.player_shoot_cooldown = 3
+        self.player_shoot_cooldown = 2
         self.player_shoot_timer = 0
-        self.alien_shoot_cooldown = 3
+        self.alien_shoot_cooldown = 5
         self.alien_shoot_timer = 0
 
         # These two variable control the ball speed: when aliens_timesteps == aliens_delay,
@@ -67,7 +65,7 @@ class SpaceInvaders(gym.Env):
         # faster than the aliens.
         # When difficulty increases, aliens_delay decreases and can become negative.
         # Negative delay means that the aliens are faster than the player.
-        self.aliens_delay_levels = np.arange(levels - 1, -1, -1) - levels // 2
+        self.aliens_delay_levels = np.arange(levels + 2, -1, -1) - levels // 2
         self.level = 0
         self.aliens_delay = self.aliens_delay_levels[self.level]
         self.aliens_timesteps = self.aliens_delay
@@ -114,8 +112,6 @@ class SpaceInvaders(gym.Env):
         self.state[1 : self.aliens_rows + 1, :, 1] = self.aliens_dir
         self.state[:, 0, 1] = 0  # First and last column are empty
         self.state[:, -1, 1] = 0
-        self.leftmost_alien = 1
-        self.rightmost_alien = self.n_cols - 2
         self.bottom_alien = self.aliens_rows
         self.aliens_move_down = False
         self.last_action = None
@@ -145,7 +141,6 @@ class SpaceInvaders(gym.Env):
         who_shoots = where_aliens[self.np_random.choice(where_aliens.shape[0])]
         # Row is the same as player's because the bullet will be moved up in the same turn
         self.state[who_shoots[0], who_shoots[1], 3] = 1
-        print(self.state[..., 3])
 
     def _step(self, action: int):
         self.last_action = action
@@ -178,7 +173,7 @@ class SpaceInvaders(gym.Env):
         if self.aliens_delay > 0:
             if self.aliens_timesteps != self.aliens_delay:
                 self.aliens_timesteps += 1
-                return self.get_state(), reward, terminated, False, {}
+                aliens_steps = 0
             else:
                 self.aliens_timesteps = 0
                 aliens_steps = 1
@@ -193,9 +188,10 @@ class SpaceInvaders(gym.Env):
                 self.aliens_move_down = False
             else:
                 self.state[..., 1] = np.roll(self.state[..., 1], self.aliens_dir, 1)
-                self.leftmost_alien -= self.aliens_dir
-                self.rightmost_alien -= self.aliens_dir
-                if self.leftmost_alien == 0 or self.rightmost_alien == self.n_cols - 1:
+                if (
+                    np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, 0, 1] != 0) or
+                    np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, -1, 1] != 0)
+                ):
                     self.state[..., 1] *= -1
                     self.aliens_dir *= -1  # Change direction
                     self.aliens_move_down = True
@@ -218,7 +214,7 @@ class SpaceInvaders(gym.Env):
         elif self.state[..., 1].sum() == 0:  # All aliens destroyed
             terminated = True
             self.level_one()
-        elif self.bottom_alien == self.n_rows - 1:  # Aliens reached the bottom
+        elif np.any(self.state[-1, :, 1] != 0):  # Aliens reached the bottom
             if self.level == len(self.aliens_delay_levels):
                 terminated = True
             else:
@@ -266,9 +262,6 @@ class SpaceInvaders(gym.Env):
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
-
-        # for i in range(self.state.shape[-1]):
-        #     print(self.state[..., i])
 
         def draw_tile(row, col, color):
             pos = (col * self.tile_size[0], row * self.tile_size[1])
