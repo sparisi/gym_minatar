@@ -8,12 +8,11 @@ NOP = 0
 LEFT = 1
 RIGHT = 2
 
-BLUE = (0, 0, 255)
-CYAN = (0, 255, 255)
-GREEN = (0, 255, 0)
-WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)  # ball
+CYAN = (0, 255, 255)  # ball trail
+GREEN = (0, 255, 0)  # player
 BLACK = (0, 0, 0)
-GRAY = (100, 100, 100)
+GRAY = (100, 100, 100)  # bricks
 
 
 class Breakout(gym.Env):

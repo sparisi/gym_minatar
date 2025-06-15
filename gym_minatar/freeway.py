@@ -10,11 +10,10 @@ RIGHT = 2
 UP = 3
 DOWN = 4
 
-RED = (255, 0, 0)
-PALE_RED = (255, 155, 155)
-GREEN = (0, 255, 0)
+RED = (255, 0, 0)  # cars
+PALE_RED = (255, 155, 155)  # car trails
+GREEN = (0, 255, 0)  # player
 BLACK = (0, 0, 0)
-GRAY = (100, 100, 100)
 
 
 class Freeway(gym.Env):

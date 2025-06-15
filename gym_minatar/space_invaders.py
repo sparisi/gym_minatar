@@ -9,13 +9,12 @@ LEFT = 1
 RIGHT = 2
 SHOT = 3
 
-RED = (255, 0, 0)  # submarine
-PALE_RED = (255, 155, 155)  # submarine trail
-GREEN = (0, 255, 0)
-WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRAY = (100, 100, 100)
-YELLOW = (255, 255, 0)  # submarine bullet
+RED = (255, 0, 0)  # aliens moving right
+PALE_RED = (255, 155, 155)  # aliens moving left
+GREEN = (0, 255, 0)  # player
+WHITE = (255, 255, 255)  # player bullet
+YELLOW = (255, 255, 0)  # alien bullet
 
 
 class SpaceInvaders(gym.Env):

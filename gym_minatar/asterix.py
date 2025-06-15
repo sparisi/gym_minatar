@@ -10,13 +10,12 @@ RIGHT = 2
 UP = 3
 DOWN = 4
 
-RED = (255, 0, 0)
-PALE_RED = (255, 155, 155)
-GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
-GRAY = (100, 100, 100)
-BLUE = (0, 0, 255)
-CYAN = (0, 255, 255)
+RED = (255, 0, 0)  # enemy
+PALE_RED = (255, 155, 155)  # enemy trail
+GREEN = (0, 255, 0)  # player
+BLUE = (0, 0, 255)  # treasure
+CYAN = (0, 255, 255)  # treasure trail
 
 class Asterix(gym.Env):
     metadata = {
