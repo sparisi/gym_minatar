@@ -60,6 +60,8 @@ class SpaceInvaders(gym.Env):
         self.last_action = None
         self.player_shoot_cooldown = 3
         self.player_shoot_timer = 0
+        self.alien_shoot_cooldown = 3
+        self.alien_shoot_timer = 0
 
         # These two variable control the ball speed: when aliens_timesteps == aliens_delay,
         # the aliens move. A delay of 1 means that the player moves x2 times
@@ -97,7 +99,8 @@ class SpaceInvaders(gym.Env):
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
 
-        self.shoot_timer = 0
+        self.player_shoot_timer = 0
+        self.alien_shoot_timer = 0
         self.state[:] = 0
 
         self.player_pos = [
@@ -128,12 +131,22 @@ class SpaceInvaders(gym.Env):
             self.render()
         return obs, reward, terminated, truncated, info
 
-    def shoot(self):
+    def player_shoot(self):
         if self.player_shoot_timer > 0:
             return
         self.player_shoot_timer = self.player_shoot_cooldown
         # Row is the same as player's because the bullet will be moved up in the same turn
         self.state[self.player_pos[0], self.player_pos[1], 2] = -1
+
+    def alien_shoot(self):
+        if self.alien_shoot_timer > 0:
+            return
+        self.alien_shoot_timer = self.alien_shoot_cooldown
+        where_aliens = np.argwhere(self.state[..., 1])
+        who_shoots = where_aliens[self.np_random.choice(where_aliens.shape[0])]
+        # Row is the same as player's because the bullet will be moved up in the same turn
+        self.state[who_shoots[0], who_shoots[1], 3] = 1
+        print(self.state[..., 3])
 
     def _step(self, action: int):
         self.last_action = action
@@ -143,6 +156,10 @@ class SpaceInvaders(gym.Env):
         # Cooldown
         if self.player_shoot_timer > 0:
             self.player_shoot_timer -= 1
+        if self.alien_shoot_timer > 0:
+            self.alien_shoot_timer -= 1
+        else:
+            self.alien_shoot()
 
         # Move player
         self.state[self.player_pos[0], self.player_pos[1], 0] = 0
@@ -153,7 +170,7 @@ class SpaceInvaders(gym.Env):
         elif action == RIGHT:
             self.player_pos[1] = min(self.player_pos[1] + 1, self.n_cols - 1)
         elif action == SHOT:
-            self.shoot()
+            self.player_shoot()
         else:
             raise ValueError("illegal action")
         self.state[self.player_pos[0], self.player_pos[1], 0] = 1
@@ -198,6 +215,7 @@ class SpaceInvaders(gym.Env):
         # Win or game over conditions
         if self.state[self.player_pos[0], self.player_pos[1], 3] != 0:  # Player hit
             terminated = True
+            self.level_one()
         elif self.state[..., 1].sum() == 0:  # All aliens destroyed
             terminated = True
             self.level_one()
@@ -267,7 +285,7 @@ class SpaceInvaders(gym.Env):
         # Draw bullets (bullets that go past aliens are not drawn)
         for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
             for y in range(self.n_cols):
-                if self.state[x, y, 2] == 1:
+                if self.state[x, y, 3] == 1:
                     draw_tile(x, y, YELLOW)
                 elif self.state[x, y, 2] == -1:
                     draw_tile(x, y, WHITE)
