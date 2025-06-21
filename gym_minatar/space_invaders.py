@@ -19,15 +19,17 @@ YELLOW = (255, 255, 0)  # alien bullet
 
 class SpaceInvaders(gym.Env):
     """
-    The player controls a ship at the bottom of the screen that must shoot down
-    waves of aliens.
+    The player controls a spaceship at the bottom of the screen that must shoot
+    down waves of aliens.
     - The player moves left/right and can shoot.
     - Aliens move horizontally and descend when they hit the screen left/right
       edges.
-        - Their speed increases as they descend: + 1 frame for every time they
+        - Their speed increases as they descend: + 1 level for every time they
           move down for as many times as the initial number of aliens rows.
           For example, if at the beginning there are 3 aliens rows, the speed
           increases by 1 after they reach row 6, then 9, ... and so on.
+        - Every level increases the speed by as many frames as the number of
+          initial alien rows.
         - At their fastest, the aliens move as fast as the player.
     - A random alien shoots whenever possible (there is a cooldown time
       shared by all aliens).
@@ -216,9 +218,21 @@ class SpaceInvaders(gym.Env):
         else:
             aliens_steps = abs(self.aliens_delay) + 1
 
+        bullets_moved = False
+        def move_bullets():
+            self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
+            self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
+            self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Aliens bullets down
+            self.state[0, :, 3] = 0  # Remove if rolled back to top
+
         # Move aliens down/left/right
         for steps in range(aliens_steps):
             if self.aliens_move_down:
+                # Move bullets before moving aliens down, or collision may not happen
+                if not bullets_moved:
+                    move_bullets()
+                    bullets_moved = True
+
                 self.state[..., 1] = np.roll(self.state[..., 1], 1, 0)
                 self.bottom_alien += 1
 
@@ -238,11 +252,9 @@ class SpaceInvaders(gym.Env):
                     self.aliens_dir *= -1  # Change direction
                     self.aliens_move_down = True
 
-        # Move bullets
-        self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
-        self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
-        self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Aliens bullets down
-        self.state[0, :, 3] = 0  # Remove if rolled back to top
+        # Move bullets only once per step
+        if not bullets_moved:
+            move_bullets()
 
         # Detect aliens hit by player bullets
         alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
