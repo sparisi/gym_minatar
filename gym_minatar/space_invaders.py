@@ -18,6 +18,31 @@ YELLOW = (255, 255, 0)  # alien bullet
 
 
 class SpaceInvaders(gym.Env):
+    """
+    The player controls a ship at the bottom of the screen that must shoot down
+    waves of aliens.
+    - The player moves left/right and can shoot.
+    - Aliens move horizontally and descend when they hit the screen left/right
+      edges.
+        - Their speed increases as they descend: + 1 frame for every time they
+          move down for as many times as the initial number of aliens rows.
+          For example, if at the beginning there are 3 aliens rows, the speed
+          increases by 1 after they reach row 6, then 9, ... and so on.
+        - At their fastest, the aliens move as fast as the player.
+    - A random alien shoots whenever possible (there is a cooldown time
+      shared by all aliens).
+      - Aliens bullet move as fast as the player, regardless of the aliens speed.
+    - The player also must wait before it can shoot again.
+    - The player receives a reward for destroying aliens with bullets.
+    - The game ends if an alien reaches the bottom or the player is hit.
+    - If the player destroys all aliens, the next level starts.
+    - Difficulty increases with levels, making aliens starting closer to the player.
+    - The observation space is a 3-channel grid:
+        - Channel 0: player position (1).
+        - Channel 1: aliens (-1 moving left, 1 moving right).
+        - Channel 2: bullets (-1 moving up, 1 moving down).
+    """
+
     metadata = {
         "render_modes": ["human", "rgb_array"],
         "render_fps": 30,
@@ -27,17 +52,20 @@ class SpaceInvaders(gym.Env):
         self,
         size: tuple = (10, 10),
         aliens_rows: int = 3,
-        levels: int = 3,
         render_mode: Optional[str] = None,
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
         self.aliens_rows = aliens_rows
 
-        assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
-        assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
-        assert (  # One empty row before and after the aliens, one row for the player
-            self.aliens_rows + 3 < self.n_rows
+        assert self.aliens_rows > 0, f"aliens rows must be positive (received {self.n_rows})"
+        # First two and last two columns must be empty at the beginning
+        assert self.n_cols > 4, f"board too small ({self.n_cols} columns, minimum is 5)"
+        # One row for the player, one for the aliens, one for moving aliens down once
+        assert self.n_rows > 2, f"board too small ({self.n_rows} rows, minimum is 3)"
+        # One empty row below the aliens, one row for the player
+        assert (
+            self.n_rows >= self.aliens_rows + 2
         ), f"cannot fit {aliens_rows} alien rows in a board with {self.n_rows} rows"
 
         # First channel for player position.
@@ -55,20 +83,24 @@ class SpaceInvaders(gym.Env):
         self.aliens_move_down = None
         self.player_pos = None
         self.last_action = None
-        self.player_shoot_cooldown = 2
+        self.player_shoot_cooldown = 3
         self.player_shoot_timer = 0
         self.alien_shoot_cooldown = 5
         self.alien_shoot_timer = 0
+        self.starting_row = 0  # Denotes the current level of the game
 
         # These two variable control the aliens speed: when aliens_timesteps == aliens_delay,
         # the aliens move. A delay of 1 means that the player moves x2 times
         # faster than the aliens.
-        # When difficulty increases, aliens_delay decreases and can become negative.
-        # Negative delay means that the aliens are faster than the player.
-        self.aliens_delay_levels = np.arange(levels + 2, -1, -1) - levels // 2
-        self.level = 0
-        self.aliens_delay = self.aliens_delay_levels[self.level]
-        self.aliens_timesteps = self.aliens_delay
+        # Speed increases as aliens move down (+1 for every aliens_rows down).
+        # One speed level corresponds to a delay equal to the number of initial alien rows.
+        # For example...
+        # Min delay is 0, that is aliens move as fast as the player.
+        self.aliens_delay_levels = np.arange(self.n_rows // self.aliens_rows - 1, -1, -1)
+        self.aliens_delay_levels *= self.aliens_rows
+        self.aliens_delay = self.aliens_delay_levels[0]
+        self.aliens_timesteps = 0
+        self.lowest_row_reached = self.bottom_alien
 
         self.render_mode = render_mode
         self.window_surface = None
@@ -86,15 +118,16 @@ class SpaceInvaders(gym.Env):
         return self.state.copy()
 
     def level_one(self):
-        self.level = 0
+        self.starting_row = 0
         self.reset()
 
     def level_up(self):
-        self.level = min(self.level + 1, len(self.aliens_delay_levels) - 1)
+        self.starting_row = min(self.starting_row + 1, self.n_rows - self.aliens_rows - 1)
         self.reset()
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
+        self.last_action = None
 
         self.player_shoot_timer = 0
         self.alien_shoot_timer = 0
@@ -106,15 +139,18 @@ class SpaceInvaders(gym.Env):
         ]
         self.state[self.player_pos[0], self.player_pos[1], 0] = 1
 
-        self.aliens_delay = self.aliens_delay_levels[self.level]
-        self.aliens_timesteps = self.aliens_delay
+        self.aliens_delay = self.aliens_delay_levels[0]
+        self.aliens_timesteps = 0
+
         self.aliens_dir = 1 if self.np_random.random() < 0.5 else -1
-        self.state[1 : self.aliens_rows + 1, :, 1] = self.aliens_dir
-        self.state[:, 0, 1] = 0  # First and last column are empty
+        self.state[self.starting_row : self.starting_row + self.aliens_rows, :, 1] = self.aliens_dir
+        self.state[:, 0, 1] = 0  # First two and last two columns are empty
+        self.state[:, 1, 1] = 0
+        self.state[:, -2, 1] = 0
         self.state[:, -1, 1] = 0
-        self.bottom_alien = self.aliens_rows
+        self.bottom_alien = self.starting_row + self.aliens_rows - 1
+        self.lowest_row_reached = self.bottom_alien
         self.aliens_move_down = False
-        self.last_action = None
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -171,7 +207,7 @@ class SpaceInvaders(gym.Env):
 
         # Check if it's time to move the aliens
         if self.aliens_delay > 0:
-            if self.aliens_timesteps != self.aliens_delay:
+            if self.aliens_timesteps < self.aliens_delay:
                 self.aliens_timesteps += 1
                 aliens_steps = 0
             else:
@@ -185,7 +221,13 @@ class SpaceInvaders(gym.Env):
             if self.aliens_move_down:
                 self.state[..., 1] = np.roll(self.state[..., 1], 1, 0)
                 self.bottom_alien += 1
+
+                # Make aliens faster, if they moved down enough
+                self.lowest_row_reached = max(self.bottom_alien, self.lowest_row_reached)
                 self.aliens_move_down = False
+                delay_level = (self.lowest_row_reached + self.aliens_rows) // self.aliens_rows - 2
+                delay_level = min(delay_level, len(self.aliens_delay_levels) - 1)  # Otherwise, error at bottom line (game over)
+                self.aliens_delay = self.aliens_delay_levels[delay_level]
             else:
                 self.state[..., 1] = np.roll(self.state[..., 1], self.aliens_dir, 1)
                 if (
@@ -197,9 +239,9 @@ class SpaceInvaders(gym.Env):
                     self.aliens_move_down = True
 
         # Move bullets
-        self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullet up
+        self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
         self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
-        self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Alien bullet down
+        self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Aliens bullets down
         self.state[0, :, 3] = 0  # Remove if rolled back to top
 
         # Detect aliens hit by player bullets
@@ -207,18 +249,20 @@ class SpaceInvaders(gym.Env):
         self.state[..., 1] *= (1 - alien_hits)
         self.state[..., 2] *= (1 - alien_hits)
 
+        alien_left_rows = np.nonzero(np.any(self.state[..., 1], axis=1))[0]
+        if len(alien_left_rows) > 0:
+            self.bottom_alien = alien_left_rows.max()
+        else:  # All aliens destroyed
+            self.bottom_alien = None
+            self.level_up()
+
         # Win or game over conditions
         if self.state[self.player_pos[0], self.player_pos[1], 3] != 0:  # Player hit
             terminated = True
             self.level_one()
-        elif self.state[..., 1].sum() == 0:  # All aliens destroyed
+        elif self.bottom_alien == self.player_pos[0]:  # Aliens reached the bottom
             terminated = True
             self.level_one()
-        elif np.any(self.state[-1, :, 1] != 0):  # Aliens reached the bottom
-            if self.level == len(self.aliens_delay_levels):
-                terminated = True
-            else:
-                self.level_up()
 
         return self.get_state(), reward, terminated, False, {}
 
