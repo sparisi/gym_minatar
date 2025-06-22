@@ -126,8 +126,8 @@ class Seaquest(gym.Env):
             "nop": 0,
             "left": 1,
             "right": 2,
-            "down": 3,
-            "up": 4,
+            "up": 3,
+            "down": 4,
             "shoot": 5,
         }
 

@@ -71,8 +71,8 @@ class Asterix(gym.Env):
             "nop": 0,
             "left": 1,
             "right": 2,
-            "down": 3,
-            "up": 4,
+            "up": 3,
+            "down": 4,
         }
 
         self.render_mode = render_mode
@@ -130,6 +130,7 @@ class Asterix(gym.Env):
         return self.get_state(), {}
 
     def move(self, a):
+        print(a)
         if a == LEFT:
             self.player_col = max(self.player_col - 1, 0)
         elif a == DOWN:

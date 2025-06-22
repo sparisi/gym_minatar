@@ -117,6 +117,6 @@ try:
 finally:
     # Cleanup in main thread
     if args.record:
-        imageio.mimsave(args.env + ".gif", frames, fps=30)
+        imageio.mimsave(args.env + ".gif", frames, fps=10)
     listener.stop()
     env.close()
