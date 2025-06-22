@@ -37,6 +37,45 @@ PALE_YELLOW = (255, 255, 200)  # player oxygen
 # so a bullet to the left of the agent can only be going left.
 
 class Seaquest(gym.Env):
+    """
+    The player controls a submarine that can move and shoot, collecting divers
+    and avoiding enemies.
+    - The player occupies two horizontal tiles and can move left/right/up/down.
+        - If the player is facing left (or right) and moves right (or left),
+          it turns around (front and back swap).
+    - The player can shoot in front of itself.
+        - Shooting has a cooldown.
+        - The bullet moves twice as fast as the player.
+        - Player bullets destroy enemies on collision, giving a reward to the player.
+    - Enemies and divers move at random speeds and leave a trail behind them
+      to infer their direction.
+    - Enemies can be fishes or submarines.
+        - Submarines shoot, fishes don't.
+        - As soon as their bullet leaves the screen, they shoot a new one.
+        - Their bullet moves 1 frames faster than them.
+        - Player and enemies bullets don't collide.
+        - If the player is hit by the enemies bullets, it dies.
+    - The player can collect divers (up to 6) on collision.
+    - The player has an oxygen reserve (bar at the bottom left) that depletes
+      over time. When it's empty, the game ends.
+    - The player can emerge by moving to the top.
+      - If the player is carrying 6 divers, it gets a reward proportional to the
+        amount of oxygen left.
+      - If the player is carrying at least 1 divers, its oxygen is fully restored.
+      - If the player is not carrying any divers, the game ends.
+      - The player can stay at the surface as long as it wants without depleting
+        oxygen.
+    - When the player submerges again, the difficulty level increases, making
+      enemies and divers move faster.
+    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
+      for information about the game entities:
+        - Channel 0: oxygen and diver bars (denoted by 1s at the bottom of the grid),
+          player position and bullets (-1 moving left, 1 moving right).
+        - Channel 1: fishes and their trails (-1 moving left, 1 moving right).
+        - Channel 2: submarines, bullets, and their trails (-1 moving left, 1 moving right).
+        - Channel 3: divers and their trails (-1 moving left, 1 moving right).
+    """
+
     metadata = {
         "render_modes": ["human", "rgb_array"],
         "render_fps": 30,
@@ -55,8 +94,6 @@ class Seaquest(gym.Env):
         self.n_rows += 2
 
         self.n_rows, self.n_cols = size
-        self.difficulty_timer = 0
-        self.difficulty_increase_steps = 100
         self.spawn_cooldown = 3
         self.max_entity_speed = 1
         self.entities = None
@@ -122,12 +159,10 @@ class Seaquest(gym.Env):
         return state
 
     def level_one(self):
-        self.difficulty_timer = 0
         self.max_entity_speed = 1
         self.cooldown = 3
 
     def level_up(self):
-        self.difficulty_timer = 0
         self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
         self.cooldown = max(self.cooldown - 1, 0)
 

@@ -39,7 +39,8 @@ class SpaceInvaders(gym.Env):
     - The game ends if an alien reaches the bottom or the player is hit.
     - If the player destroys all aliens, the next level starts.
     - Difficulty increases with levels, making aliens starting closer to the player.
-    - The observation space is a 3-channel grid:
+    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
+      for information about the game entities:
         - Channel 0: player position (1).
         - Channel 1: aliens (-1 moving left, 1 moving right).
         - Channel 2: bullets (-1 moving up, 1 moving down).
