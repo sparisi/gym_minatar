@@ -35,7 +35,8 @@ if args.record:
     frames = []
 
 def step(action):
-    if not env.action_space.contains(action):
+    action = env.unwrapped.action_map.get(action, None)
+    if action is None or not env.action_space.contains(action):
         return
     env.step(action)
     if args.record:
@@ -67,17 +68,17 @@ def on_press(key):
     try:
         action = None
         if key == keyboard.Key.space:
-            step(5)
+            step("shoot")
         elif key == keyboard.Key.up:
-            step(3)
+            step("up")
         elif key == keyboard.Key.down:
-            step(4)
+            step("down")
         elif key == keyboard.Key.left:
-            step(1)
+            step("left")
         elif key == keyboard.Key.right:
-            step(2)
+            step("right")
         elif key == keyboard.Key.enter:
-            step(0)
+            step("nop")
         elif key == keyboard.Key.shift_r:
             level_up()
         elif key == keyboard.Key.backspace:

@@ -17,6 +17,22 @@ BLACK = (0, 0, 0)
 
 
 class Freeway(gym.Env):
+    """
+    The player (chicken) starts at the bottom of the screen and must reach the top,
+    crossing lanes of moving cars.
+    - The player can move up or down, but only every few frames (player speed).
+    - Cars move horizontally at different speeds and directions, wrapping around
+      the screen.
+    - If the player is hit by a car, it is sent back to the bottom row.
+    - Each time the player reaches the top, a reward of +1 is given and car speeds are randomized.
+    - The game ends after a fixed number of frames (time_limit).
+    - The observation space is a 10x10x7 boolean array:
+        - Channel 0: player (chicken) position.
+        - Channel 1: car positions.
+        - Channels 2-6: car trails, indicating car speed (from fastest to slowest).
+    - The difficulty does not ramp during an episode.
+    """
+
     metadata = {
         "render_modes": ["human", "rgb_array"],
         "render_fps": 30,
@@ -44,6 +60,13 @@ class Freeway(gym.Env):
             -1, 1, (self.n_rows, self.n_cols, 2), dtype=np.int64,
         )
         self.action_space = gym.spaces.Discrete(5)
+        self.action_map = {
+            "nop": 0,
+            "left": 1,
+            "right": 2,
+            "down": 3,
+            "up": 4,
+        }
 
         self.render_mode = render_mode
         self.window_surface = None

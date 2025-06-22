@@ -21,7 +21,7 @@ class SpaceInvaders(gym.Env):
     """
     The player controls a spaceship at the bottom of the screen that must shoot
     down waves of aliens.
-    - The player moves left/right and can shoot.
+    - The player moves left/right or not move at all, and can shoot.
     - Aliens move horizontally and descend when they hit the screen left/right
       edges.
         - Their speed increases as they descend: + 1 level for every time they
@@ -79,6 +79,12 @@ class SpaceInvaders(gym.Env):
             -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
         )
         self.action_space = gym.spaces.Discrete(4)
+        self.action_map = {
+            "nop": 0,
+            "left": 1,
+            "right": 2,
+            "shoot": 3,
+        }
 
         self.state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         self.aliens_dir = None

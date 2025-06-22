@@ -18,6 +18,23 @@ BLUE = (0, 0, 255)  # treasure
 CYAN = (0, 255, 255)  # treasure trail
 
 class Asterix(gym.Env):
+    """
+    The player moves on a grid and must collect treasures while avoiding enemies.
+    - The player can move left/right/up/down or not move at all.
+    - Enemies and treasures move horizontally with variable speed and direction.
+    - When enemies and treasures leave the screen, some time must pass before a
+      new random entity (enemy or treasure spawns) in the same row.
+    - The player receives a reward for collecting treasures.
+    - The game ends if the player is hit by an enemy.
+    - The environment increases in difficulty over time (entities move faster
+      and respawn sooner).
+    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
+      for information about the game entities:
+        - Channel 0: player position (1).
+        - Channel 1: enemies and their trails (-1 moving left, 1 moving right).
+        - Channel 2: treasures and their trails (-1 moving left, 1 moving right).
+    """
+
     metadata = {
         "render_modes": ["human", "rgb_array"],
         "render_fps": 30,
@@ -50,6 +67,13 @@ class Asterix(gym.Env):
             -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
         )
         self.action_space = gym.spaces.Discrete(5)
+        self.action_map = {
+            "nop": 0,
+            "left": 1,
+            "right": 2,
+            "down": 3,
+            "up": 4,
+        }
 
         self.render_mode = render_mode
         self.window_surface = None

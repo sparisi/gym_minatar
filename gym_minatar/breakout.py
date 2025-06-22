@@ -16,6 +16,21 @@ GRAY = (100, 100, 100)  # bricks
 
 
 class Breakout(gym.Env):
+    """
+    The player controls a paddle to bounce a ball and break bricks.
+    - The paddle moves left/right at the bottom of the grid, or may not move at all.
+    - The ball moves diagonally and bounces off walls, paddle, and bricks.
+    - The player receives a reward for breaking bricks.
+    - When all bricks are destroyed, a new game starts at increased difficulty.
+      - Difficulty increases ball speed.
+    - The game ends if the ball falls below the paddle.
+    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
+      for information about the game entities:
+        - Channel 0: bricks (1s).
+        - Channel 1: paddle position (1).
+        - Channel 2: ball and its trail (-1 moving up, 1 moving down).
+    """
+
     metadata = {
         "render_modes": ["human", "rgb_array"],
         "render_fps": 30,
@@ -45,6 +60,11 @@ class Breakout(gym.Env):
             -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
         )
         self.action_space = gym.spaces.Discrete(3)
+        self.action_map = {
+            "nop": 0,
+            "left": 1,
+            "right": 2,
+        }
 
         self.bricks = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
         self.paddle_pos = None

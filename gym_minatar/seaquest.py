@@ -40,7 +40,8 @@ class Seaquest(gym.Env):
     """
     The player controls a submarine that can move and shoot, collecting divers
     and avoiding enemies.
-    - The player occupies two horizontal tiles and can move left/right/up/down.
+    - The player occupies two horizontal tiles and can move left/right/up/down,
+      or not move at all.
         - If the player is facing left (or right) and moves right (or left),
           it turns around (front and back swap).
     - The player can shoot in front of itself.
@@ -121,6 +122,14 @@ class Seaquest(gym.Env):
             -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
         )
         self.action_space = gym.spaces.Discrete(6)
+        self.action_map = {
+            "nop": 0,
+            "left": 1,
+            "right": 2,
+            "down": 3,
+            "up": 4,
+            "shoot": 5,
+        }
 
         self.render_mode = render_mode
         self.window_surface = None
