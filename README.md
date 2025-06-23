@@ -58,9 +58,15 @@ env.render()
 to render the `DangerMaze-6x6-v0` gridworld (right figure).
 
 <p align="center">
-  <img src="figures/gridworld_penalty_3x3.png" height=200 alt="Gridworld Penalty"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="figures/gridworld_full_4x5.png" height=200 alt="Gridworld Full"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="figures/gridworld_danger_maze_6x6.png" height=200 alt="Gridworld Full">
+  <img src="figures/breakout.gif" height=200 alt="Breakout">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="figures/space_invaders.gif" height=200 alt="Space Invaders">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="figures/freeway.gif" height=200 alt="Freeway">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="figures/asterix.gif" height=200 alt="Asterix">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="figures/seaquest.gif" height=200 alt="Seaquest">
 </p>
 
 - Black tiles are empty,
