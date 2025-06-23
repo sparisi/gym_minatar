@@ -130,7 +130,6 @@ class Asterix(gym.Env):
         return self.get_state(), {}
 
     def move(self, a):
-        print(a)
         if a == LEFT:
             self.player_col = max(self.player_col - 1, 0)
         elif a == DOWN:

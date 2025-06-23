@@ -83,7 +83,7 @@ def on_press(key):
             level_up()
         elif key == keyboard.Key.backspace:
             level_one()
-        elif key == keyboard.Key.esc:
+        elif key.char.isalpha() and key.char == "q":
             # Can't call env.close() or pygame will freeze everything
             program_running[0] = False
             return False
@@ -102,7 +102,7 @@ print(
     "Reset Board: \tR\n"
     "Level Up: \tRIGHT SHIFT\n"
     "Reset Level: \tBACKSPACE\n"
-    "Exit: \t\tESC\n"
+    "Quit: \t\tQ\n"
 )
 
 reset()
@@ -117,6 +117,6 @@ try:
 finally:
     # Cleanup in main thread
     if args.record:
-        imageio.mimsave(args.env + ".gif", frames, fps=10)
+        imageio.mimsave(args.env + ".gif", frames, fps=30)
     listener.stop()
     env.close()
