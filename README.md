@@ -76,9 +76,10 @@ The flag `--record` allows you to record the game and save it to a GIF.
 The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
-Actions are discrete (see below for more details).  
-Observation space size `(rows, cols, channels)`, where the number of channels
-depends on the game (see below for more details).  
+Actions are discrete, while observations have shape `(rows, cols, channels)`
+with ternary values (-1, 0, or 1).
+The number of actions and channels depends on the game. Below are some details
+about the games. For full details, please see docs in the source code.  
 All boards have size (10, 10) by default. To change it:
 ```python
 gymnasium.make(..., size=(rows, cols))
@@ -128,9 +129,11 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
     The player (green) has to collect treasures (blue) while avoiding enemies (red).
     Entities (treasures and enemies) move at different speed, denoted by the trail behind them.
     After an entity leaves the screen (or is collected, if treasure) some time must pass before a new one randomly appears.
-    Over time, entity speed increases over time and respawn wait time decreases.  
+    Over time, entity speed increases and respawn wait time decreases.  
     There are 5 actions (`LEFT, DOWN, RIGHT, UP, NO-OP`) and the observation space
-    is
+    has 4 channels for (in order): player position (1), enemies position and
+    trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
+    left, 1 moving right).
 </div>
 
 ### `Gym-MinAtar/Seaquest-v1`

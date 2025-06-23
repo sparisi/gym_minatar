@@ -61,9 +61,8 @@ class Asterix(gym.Env):
         self.player_col_old = None
 
         # First channel for player position.
-        # Second channel for enemies position and their trail.
-        # Third channel for treasures position and their trail.
-        # For moving entities, -1 means movement to the left, +1 to the right.
+        # Second channel for enemies position and their trail (-1 moving left, 1 moving right).
+        # Third channel for treasures position and their trail (-1 moving left, 1 moving right).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
         )
