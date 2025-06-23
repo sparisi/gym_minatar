@@ -92,40 +92,32 @@ env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", wi
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
 ```
 
-### `Gym-MinAtar/Breakout-v1`
+### [`Gym-MinAtar/Breakout-v1`](gym_minatar/breakout.py)
 <div>
-  <a href=gym_minatar/breakout.py>
-        <figure>
-            <img src="figures/breakout.gif" height=150 width=150 />
-        </figure>
-    </a>
+    <figure>
+        <img src="figures/breakout.gif" height=150 width=150 />
+    </figure>
 </div>
 
-### `Gym-MinAtar/SpaceInvaders-v1`
+### [`Gym-MinAtar/SpaceInvaders-v1`](gym_minatar/space_invaders.py)
 <div>
-  <a href=gym_minatar/space_invaders.py>
-        <figure>
-            <img src="figures/space_invaders.gif" height=150 width=150 />
-        </figure>
-    </a>
+    <figure>
+        <img src="figures/space_invaders.gif" height=150 width=150 />
+    </figure>
 </div>
 
-### `Gym-MinAtar/Freeway-v1`
+### [`Gym-MinAtar/Freeway-v1`](gym_minatar/freeway.py)
 <div>
-    <a href=gym_minatar/freeway.py>
-        <figure>
-            <img src="figures/freeway.gif" height=150 width=150 />
-        </figure>
-    </a>
+    <figure>
+        <img src="figures/freeway.gif" height=150 width=150 />
+    </figure>
 </div>
 
-### `Gym-MinAtar/Asterix-v1`
+### [`Gym-MinAtar/Asterix-v1`](gym_minatar/asterix.py)
 <div>
-    <a href=gym_minatar/asterix.py>
-        <figure>
-            <img src="figures/asterix.gif" height=150 width=150 align="left"/>
-        </figure>
-    </a>
+    <figure>
+        <img src="figures/asterix.gif" height=150 width=150 align="left"/>
+    </figure>
     The player (green) has to collect treasures (blue) while avoiding enemies (red).
     Entities (treasures and enemies) move at different speed, denoted by the trail behind them
     (longer trails means faster entity).  
@@ -139,11 +131,9 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
     left, 1 moving right).
 </div>
 
-### `Gym-MinAtar/Seaquest-v1`
+### [`Gym-MinAtar/Seaquest-v1`](gym_minatar/seaquest.py)
 <div>
-    <a href=gym_minatar/seaquest.py>
-        <figure>
-            <img src="figures/seaquest.gif" height=150 width=150 />
-        </figure>
-    </a>
+    <figure>
+        <img src="figures/seaquest.gif" height=150 width=150 />
+    </figure>
 </div>
