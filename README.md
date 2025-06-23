@@ -57,13 +57,11 @@ env.render()
 ```
 to render the `DangerMaze-6x6-v0` gridworld (right figure).
 
-<p align="center">
-  ![Breakout](https://github.com/sparisi/gym_minatar/blob/main/figures/breakout.gif)
-  ![Space Invaders](https://github.com/sparisi/gym_minatar/blob/main/figures/space_invaders.gif)
-  ![Freeway](https://github.com/sparisi/gym_minatar/blob/main/figures/freeway.gif)
-  ![Asterix](https://github.com/sparisi/gym_minatar/blob/main/figures/asterix.gif)
-  ![Seaquest](https://github.com/sparisi/gym_minatar/blob/main/figures/seaquest.gif)
-</p>
+![Breakout](figures/breakout.gif)
+![Space Invaders](figures/space_invaders.gif)
+![Freeway](figures/freeway.gif)
+![Asterix](figures/asterix.gif)
+![Seaquest](figures/seaquest.gif)
 
 - Black tiles are empty,
 - White tiles are pits (walking on them yields a large negative reward and the episode ends),
