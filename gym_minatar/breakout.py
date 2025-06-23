@@ -109,11 +109,11 @@ class Breakout(gym.Env):
 
     def level_one(self):
         self.level = 0
-        self.reset()
+        self.ball_delay = self.ball_delay_levels[self.level]
 
     def level_up(self):
         self.level = min(self.level + 1, len(self.ball_delay_levels) - 1)
-        self.reset()
+        self.ball_delay = self.ball_delay_levels[self.level]
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -144,13 +144,13 @@ class Breakout(gym.Env):
 
     def step(self, action: int):
         obs, reward, terminated, truncated, info = self._step(action)
+        self.last_action = action
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
         return obs, reward, terminated, truncated, info
 
     def _step(self, action: int):
         self.contact_pos = None
-        self.last_action = action
         terminated = False
         reward = 0.0
 
@@ -166,7 +166,7 @@ class Breakout(gym.Env):
 
         # Check if it's time to move the ball
         if self.ball_delay > 0:
-            if self.ball_timesteps != self.ball_delay:
+            if self.ball_timesteps < self.ball_delay:
                 self.ball_timesteps += 1
                 return self.get_state(), reward, terminated, False, {}
             else:
@@ -236,6 +236,7 @@ class Breakout(gym.Env):
                 if game_over:
                     terminated = True
                     self.level_one()
+                    self.reset()
                     return self.get_state(), reward, terminated, False, {}
 
             # Collision with brick (must check after wall collision)
@@ -262,11 +263,13 @@ class Breakout(gym.Env):
                     self.contact_pos = side_pos
 
             self.ball_pos = new_ball_pos
+
             if self.bricks.sum() == 0:
                 if self.level == len(self.ball_delay_levels) - 1:
                     terminated = True
                 else:
                     self.level_up()
+                    self.reset()
 
         return self.get_state(), reward, terminated, False, {}
 
