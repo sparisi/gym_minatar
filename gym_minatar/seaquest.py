@@ -95,8 +95,8 @@ class Seaquest(gym.Env):
         self.n_rows += 2
 
         self.n_rows, self.n_cols = size
-        self.spawn_cooldown = 3
-        self.max_entity_speed = 1
+        self.spawn_cooldown = 4
+        self.max_entity_speed = -2
         self.entities = None
         self.player_row = None
         self.player_col = None
@@ -106,7 +106,7 @@ class Seaquest(gym.Env):
         self.player_bullets = None
         self.shoot_cooldown = 3
         self.shoot_timer = 0
-        self.oxygen_max = 10
+        self.oxygen_max = 20
         self.oxygen_decay = 10  # Number of steps before oxygen goes down by 1
         self.divers_carried_max = 6
         self.oxygen = self.oxygen_max
@@ -168,12 +168,12 @@ class Seaquest(gym.Env):
         return state
 
     def level_one(self):
-        self.max_entity_speed = 1
-        self.cooldown = 3
+        self.max_entity_speed = -2
+        self.spawn_cooldown = 4
 
     def level_up(self):
         self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
-        self.cooldown = max(self.cooldown - 1, 0)
+        self.spawn_cooldown = max(self.spawn_cooldown - 1, 0)
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -282,7 +282,7 @@ class Seaquest(gym.Env):
         # Used for player bullets
         for entity in self.entities:
             # Divers are not hit by bullets
-            if [row, col] == [entity[0], entity[1]] and entity[4] != 3:
+            if [row, col] == [entity[0], entity[1]] and entity[4] != DIVER:
                 self.despawn(entity)
                 return True
         return False
@@ -386,6 +386,18 @@ class Seaquest(gym.Env):
             if speed <= 0:
                 if timer != speed:
                     entity[5] -= 1
+                    # Check if the player moved on an entity that is not moving
+                    if self.collision_with_player(row, col, action):
+                        if id == DIVER:  # Divers are collected if the player has enough room
+                            if self.divers_carried < self.divers_carried_max:
+                                self.despawn(entity)
+                                self.divers_carried += 1
+                                break
+                        else:
+                            terminated = True
+                            self.level_one()
+                            self.reset()
+                            break
                     continue
                 else:
                     entity[5] = 0
