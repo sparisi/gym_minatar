@@ -52,7 +52,7 @@ class Asterix(gym.Env):
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
         self.cooldown = 3
-        self.max_entity_speed = 1
+        self.max_entity_speed = -1
         self.entities = None
         self.player_row = None
         self.player_col = None
@@ -145,7 +145,7 @@ class Asterix(gym.Env):
 
     def level_one(self):
         self.difficulty_timer = 0
-        self.max_entity_speed = 2
+        self.max_entity_speed = 0
         self.cooldown = 3
 
     def level_up(self):
@@ -198,18 +198,6 @@ class Asterix(gym.Env):
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
 
-            # Check if the player moved on the entity
-            if self.collision(row, col, action):
-                if is_tres:
-                    self.despawn(entity)
-                    reward = 1.0
-                    break
-                else:
-                    terminated = True
-                    self.level_one()
-                    self.reset()
-                    break
-
             # Check if the entity is out of bounds, and if so check if it's time to respawn
             if col == None:
                 cooldown -= 1
@@ -224,6 +212,17 @@ class Asterix(gym.Env):
             if speed <= 0:
                 if timer != speed:
                     entity[5] -= 1
+                    # Check if the player moved on an entity that is not moving
+                    if self.collision(row, col, action):
+                        if is_tres:
+                            self.despawn(entity)
+                            reward = 1.0
+                            break
+                        else:
+                            terminated = True
+                            self.level_one()
+                            self.reset()
+                            break
                     continue
                 else:
                     entity[5] = 0

@@ -44,7 +44,7 @@ class Freeway(gym.Env):
         self.n_rows, self.n_cols = size
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
-        self.max_car_speed = 1
+        self.max_car_speed = -1
         self.cars = None
         self.player_row = None
         self.player_col = None
@@ -110,7 +110,7 @@ class Freeway(gym.Env):
             raise ValueError("illegal action")
 
     def level_one(self):
-        self.max_car_speed = 1
+        self.max_car_speed = -1
         self.reset()
 
     def level_up(self):
@@ -132,12 +132,7 @@ class Freeway(gym.Env):
         return state
 
     def collision(self, row, col, action):
-        # Must check old position, otherwise the player may "step over"
-        # an entity and collision won't be detected
-        return (
-            ([row, col] == [self.player_row, self.player_col]) # or
-            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
-        )
+        return [row, col] == [self.player_row, self.player_col]
 
     def step(self, action: int):
         reward = 0.0
@@ -154,6 +149,11 @@ class Freeway(gym.Env):
             if speed <= 0:
                 if timer != speed:
                     car[4] -= 1
+                    # Check if player moved on car that is not moving
+                    if self.collision(row, col, action):
+                        terminated = True
+                        self.level_one()
+                        break
                     continue
                 else:
                     car[4] = 0
