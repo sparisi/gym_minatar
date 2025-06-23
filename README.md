@@ -1,31 +1,31 @@
 <div id="container", align="center">
     <a href=gym_minatar/breakout.py>
         <figure>
-            <img src="figures/breakout.gif" height=150 width=150 loop=infinite />
+            <img src="figures/breakout.gif" height=150 width=150 />
             <figcaption>Breakout</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/space_invaders.py>
         <figure>
-            <img src="figures/space_invaders.gif" height=150 width=150 loop=infinite />
+            <img src="figures/space_invaders.gif" height=150 width=150 />
             <figcaption>Space Invaders</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/freeway.py>
         <figure>
-            <img src="figures/freeway.gif" height=150 width=150 loop=infinite />
+            <img src="figures/freeway.gif" height=150 width=150 />
             <figcaption>Freeway</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/asterix.py>
         <figure>
-            <img src="figures/asterix.gif" height=150 width=150 loop=infinite />
+            <img src="figures/asterix.gif" height=150 width=150 />
             <figcaption>Asterix</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/seaquest.py>
         <figure>
-            <img src="figures/seaquest.gif" height=150 width=150 loop=infinite />
+            <img src="figures/seaquest.gif" height=150 width=150 />
             <figcaption>Seaquest</figcaption>
         </figure>
     </a>
@@ -80,7 +80,7 @@ The flag `--practice` makes the game wait until press a key to act.
 <div id="container">
   <a href=gym_minatar/breakout.py>
         <figure>
-            <img src="figures/breakout.gif" height=150 width=150 loop=infinite />
+            <img src="figures/breakout.gif" height=150 width=150 />
         </figure>
     </a>
 </div>
@@ -89,7 +89,7 @@ The flag `--practice` makes the game wait until press a key to act.
 <div id="container">
   <a href=gym_minatar/space_invaders.py>
         <figure>
-            <img src="figures/space_invaders.gif" height=150 width=150 loop=infinite />
+            <img src="figures/space_invaders.gif" height=150 width=150 />
         </figure>
     </a>
 </div>
@@ -98,7 +98,7 @@ The flag `--practice` makes the game wait until press a key to act.
 <div id="container">
     <a href=gym_minatar/freeway.py>
         <figure>
-            <img src="figures/freeway.gif" height=150 width=150 loop=infinite />
+            <img src="figures/freeway.gif" height=150 width=150 />
         </figure>
     </a>
 </div>
@@ -107,7 +107,7 @@ The flag `--practice` makes the game wait until press a key to act.
 <div id="container">
     <a href=gym_minatar/asterix.py>
         <figure>
-            <img src="figures/asterix.gif" height=150 width=150 loop=infinite />
+            <img src="figures/asterix.gif" height=150 width=150 />
         </figure>
     </a>
 </div>
@@ -116,7 +116,7 @@ The flag `--practice` makes the game wait until press a key to act.
 <div id="container">
     <a href=gym_minatar/seaquest.py>
         <figure>
-            <img src="figures/seaquest.gif" height=150 width=150 loop=infinite />
+            <img src="figures/seaquest.gif" height=150 width=150 />
         </figure>
     </a>
 </div>
