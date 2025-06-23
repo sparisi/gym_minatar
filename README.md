@@ -57,11 +57,39 @@ env.render()
 ```
 to render the `DangerMaze-6x6-v0` gridworld (right figure).
 
-![Breakout](figures/breakout.gif)
-![Space Invaders](figures/space_invaders.gif)
-![Freeway](figures/freeway.gif)
-![Asterix](figures/asterix.gif)
-![Seaquest](figures/seaquest.gif)
+<div id="container", align="center">
+    <a href="#">
+        <figure>
+            <img src="figures/breakout.gif" height=150 width=150 />
+            <figcaption>Breakout</figcaption>
+        </figure>
+    </a>
+    <a href="#">
+        <figure>
+            <img src="figures/space_invaders.gif" height=150 width=150 />
+            <figcaption>Space Invaders</figcaption>
+        </figure>
+    </a>
+    <a href="#">
+        <figure>
+            <img src="figures/freeway.gif" height=150 width=150 />
+            <figcaption>Freeway</figcaption>
+        </figure>
+    </a>
+    <a href="#">
+        <figure>
+            <img src="figures/asterix.gif" height=150 width=150 />
+            <figcaption>Asterix</figcaption>
+        </figure>
+    </a>
+    <a href="#">
+        <figure>
+            <img src="figures/seaquest.gif" height=150 width=150 />
+            <figcaption>Seaquest</figcaption>
+        </figure>
+    </a>
+</div>
+
 
 - Black tiles are empty,
 - White tiles are pits (walking on them yields a large negative reward and the episode ends),
