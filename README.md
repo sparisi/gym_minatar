@@ -1,4 +1,4 @@
-<div id="container", align="center">
+<div align="center">
     <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
@@ -77,7 +77,7 @@ The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
 ### `Gym-MinAtar/Breakout-v1`
-<div id="container">
+<div>
   <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
@@ -86,7 +86,7 @@ The flag `--practice` makes the game wait until press a key to act.
 </div>
 
 ### `Gym-MinAtar/SpaceInvaders-v1`
-<div id="container">
+<div>
   <a href=gym_minatar/space_invaders.py>
         <figure>
             <img src="figures/space_invaders.gif" height=150 width=150 />
@@ -95,7 +95,7 @@ The flag `--practice` makes the game wait until press a key to act.
 </div>
 
 ### `Gym-MinAtar/Freeway-v1`
-<div id="container">
+<div>
     <a href=gym_minatar/freeway.py>
         <figure>
             <img src="figures/freeway.gif" height=150 width=150 />
@@ -104,7 +104,7 @@ The flag `--practice` makes the game wait until press a key to act.
 </div>
 
 ### `Gym-MinAtar/Asterix-v1`
-<div id="container">
+<div>
     <a href=gym_minatar/asterix.py>
         <figure>
             <img src="figures/asterix.gif" height=150 width=150 align="left"/>
@@ -117,7 +117,7 @@ The flag `--practice` makes the game wait until press a key to act.
 </div>
 
 ### `Gym-MinAtar/Seaquest-v1`
-<div id="container">
+<div>
     <a href=gym_minatar/seaquest.py>
         <figure>
             <img src="figures/seaquest.gif" height=150 width=150 />
