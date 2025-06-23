@@ -127,11 +127,14 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
         </figure>
     </a>
     The player (green) has to collect treasures (blue) while avoiding enemies (red).
-    Entities (treasures and enemies) move at different speed, denoted by the trail behind them.
-    After an entity leaves the screen (or is collected, if treasure) some time must pass before a new one randomly appears.
+    Entities (treasures and enemies) move at different speed, denoted by the trail behind them
+    (longer trails means faster entity).  
+    After an entity leaves the screen (or is collected, if treasure) some time must
+    pass before a new one randomly appears in the same row.
     Over time, entity speed increases and respawn wait time decreases.  
-    There are 5 actions (`LEFT, DOWN, RIGHT, UP, NO-OP`) and the observation space
-    has 4 channels for (in order): player position (1), enemies position and
+    The game ends when the player is collides with an enemy.  
+    The player has 5 actions (`LEFT, DOWN, RIGHT, UP, NO-OP`) and the observation space
+    has 3 channels for (in order): player position (1), enemies position and
     trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
     left, 1 moving right).
 </div>
@@ -144,38 +147,3 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
         </figure>
     </a>
 </div>
-
-
-
-
-### <ins>Action Space</ins>
-The action is discrete in the range `{0, 4}` for `{LEFT, DOWN, RIGHT, UP, STAY}`.
-
-### <ins>Observation Space</ins>
-&#10148; <strong>Default</strong>  
-The observation is discrete in the range `{0, n_rows * n_cols - 1}`.
-Each integer denotes the current location of the agent.
-For example, in a 3x3 grid the states are
-
-&#10148; <strong>RGB</strong>  
-To use classic RGB pixel observations, make the environment with
-`render_mode="rgb_array"`.
-
-### <ins>Starting State</ins>
-The episode starts with the agent at the top-left tile. Make new classes for
-different starting states. For example, in `GridworldMiddleStart` the agent starts
-in the middle of the grid, while in `GridworldRandomStart` it starts in a random tile.
-
-### <ins>Rewards</ins>
-- Doing `STAY` at the goal: +1
-- Doing `STAY` at a distracting goal: 0.1
-- Any action in penalty tiles: -10
-- Any action in small penalty tiles: -0.1
-- Walking on a pit tile: -100
-- Otherwise: 0
-
-### <ins>Episode End</ins>
-By default, an episode ends if any of the following happens:
-- A positive reward is collected (termination),
-- Walking on a pit tile (termination),
-- The length of the episode is `max_episode_steps` (truncation).
