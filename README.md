@@ -107,9 +107,13 @@ The flag `--practice` makes the game wait until press a key to act.
 <div id="container">
     <a href=gym_minatar/asterix.py>
         <figure>
-            <img src="figures/asterix.gif" height=150 width=150 />
+            <img src="figures/asterix.gif" height=150 width=150 align="left"/>
         </figure>
     </a>
+    The player (green) collects treasures (blue) while avoiding enemies (red). 
+    Entities (treasures and enemies) move at different speed, denoted by the trail behind them. 
+    After an entity leaves the screen (or is collected, if treasure) some time must pass before a new one randomly appears. 
+    Over time, entity speed increases over time and respawn wait time decreases.
 </div>
 
 ### `Gym-MinAtar/Seaquest-v1`
