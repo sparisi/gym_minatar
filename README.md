@@ -1,29 +1,29 @@
 <div id="container", align="center">
-    <a href="#">
+    <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
             <figcaption>Breakout</figcaption>
         </figure>
     </a>
-    <a href="#">
+    <a href=gym_minatar/space_invaders.py>
         <figure>
             <img src="figures/space_invaders.gif" height=150 width=150 />
             <figcaption>Space Invaders</figcaption>
         </figure>
     </a>
-    <a href="#">
+    <a href=gym_minatar/freeway.py>
         <figure>
             <img src="figures/freeway.gif" height=150 width=150 />
             <figcaption>Freeway</figcaption>
         </figure>
     </a>
-    <a href="#">
+    <a href=gym_minatar/asterix.py>
         <figure>
             <img src="figures/asterix.gif" height=150 width=150 />
             <figcaption>Asterix</figcaption>
         </figure>
     </a>
-    <a href="#">
+    <a href=gym_minatar/seaquest.py>
         <figure>
             <img src="figures/seaquest.gif" height=150 width=150 />
             <figcaption>Seaquest</figcaption>
@@ -36,7 +36,7 @@ Collection of simplified [Atari](https://gymnasium.farama.org/environments/atari
 games fully compatible with [Gymnasium](https://github.com/Farama-Foundation/Gymnasium).
 Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 
-### Gym-MinAtar vs MinAtar
+#### Gym-MinAtar vs MinAtar
 - All games are rendered with [PyGame](https://www.pygame.org/news) rather than
   [Matplotlib](https://matplotlib.org/), as in classic
   [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) environments.
@@ -78,7 +78,7 @@ The flag `--practice` makes the game wait until press a key to act.
 ## Games
 ### Breakout `Gym-MinAtar/Breakout-v0`
 <div id="container">
-    <a href="#">
+  <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
             <figcaption>Breakout</figcaption>
@@ -88,7 +88,7 @@ The flag `--practice` makes the game wait until press a key to act.
 
 ### Space Invaders `Gym-MinAtar/SpaceInvaders-v0`
 <div id="container">
-    <a href="#">
+  <a href=gym_minatar/space_invaders.py>
         <figure>
             <img src="figures/space_invaders.gif" height=150 width=150 />
         </figure>
@@ -97,7 +97,7 @@ The flag `--practice` makes the game wait until press a key to act.
 
 ### Freeway `Gym-MinAtar/Freeway-v0`
 <div id="container">
-    <a href="#">
+    <a href=gym_minatar/freeway.py>
         <figure>
             <img src="figures/freeway.gif" height=150 width=150 />
         </figure>
@@ -106,7 +106,7 @@ The flag `--practice` makes the game wait until press a key to act.
 
 ### Asterix `Gym-MinAtar/Asterix-v0`
 <div id="container">
-    <a href="#">
+    <a href=gym_minatar/asterix.py>
         <figure>
             <img src="figures/asterix.gif" height=150 width=150 />
         </figure>
@@ -115,7 +115,7 @@ The flag `--practice` makes the game wait until press a key to act.
 
 ### Seaquest `Gym-MinAtar/Seaquest-v0`
 <div id="container">
-    <a href="#">
+    <a href=gym_minatar/seaquest.py>
         <figure>
             <img src="figures/seaquest.gif" height=150 width=150 />
         </figure>
