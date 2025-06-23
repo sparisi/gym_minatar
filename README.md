@@ -76,14 +76,20 @@ The flag `--record` allows you to record the game and save it to a GIF.
 The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
-All boards have size (10, 10) by default. To change it:
-`gymnasium.make(..., size=(rows, cols))`.  
-Boards are rendered with size (512, 512) by default. To change it:
-`gymnasium.make(..., window_size=(height, width))`.  
 Actions are discrete (see below for more details).  
 Observation space size `(rows, cols, channels)`, where `channels` depends on the
 game (see below for more details).  
-To train from RGB images: `gymnasium.make(..., render_mode=rgb_array)`.
+All boards have size (10, 10) by default. To change it:
+```python
+gymnasium.make(..., size=(rows, cols))
+```
+To train from RGB images:
+```python
+env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array")
+env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
+env = gymnasium.wrappers.ResizeObservation(env, (84, 84))
+```
+The last line is to resize rendered images (default is (512, 512)).
 
 ### `Gym-MinAtar/Breakout-v1`
 <div>
