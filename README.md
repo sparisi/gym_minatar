@@ -1,62 +1,3 @@
-## Overview
-
-Reimplementation of [MinAtar](https://github.com/kenjyoung/MinAtar) fully
-compatible with [Gymnasium](https://github.com/Farama-Foundation/Gymnasium).
-This implementation is faster than the original, has better dynamics,
-more features, renders all games with `PyGame` instead of `Matplotlib`, and
-it is compatible with the last `NumPy`.
-
-### Gym-MinAtar vs MinAtar
-
-### Breakout
-The default class `Gridworld` implements a "go-to-goal" task where the agent has
-five actions (left, right, up, down, stay) and default transition function
-(e.g., doing "stay" in goal states ends the episode).  
-You can change actions and transition function by implementing more classes.
-For example, in `RiverSwim` there are only two actions and no terminal state.  
-
-
-
-## Install and Examples
-
-To install the environments run
-```
-pip install -e .[playground]
-```
-
-Run `python` and then
-
-```python
-import gymnasium
-import gym_gridworlds
-env = gymnasium.make("Gym-Gridworlds/Penalty-3x3-v0", render_mode="human")
-env.reset()
-env.step(1) # DOWN
-env.step(4) # STAY
-env.render()
-```
-to render the `Penalty-3x3-v0` gridworld (left figure),
-
-```python
-import gymnasium
-import gym_gridworlds
-env = gymnasium.make("Gym-Gridworlds/Full-4x5-v0", render_mode="human")
-env.reset()
-env.step(1) # DOWN
-env.render()
-```
-to render the `Full-4x5-v0` gridworld (middle figure), and
-
-```python
-import gymnasium
-import gym_gridworlds
-env = gymnasium.make("Gym-Gridworlds/DangerMaze-6x6-v0", render_mode="human")
-env.reset()
-env.step(1) # DOWN
-env.render()
-```
-to render the `DangerMaze-6x6-v0` gridworld (right figure).
-
 <div id="container", align="center">
     <a href="#">
         <figure>
@@ -90,17 +31,100 @@ to render the `DangerMaze-6x6-v0` gridworld (right figure).
     </a>
 </div>
 
+## Overview
+Collection of simplified [Atari](https://gymnasium.farama.org/environments/atari/)
+games fully compatible with [Gymnasium](https://github.com/Farama-Foundation/Gymnasium).
+Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 
-- Black tiles are empty,
-- White tiles are pits (walking on them yields a large negative reward and the episode ends),
-- Purple tiles are walls (the agent cannot step on them),
-- Black tiles with gray arrows are tiles where the agent can move only in one direction (other actions will fail),
-- Red tiles give negative rewards,
-- Green tiles give positive rewards (the brighter, the higher),
-- Yellow tiles are quicksands, where all actions will fail with 90% probability,
-- The agent is the blue circle,
-- The orange arrow denotes the agent's last action,
-- The orange dot denotes that the agent did not try to move with its last action.
+### Gym-MinAtar vs MinAtar
+- All games are rendered with [PyGame](https://www.pygame.org/news) rather than
+  [Matplotlib](https://matplotlib.org/), as in classic
+  [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) environments.
+- Different observation spaces. In MinAtar, the observation space has a separate
+  channel for every entity in the game with binary values (0/1). Gym-MinAtar
+  has a lower dimensional observation space with ternary values (-1/0/1).
+  For example, `SpaceInvaders` in MinAtar has two separate channels for aliens moving
+  left and aliens moving right. Gym-MinAtar uses one channel, with -1 denoting aliens
+  moving to the left, and 1 aliens moving to the right.
+- Different rendering scheme. MinAtar uses one pixel for entities traces (like
+  car traces), with different shades for different speeds. Gym-MinAtar uses the
+  same shade, but trails are longer for faster entities.
+- Game-specific dynamics are different (like cooldown times and speeds).
+
+## Install and Examples
+```
+pip install -e .[playground]
+```
+
+```python
+import gymnasium
+import gym_minatar
+env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="human")
+env.reset()
+env.step(1) # LEFT
+env.step(3) # SHOOT
+env.render()
+```
+
+## Playground
+```
+pip install -e .[playground]
+python playground.py breakout
+```
+This will start a Breakout game (commands are displayed on the terminal).
+The flag `--record` allows you to record the game and save it to a GIF.
+The flag `--practice` makes the game wait until press a key to act.
+
+## Games
+### Breakout `Gym-MinAtar/Breakout-v0`
+<div id="container">
+    <a href="#">
+        <figure>
+            <img src="figures/breakout.gif" height=150 width=150 />
+            <figcaption>Breakout</figcaption>
+        </figure>
+    </a>
+</div>
+
+### Space Invaders `Gym-MinAtar/SpaceInvaders-v0`
+<div id="container">
+    <a href="#">
+        <figure>
+            <img src="figures/space_invaders.gif" height=150 width=150 />
+        </figure>
+    </a>
+</div>
+
+### Freeway `Gym-MinAtar/Freeway-v0`
+<div id="container">
+    <a href="#">
+        <figure>
+            <img src="figures/freeway.gif" height=150 width=150 />
+        </figure>
+    </a>
+</div>
+
+### Asterix `Gym-MinAtar/Asterix-v0`
+<div id="container">
+    <a href="#">
+        <figure>
+            <img src="figures/asterix.gif" height=150 width=150 />
+        </figure>
+    </a>
+</div>
+
+### Seaquest `Gym-MinAtar/Seaquest-v0`
+<div id="container">
+    <a href="#">
+        <figure>
+            <img src="figures/seaquest.gif" height=150 width=150 />
+        </figure>
+    </a>
+</div>
+
+
+
+
 
 
 ## Default MDP (`Gridworld` Class)
