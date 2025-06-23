@@ -91,6 +91,8 @@ import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84))
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
 ```
+Note that both ternary and pixel observations are *partially observable*, as
+they cannot encode time (e.g., shooting cooldown and respawn time).
 
 ### [`Gym-MinAtar/Breakout-v1`](gym_minatar/breakout.py)
 <div>
@@ -122,8 +124,8 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
     with the aliens starting closer to the player.
     The game ends when the player is hit by a bullet or an alien.  
     The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
-    has 3 channels for (in order): player position (1), aliens (-1 moving left, 1 moving right),
-    bullets (-1 moving up, 1 moving down).
+    has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
+    bullets position (-1 moving up, 1 moving down).
 </div>
 
 ### [`Gym-MinAtar/Freeway-v1`](gym_minatar/freeway.py)
@@ -132,11 +134,11 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
         <img src="figures/freeway.gif" height=250 width=250 align="left" />
     </figure>
 
-    The player (green) cross a road while avoiding cars (red).
+    The player (green) has to cross a road while avoiding cars (red).
     Cars move at different speed, denoted by the trail behind them
-    (longer trails means faster entity).
-    When a car the screen, it spawns in the same row from the opposite direction side.
-    When the player crosses the road, the board is reset and a new round starts with
+    (longer trails means faster car).
+    When a car leaves the board, it spawns in the same row from the opposite side.
+    When the player crosses the road (i.e., reaches the top), the board is reset and a new round starts with
     cars moving faster.
     The game ends when the player is hit by a car.  
     The player has 3 actions (UP, DOWN, NO-OP) and the observation space
@@ -156,7 +158,7 @@ env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
     After an entity leaves the screen (or is collected, if treasure) some time must
     pass before a new one randomly appears in the same row.
     Over time, entity speed increases and respawn wait time decreases.  
-    The game ends when the player is collides with an enemy.  
+    The game ends when the player is hit by an enemy.  
     The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
     has 3 channels for (in order): player position (1), enemies position and
     trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
