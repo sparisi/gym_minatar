@@ -132,11 +132,11 @@ class Freeway(gym.Env):
         return state
 
     def collision(self, row, col, action):
-        # [COMMENTED OUT] Must check horizontal movement, otherwise the player may "step over"
+        # Must check old position, otherwise the player may "step over"
         # an entity and collision won't be detected
         return (
             ([row, col] == [self.player_row, self.player_col]) # or
-            # (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
+            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
         )
 
     def step(self, action: int):

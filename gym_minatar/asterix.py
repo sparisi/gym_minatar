@@ -174,7 +174,7 @@ class Asterix(gym.Env):
         entity[6] = self.cooldown
 
     def collision(self, row, col, action):
-        # Must check horizontal movement, otherwise the player may "step over"
+        # Must check old position, otherwise the player may "step over"
         # an entity and collision won't be detected
         return (
             ([row, col] == [self.player_row, self.player_col]) or
@@ -197,6 +197,18 @@ class Asterix(gym.Env):
         # Move enemies and treasures
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
+
+            # Check if the player moved on the entity
+            if self.collision(row, col, action):
+                if is_tres:
+                    self.despawn(entity)
+                    reward = 1.0
+                    break
+                else:
+                    terminated = True
+                    self.level_one()
+                    self.reset()
+                    break
 
             # Check if the entity is out of bounds, and if so check if it's time to respawn
             if col == None:

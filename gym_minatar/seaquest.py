@@ -269,7 +269,7 @@ class Seaquest(gym.Env):
         entity[7] = None
 
     def collision_with_player(self, row, col, action):
-        # Must check horizontal movement, otherwise the player may "step over"
+        # Must check old position, otherwise the player may "step over"
         # an entity and collision won't be detected.
         # No need to check for old direction (back of the player).
         return (
