@@ -1,31 +1,31 @@
 <div id="container", align="center">
     <a href=gym_minatar/breakout.py>
         <figure>
-            <img src="figures/breakout.gif" height=150 width=150 />
+            <img src="figures/breakout.gif" height=150 width=150 loop=infinite />
             <figcaption>Breakout</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/space_invaders.py>
         <figure>
-            <img src="figures/space_invaders.gif" height=150 width=150 />
+            <img src="figures/space_invaders.gif" height=150 width=150 loop=infinite />
             <figcaption>Space Invaders</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/freeway.py>
         <figure>
-            <img src="figures/freeway.gif" height=150 width=150 />
+            <img src="figures/freeway.gif" height=150 width=150 loop=infinite />
             <figcaption>Freeway</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/asterix.py>
         <figure>
-            <img src="figures/asterix.gif" height=150 width=150 />
+            <img src="figures/asterix.gif" height=150 width=150 loop=infinite />
             <figcaption>Asterix</figcaption>
         </figure>
     </a>
     <a href=gym_minatar/seaquest.py>
         <figure>
-            <img src="figures/seaquest.gif" height=150 width=150 />
+            <img src="figures/seaquest.gif" height=150 width=150 loop=infinite />
             <figcaption>Seaquest</figcaption>
         </figure>
     </a>
@@ -43,17 +43,17 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 - Different observation spaces. In MinAtar, the observation space has a separate
   channel for every entity in the game with binary values (0/1). Gym-MinAtar
   has a lower dimensional observation space with ternary values (-1/0/1).
-  For example, Space Invaders in MinAtar has two separate channels for aliens moving
-  left and aliens moving right. Gym-MinAtar uses one channel, with -1 denoting aliens
-  moving left, and 1 aliens moving right.
+  For example, in MinAtar's Space Invaders, aliens moving left and aliens moving
+  right are encoded in two separate channels. Instead, Gym-MinAtar uses one
+  channel with -1 for aliens moving left, and 1 for aliens moving right.
 - Different rendering scheme. MinAtar uses one pixel for trails (like
   car trails), with different shades for different speeds. Gym-MinAtar uses the
-  same shade, but trails are longer for faster cars.
+  same shades, but trails are longer for faster cars.
 - Game-specific dynamics are different (like cooldown times and speeds).
 
-### Install and Examples
+### Install and Make an Environment
 ```
-pip install -e .[playground]
+pip install -e .
 ```
 
 ```python
@@ -76,47 +76,47 @@ The flag `--record` allows you to record the game and save it to a GIF.
 The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
-### `Gym-MinAtar/Breakout-v0`
+### `Gym-MinAtar/Breakout-v1`
 <div id="container">
   <a href=gym_minatar/breakout.py>
         <figure>
-            <img src="figures/breakout.gif" height=150 width=150 />
+            <img src="figures/breakout.gif" height=150 width=150 loop=infinite />
         </figure>
     </a>
 </div>
 
-### `Gym-MinAtar/SpaceInvaders-v0`
+### `Gym-MinAtar/SpaceInvaders-v1`
 <div id="container">
   <a href=gym_minatar/space_invaders.py>
         <figure>
-            <img src="figures/space_invaders.gif" height=150 width=150 />
+            <img src="figures/space_invaders.gif" height=150 width=150 loop=infinite />
         </figure>
     </a>
 </div>
 
-### `Gym-MinAtar/Freeway-v0`
+### `Gym-MinAtar/Freeway-v1`
 <div id="container">
     <a href=gym_minatar/freeway.py>
         <figure>
-            <img src="figures/freeway.gif" height=150 width=150 />
+            <img src="figures/freeway.gif" height=150 width=150 loop=infinite />
         </figure>
     </a>
 </div>
 
-### `Gym-MinAtar/Asterix-v0`
+### `Gym-MinAtar/Asterix-v1`
 <div id="container">
     <a href=gym_minatar/asterix.py>
         <figure>
-            <img src="figures/asterix.gif" height=150 width=150 />
+            <img src="figures/asterix.gif" height=150 width=150 loop=infinite />
         </figure>
     </a>
 </div>
 
-### `Gym-MinAtar/Seaquest-v0`
+### `Gym-MinAtar/Seaquest-v1`
 <div id="container">
     <a href=gym_minatar/seaquest.py>
         <figure>
-            <img src="figures/seaquest.gif" height=150 width=150 />
+            <img src="figures/seaquest.gif" height=150 width=150 loop=infinite />
         </figure>
     </a>
 </div>
