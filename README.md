@@ -95,79 +95,96 @@ Note that both ternary and pixel observations are *partially observable*, as
 they cannot encode time (e.g., shooting cooldown and respawn time).
 
 ### [`Gym-MinAtar/Breakout-v1`](gym_minatar/breakout.py)
-<div>
-    <figure>
-        <img src="figures/breakout.gif" height=250 width=250 align="left" />
-    </figure>
-
-    The player (green) has to bounce a ball (blue) to break bricks (gray).
-    Once all bricks are broken, the board is reset and a new round starts with
-    the ball moving faster. The ball speed is denoted by its trail (longer trails means faster ball).  
-    The game ends if the player misses the ball (letting it touch the bottom row).  
-    The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
-    has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
-    up, 1 moving down).
-</div>
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/breakout.gif" width="250" height="250">
+    </td>
+    <td>
+      The player (green) has to bounce a ball (blue) to break bricks (gray).
+      Once all bricks are broken, the board is reset and a new round starts with
+      the ball moving faster. The ball speed is denoted by its trail (longer trails means faster ball).  
+      The game ends if the player misses the ball (letting it touch the bottom row).  
+      The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
+      has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
+      up, 1 moving down).
+    </td>
+  </tr>
+</table>
 
 ### [`Gym-MinAtar/SpaceInvaders-v1`](gym_minatar/space_invaders.py)
-<div>
-    <figure>
-        <img src="figures/space_invaders.gif" height=250 width=250 align="left" />
-    </figure>
-
-    The player (green) has to shoot down waves of aliens (red) by shooting bullets
-    (white). Aliens shoot bullets as well (yellow).  
-    Aliens can move left (pale red) or right (bright red), and they change direction
-    when they hit the sides of the board. Before changing direction, they move one
-    step down. As they move down, their speed increases.  
-    If the player destroys all aliens, the board is reset and a new round starts,
-    with the aliens starting closer to the player.
-    The game ends when the player is hit by a bullet or an alien.  
-    The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
-    has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
-    bullets position (-1 moving up, 1 moving down).
-</div>
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/space_invaders.gif" width="250" height="250">
+    </td>
+    <td>
+      The player (green) has to shoot down waves of aliens (red) by shooting bullets
+      (white). Aliens shoot bullets as well (yellow).  
+      Aliens can move left (pale red) or right (bright red), and they change direction
+      when they hit the sides of the board. Before changing direction, they move one
+      step down. As they move down, their speed increases.  
+      If the player destroys all aliens, the board is reset and a new round starts,
+      with the aliens starting closer to the player.
+      The game ends when the player is hit by a bullet or an alien.  
+      The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
+      has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
+      bullets position (-1 moving up, 1 moving down).
+    </td>
+  </tr>
+</table>
 
 ### [`Gym-MinAtar/Freeway-v1`](gym_minatar/freeway.py)
-<div>
-    <figure>
-        <img src="figures/freeway.gif" height=250 width=250 align="left" />
-    </figure>
-
-    The player (green) has to cross a road while avoiding cars (red).
-    Cars move at different speed, denoted by the trail behind them
-    (longer trails means faster car).
-    When a car leaves the board, it spawns in the same row from the opposite side.
-    When the player crosses the road (i.e., reaches the top), the board is reset and a new round starts with
-    cars moving faster.
-    The game ends when the player is hit by a car.  
-    The player has 3 actions (UP, DOWN, NO-OP) and the observation space
-    has 2 channels for (in order): player position (1), car position and
-    trail (-1 moving left, 1 moving right).
-</div>
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/freeway.gif" width="250" height="250">
+    </td>
+    <td>
+      The player (green) has to cross a road while avoiding cars (red).
+      Cars move at different speed, denoted by the trail behind them
+      (longer trails means faster car).
+      When a car leaves the board, it spawns in the same row from the opposite side.
+      When the player crosses the road (i.e., reaches the top), the board is reset and a new round starts with
+      cars moving faster.
+      The game ends when the player is hit by a car.  
+      The player has 3 actions (UP, DOWN, NO-OP) and the observation space
+      has 2 channels for (in order): player position (1), car position and
+      trail (-1 moving left, 1 moving right).
+    </td>
+  </tr>
+</table>
 
 ### [`Gym-MinAtar/Asterix-v1`](gym_minatar/asterix.py)
-<div>
-    <figure>
-        <img src="figures/asterix.gif" height=250 width=250 align="left" />
-    </figure>
-
-    The player (green) has to collect treasures (blue) while avoiding enemies (red).
-    Entities (treasures and enemies) move at different speed, denoted by the trail behind them
-    (longer trails means faster entity).  
-    After an entity leaves the screen (or is collected, if treasure) some time must
-    pass before a new one randomly appears in the same row.
-    Over time, entity speed increases and respawn wait time decreases.  
-    The game ends when the player is hit by an enemy.  
-    The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
-    has 3 channels for (in order): player position (1), enemies position and
-    trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
-    left, 1 moving right).
-</div>
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/asterix.gif" width="250" height="250">
+    </td>
+    <td>
+      The player (green) has to collect treasures (blue) while avoiding enemies (red).
+      Entities (treasures and enemies) move at different speed, denoted by the trail behind them
+      (longer trails means faster entity).  
+      After an entity leaves the screen (or is collected, if treasure) some time must
+      pass before a new one randomly appears in the same row.
+      Over time, entity speed increases and respawn wait time decreases.  
+      The game ends when the player is hit by an enemy.  
+      The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
+      has 3 channels for (in order): player position (1), enemies position and
+      trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
+      left, 1 moving right).
+    </td>
+  </tr>
+</table>
 
 ### [`Gym-MinAtar/Seaquest-v1`](gym_minatar/seaquest.py)
-<div>
-    <figure>
-        <img src="figures/seaquest.gif" height=250 width=250 align="left" />
-    </figure>
-</div>
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/seaquest.gif" width="250" height="250">
+    </td>
+    <td>
+      TODO
+    </td>
+  </tr>
+</table>
