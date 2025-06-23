@@ -76,6 +76,15 @@ The flag `--record` allows you to record the game and save it to a GIF.
 The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
+All boards have size (10, 10) by default. To change it:
+`gymnasium.make(..., size=(rows, cols))`.  
+Boards are rendered with size (512, 512) by default. To change it:
+`gymnasium.make(..., window_size=(height, width))`.  
+Actions are discrete (see below for more details).  
+Observation space size `(rows, cols, channels)`, where `channels` depends on the
+game (see below for more details).  
+To train from RGB images: `gymnasium.make(..., render_mode=rgb_array)`.
+
 ### `Gym-MinAtar/Breakout-v1`
 <div>
   <a href=gym_minatar/breakout.py>
@@ -110,10 +119,12 @@ The flag `--practice` makes the game wait until press a key to act.
             <img src="figures/asterix.gif" height=150 width=150 align="left"/>
         </figure>
     </a>
-    The player (green) collects treasures (blue) while avoiding enemies (red). 
-    Entities (treasures and enemies) move at different speed, denoted by the trail behind them. 
-    After an entity leaves the screen (or is collected, if treasure) some time must pass before a new one randomly appears. 
-    Over time, entity speed increases over time and respawn wait time decreases.
+    The player (green) has to collect treasures (blue) while avoiding enemies (red).
+    Entities (treasures and enemies) move at different speed, denoted by the trail behind them.
+    After an entity leaves the screen (or is collected, if treasure) some time must pass before a new one randomly appears.
+    Over time, entity speed increases over time and respawn wait time decreases.  
+    There are 5 actions (`LEFT, DOWN, RIGHT, UP, NO-OP`) and the observation space
+    is
 </div>
 
 ### `Gym-MinAtar/Seaquest-v1`
@@ -128,10 +139,6 @@ The flag `--practice` makes the game wait until press a key to act.
 
 
 
-
-
-## Default MDP (`Gridworld` Class)
-
 ### <ins>Action Space</ins>
 The action is discrete in the range `{0, 4}` for `{LEFT, DOWN, RIGHT, UP, STAY}`.
 
@@ -140,15 +147,6 @@ The action is discrete in the range `{0, 4}` for `{LEFT, DOWN, RIGHT, UP, STAY}`
 The observation is discrete in the range `{0, n_rows * n_cols - 1}`.
 Each integer denotes the current location of the agent.
 For example, in a 3x3 grid the states are
-```
- 0 1 2
- 3 4 5
- 6 7 8
-```
-
-&#10148; <strong>Board</strong>  
-If you prefer to observe the `(row, col)` index of the current position of the
-agent, make the environment with the `coordinate_observation=True` argument.
 
 &#10148; <strong>RGB</strong>  
 To use classic RGB pixel observations, make the environment with
@@ -159,14 +157,6 @@ The episode starts with the agent at the top-left tile. Make new classes for
 different starting states. For example, in `GridworldMiddleStart` the agent starts
 in the middle of the grid, while in `GridworldRandomStart` it starts in a random tile.
 
-### <ins>Transition</ins>
-By default, the transition is deterministic except in quicksand tiles,
-where any action fails with 90% probability (the agent does not move).  
-Transition can be made stochastic everywhere by passing `random_action_prob`.
-This is the probability that the action will be random.
-For example, if `random_action_prob=0.1` there is a 10% chance that the agent
-will do a random action instead of doing the one passed to `self.step(action)`.  
-
 ### <ins>Rewards</ins>
 - Doing `STAY` at the goal: +1
 - Doing `STAY` at a distracting goal: 0.1
@@ -174,15 +164,6 @@ will do a random action instead of doing the one passed to `self.step(action)`.
 - Any action in small penalty tiles: -0.1
 - Walking on a pit tile: -100
 - Otherwise: 0
-
-&#10148; <strong>Noisy Rewards</strong>  
-White noise can be added to all rewards by passing `reward_noise_std`,
-or only to nonzero rewards with `nonzero_reward_noise_std`.
-
-&#10148; <strong>Auxiliary Rewards</strong>  
-An auxiliary negative reward based on the Manhattan distance to the closest
-goal can be added by passing `distance_reward=True`. The distance is scaled
-according to the size of the grid.
 
 ### <ins>Episode End</ins>
 By default, an episode ends if any of the following happens:
