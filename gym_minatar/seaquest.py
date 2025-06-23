@@ -86,6 +86,7 @@ class Seaquest(gym.Env):
         self,
         render_mode: Optional[str] = None,
         size: tuple = (10, 10),
+        window_size: tuple = None,
         **kwargs,
     ):
         # Last row is for oxygen and divers bar, first row is the surface
@@ -134,10 +135,14 @@ class Seaquest(gym.Env):
         self.render_mode = render_mode
         self.window_surface = None
         self.clock = None
-        self.window_size = (
-            min(64 * self.n_cols, 512),
-            min(64 * self.n_rows, 512),
-        )
+        if window_size is not None:
+            assert np.all(np.array(window_size) >= np.array(size)), f"window size too small {window_size} for the board size {size}"
+            self.window_size = window_size
+        else:
+            self.window_size = (
+                min(64 * self.n_cols, 512),
+                min(64 * self.n_rows, 512),
+            )  # fmt: skip
         self.tile_size = (
             self.window_size[0] // self.n_cols,
             self.window_size[1] // self.n_rows,

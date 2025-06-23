@@ -77,19 +77,19 @@ The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
 Actions are discrete (see below for more details).  
-Observation space size `(rows, cols, channels)`, where `channels` depends on the
-game (see below for more details).  
+Observation space size `(rows, cols, channels)`, where the number of channels
+depends on the game (see below for more details).  
 All boards have size (10, 10) by default. To change it:
 ```python
 gymnasium.make(..., size=(rows, cols))
 ```
 To train from RGB images:
 ```python
-env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array")
+import gymnasium
+import gym_minatar
+env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84))
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
-env = gymnasium.wrappers.ResizeObservation(env, (84, 84))
 ```
-The last line is to resize rendered images (default is (512, 512)).
 
 ### `Gym-MinAtar/Breakout-v1`
 <div>
