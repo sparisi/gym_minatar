@@ -43,15 +43,15 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 - Different observation spaces. In MinAtar, the observation space has a separate
   channel for every entity in the game with binary values (0/1). Gym-MinAtar
   has a lower dimensional observation space with ternary values (-1/0/1).
-  For example, `SpaceInvaders` in MinAtar has two separate channels for aliens moving
+  For example, Space Invaders in MinAtar has two separate channels for aliens moving
   left and aliens moving right. Gym-MinAtar uses one channel, with -1 denoting aliens
-  moving to the left, and 1 aliens moving to the right.
-- Different rendering scheme. MinAtar uses one pixel for entities traces (like
-  car traces), with different shades for different speeds. Gym-MinAtar uses the
-  same shade, but trails are longer for faster entities.
+  moving left, and 1 aliens moving right.
+- Different rendering scheme. MinAtar uses one pixel for trails (like
+  car trails), with different shades for different speeds. Gym-MinAtar uses the
+  same shade, but trails are longer for faster cars.
 - Game-specific dynamics are different (like cooldown times and speeds).
 
-## Install and Examples
+### Install and Examples
 ```
 pip install -e .[playground]
 ```
@@ -66,7 +66,7 @@ env.step(3) # SHOOT
 env.render()
 ```
 
-## Playground
+### Playground
 ```
 pip install -e .[playground]
 python playground.py breakout
@@ -76,17 +76,16 @@ The flag `--record` allows you to record the game and save it to a GIF.
 The flag `--practice` makes the game wait until press a key to act.
 
 ## Games
-### Breakout `Gym-MinAtar/Breakout-v0`
+### `Gym-MinAtar/Breakout-v0`
 <div id="container">
   <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
-            <figcaption>Breakout</figcaption>
         </figure>
     </a>
 </div>
 
-### Space Invaders `Gym-MinAtar/SpaceInvaders-v0`
+### `Gym-MinAtar/SpaceInvaders-v0`
 <div id="container">
   <a href=gym_minatar/space_invaders.py>
         <figure>
@@ -95,7 +94,7 @@ The flag `--practice` makes the game wait until press a key to act.
     </a>
 </div>
 
-### Freeway `Gym-MinAtar/Freeway-v0`
+### `Gym-MinAtar/Freeway-v0`
 <div id="container">
     <a href=gym_minatar/freeway.py>
         <figure>
@@ -104,7 +103,7 @@ The flag `--practice` makes the game wait until press a key to act.
     </a>
 </div>
 
-### Asterix `Gym-MinAtar/Asterix-v0`
+### `Gym-MinAtar/Asterix-v0`
 <div id="container">
     <a href=gym_minatar/asterix.py>
         <figure>
@@ -113,7 +112,7 @@ The flag `--practice` makes the game wait until press a key to act.
     </a>
 </div>
 
-### Seaquest `Gym-MinAtar/Seaquest-v0`
+### `Gym-MinAtar/Seaquest-v0`
 <div id="container">
     <a href=gym_minatar/seaquest.py>
         <figure>
