@@ -226,16 +226,19 @@ class SpaceInvaders(gym.Env):
             aliens_steps = abs(self.aliens_delay) + 1
 
         bullets_moved = False
-        def move_bullets():
+        def move_bullets():  # And check if player bullets hit aliens
             self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
             self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
             self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Aliens bullets down
             self.state[0, :, 3] = 0  # Remove if rolled back to top
+            alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
+            self.state[..., 1] *= (1 - alien_hits)
+            self.state[..., 2] *= (1 - alien_hits)
 
         # Move aliens down/left/right
         for steps in range(aliens_steps):
             if self.aliens_move_down:
-                # Move bullets before moving aliens down, or collision may not happen
+                # Move bullets before moving aliens down, or hits may not be detected
                 if not bullets_moved:
                     move_bullets()
                     bullets_moved = True
@@ -262,11 +265,6 @@ class SpaceInvaders(gym.Env):
         # Move bullets only once per step
         if not bullets_moved:
             move_bullets()
-
-        # Detect aliens hit by player bullets
-        alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
-        self.state[..., 1] *= (1 - alien_hits)
-        self.state[..., 2] *= (1 - alien_hits)
 
         alien_left_rows = np.nonzero(np.any(self.state[..., 1], axis=1))[0]
         if len(alien_left_rows) > 0:
