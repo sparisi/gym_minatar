@@ -58,15 +58,11 @@ env.render()
 to render the `DangerMaze-6x6-v0` gridworld (right figure).
 
 <p align="center">
-  <img src="figures/breakout.gif" height=200 alt="Breakout">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="figures/space_invaders.gif" height=200 alt="Space Invaders">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="figures/freeway.gif" height=200 alt="Freeway">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="figures/asterix.gif" height=200 alt="Asterix">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="figures/seaquest.gif" height=200 alt="Seaquest">
+  ![Breakout](https://github.com/sparisi/gym_minatar/blob/main/figures/breakout.gif)
+  ![Space Invaders](https://github.com/sparisi/gym_minatar/blob/main/figures/space_invaders.gif)
+  ![Freeway](https://github.com/sparisi/gym_minatar/blob/main/figures/freeway.gif)
+  ![Asterix](https://github.com/sparisi/gym_minatar/blob/main/figures/asterix.gif)
+  ![Seaquest](https://github.com/sparisi/gym_minatar/blob/main/figures/seaquest.gif)
 </p>
 
 - Black tiles are empty,
