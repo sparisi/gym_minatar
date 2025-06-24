@@ -88,7 +88,7 @@ All boards have size (10, 10) by default. To change it:
 ```python
 gymnasium.make(..., size=(rows, cols))
 ```
-To train from RGB images:
+To train from pixels:
 ```python
 import gymnasium
 import gym_minatar
@@ -117,46 +117,9 @@ For full details, please refer to the docs in the source code (click on the game
       up, 1 moving down).  
       <br>
       This game is <b>fully observable</b>.
-      </td>
-    </tr>
-    <tr>
-    <td style="width: 250px;">
-      <img src="figures/breakout_obs.png" width="250" height="250">
     </td>
-    <td style="width: 250px;">
-    <pre>
-    <code>
-    [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
-     [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
-     [1. 1. 0. 1. 1. 0. 1. 1. 1. 1.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]
-    [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. ]
-    <br>
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  1. 0. 0. 0. ]
-    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]]
-    </code>
-    </pre>
-    </td>
-    </tr>
-  </table>
-  <br>
-  Example of observation's second and third channels. In the former, 1s denote bricks;
-  in the latter, values in [-1, 1] denote ball speed and direction (-1 going up,
-  1 going down). Intermediate values are for when the ball moves slower than
-  1 tile per step.
+  </tr>
+</table>
 
 ### [`Gym-MinAtar/SpaceInvaders-v1`](gym_minatar/space_invaders.py)
 <table>
@@ -183,7 +146,8 @@ For full details, please refer to the docs in the source code (click on the game
       <br>
       This game is <b>partially observable</b>, because observations don't encode
       shooting cooldown time. However, most of the time this can be inferred
-      by how far the player bullet has traveled.
+      by how far the player bullet has traveled. Also, note that aliens speed can
+      be inferred from how far they have moved down.
     </td>
   </tr>
 </table>
@@ -212,36 +176,7 @@ For full details, please refer to the docs in the source code (click on the game
       This game is <b>fully observable</b>.
     </td>
   </tr>
-  <tr>
-  <td style="width: 250px;">
-    <img src="figures/freeway_obs.png" width="250" height="250">
-  </td>
-  <td style="width: 250px;">
-  <pre>
-  <code>
-  [[ 0.   0.  0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [-1.  -0.25 0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.   0.   0.5  1.   0.   0.   0.   0.  ]
-  [ 0.   1.   1.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.  -1.  -0.25 0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.   0.   0.5  1.   0.   0.   0.   0.  ]
-  [-1.  -0.5  0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 1.   1.   0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.25 1.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.   0.   0.   0.   0.   0.   0.   0.  ]]
-  </code>
-  </pre>
-  </td>
-  </tr>
 </table>
-<br>
-Example of observation's second channel (info about cars): 1 and -1 denote the
-position of the car and (if the car moves at least 1 tile per step,
-its trail -- see fourth row).
-Intermediate values indicate the trail as well, but for when the car is not about
-to move yet (speed lower than 1). When rendered, trails of fast cars take occupy
-tiles, while trails of slow cars are smaller (see second and third row).
-As the cars become faster, their trail gets longer (see animation above).
 
 
 ### [`Gym-MinAtar/Asterix-v1`](gym_minatar/asterix.py)
@@ -271,6 +206,103 @@ As the cars become faster, their trail gets longer (see animation above).
       immediately (they have no trace yet).
     </td>
   </tr>
+</table>
+
+
+### [`Gym-MinAtar/Seaquest-v1`](gym_minatar/seaquest.py)
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/seaquest.gif" width="250" height="250">
+    </td>
+    <td>
+      TODO
+    </td>
+  </tr>
+</table>
+
+## Observations
+Below are some example of both default and pixels observations to better
+understand how speed and trail are encoded.
+
+<table>
+  <tr>
+    <td style="width: 250px;">
+      <img src="figures/breakout_obs.png" width="250" height="250">
+    </td>
+    <td style="width: 250px;">
+      <pre>
+        <code>
+        [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+         [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+         [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+         [1. 1. 0. 1. 1. 0. 1. 1. 1. 1.]
+         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]
+        [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. ]
+        </code>
+      </pre>
+    </td>
+    <td style="width: 250px;">
+      <pre>
+        <code>
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  1. 0. 0. 0. ]
+          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]]
+        </code>
+      </pre>
+    </td>
+  </tr>
+</table>
+
+
+
+
+  <tr>
+  <td style="width: 250px;">
+    <img src="figures/freeway_obs.png" width="250" height="250">
+  </td>
+  <td style="width: 250px;">
+  <pre>
+  <code>
+  [[ 0.   0.  0.   0.   0.   0.   0.   0.   0.   0.  ]
+  [-1.  -0.25 0.   0.   0.   0.   0.   0.   0.   0.  ]
+  [ 0.   0.   0.   0.   0.5  1.   0.   0.   0.   0.  ]
+  [ 0.   1.   1.   0.   0.   0.   0.   0.   0.   0.  ]
+  [ 0.   0.   0.  -1.  -0.25 0.   0.   0.   0.   0.  ]
+  [ 0.   0.   0.   0.   0.5  1.   0.   0.   0.   0.  ]
+  [-1.  -0.5  0.   0.   0.   0.   0.   0.   0.   0.  ]
+  [ 1.   1.   0.   0.   0.   0.   0.   0.   0.   0.  ]
+  [ 0.   0.25 1.   0.   0.   0.   0.   0.   0.   0.  ]
+  [ 0.   0.   0.   0.   0.   0.   0.   0.   0.   0.  ]]
+  </code>
+  </pre>
+  </td>
+  </tr>
+
+
+  <br>
+  Example of observation's second channel (info about cars): 1 and -1 denote the
+  position of the car and (if the car moves at least 1 tile per step,
+  its trail -- see fourth row).
+  Intermediate values indicate the trail as well, but for when the car is not about
+  to move yet (speed lower than 1). When rendered, trails of fast cars take occupy
+  tiles, while trails of slow cars are smaller (see second and third row).
+  As the cars become faster, their trail gets longer (see animation above).
+
+
+
+
   <tr>
   <td style="width: 250px;">
     <img src="figures/asterix_obs.png" width="250" height="250">
@@ -292,21 +324,17 @@ As the cars become faster, their trail gets longer (see animation above).
   </pre>
   </td>
   </tr>
-</table>
-<br>
-Example of observation's second channel (info about enemies). The way speed and trail
-are encoded is the same as Freeway, with the difference that the second channel is
-dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
-of the second channel have all 0s, there are treasures).
 
-### [`Gym-MinAtar/Seaquest-v1`](gym_minatar/seaquest.py)
-<table>
-  <tr>
-    <td style="width: 250px;">
-      <img src="figures/seaquest.gif" width="250" height="250">
-    </td>
-    <td>
-      TODO
-    </td>
-  </tr>
-</table>
+  <br>
+  Example of observation's second channel (info about enemies). The way speed and trail
+  are encoded is the same as Freeway, with the difference that the second channel is
+  dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
+  of the second channel have all 0s, there are treasures).
+
+
+
+  <br>
+  Example of observation's second and third channels. In the former, 1s denote bricks;
+  in the latter, values in [-1, 1] denote ball speed and direction (-1 going up,
+  1 going down). Intermediate values are for when the ball moves slower than
+  1 tile per step.
