@@ -78,11 +78,12 @@ python playground.py breakout
 ```
 This will start a Breakout game (commands are displayed on the terminal).
 The flag `--record` allows you to record the game and save it to a GIF.
-The flag `--practice` makes the game wait until press a key to act.
+The flag `--practice` makes the game wait until the user sends an action (otherwise,
+every 0.5 seconds the game receives NO-OP).
 
 ## Games
 Actions are discrete, while observations have shape `(rows, cols, channels)`
-with ternary values (-1, 0, or 1).
+with values in [-1, 1].
 The number of actions and channels depends on the game.
 All boards have size (10, 10) by default. To change it:
 ```python
@@ -185,7 +186,7 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player (green) has to collect treasures (blue) to get points (1 per treasure)
         while avoiding enemies (red).</li>
         <li>Treasures and enemies move at different speed, denoted by the trail behind them
-        (longer trails means faster entity).
+        (the longer, the faster).
         If they moves slower than 1 tile per timestep, theyr trail is smaller.</li>
         <li>When treasures and enemies leaves the screen (or are collected, if treasure)
         some time must pass before a new one randomly appears in the same row.</li>
@@ -193,9 +194,9 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The game ends when the player is hit by an enemy.</li>
         <li>The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
         has 3 channels for (in order): player, enemies, and treasures.</li>
-        <li>This game is <b>partially observable</b>, because observations don't encode
-        respawn time, and when entities spawn their direction cannot be determined
-        immediately (they have no trace yet).</li>
+        <li>This game is <b>partially observable</b>, because 1) observations don't encode
+        respawn time, and 2) when treasures and enemies spawn, their direction cannot
+        be determined immediately (they have no trail yet).</li>
     </td>
   </tr>
 </table>
