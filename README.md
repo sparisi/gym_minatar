@@ -112,10 +112,10 @@ For full details, please refer to the docs in the source code (click on the game
         <li>Once all bricks are broken, a new round starts with the ball moving faster.</li>
         <li>The ball speed is denoted by its trail (longer trails means faster ball).
         If the ball moves slower than 1 tile per step, its trail is smaller.</li>
-        <li>The game ends if the player misses the ball (letting it touch the bottom row).</li>
+        <li>The game ends if the player misses the ball.</li>
         <li>The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
-        has 3 channels for (in order): bricks, player, ball.</li>
-        <li>This game is <b>fully observable</li>.
+        has 3 channels for (in order): player, bricks, ball.</li>
+        <li>This game is <b>fully observable.</li>
       <ul>
     </td>
   </tr>
@@ -128,26 +128,25 @@ For full details, please refer to the docs in the source code (click on the game
       <img src="figures/space_invaders.gif" width="250" height="250">
     </td>
     <td>
-      The player (green) has to shoot down waves of aliens (red) with bullets
-      (white). Aliens shoot bullets as well (yellow).
-      <br>
-      Aliens move left (pale red) or right (bright red), and they change direction
-      when they hit the sides of the board. Before changing direction, they move one
-      step down. As they move down, their speed increases.
-      <br>
-      If the player destroys all aliens, a new round starts,
-      with the aliens starting closer to the player.
-      <br>
-      The game ends when the player is hit by a bullet or an alien.
-      <br>
-      The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
-      has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
-      bullets position (-1 moving up, 1 moving down).  
-      <br>
-      This game is <b>partially observable</b>, because observations don't encode
-      shooting cooldown time. However, most of the time this can be inferred
-      by how far the player bullet has traveled. Also, note that aliens speed can
-      be inferred from how far they have moved down.
+      <ul style="list-style-type:circle">
+        <li>The player (green) has to shoot down waves of aliens (red) with bullets
+        (white). Aliens shoot the player as well (yellow).</li>
+        <li>Aliens move left (pale red) or right (bright red), and change direction
+        when they hit the sides of the board.</li>
+        <li>Before changing direction, they move one step down.
+        As they move down, their speed increases.</li>
+        <li>The player receives 1 point when it hits an alien.
+        <li>If the player destroys all aliens, a new round starts, with the aliens
+        starting closer to the player.</li>
+        <li>The game ends when the player is hit by a bullet or an alien.</li>
+        <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
+        the observation space has 4 channels for (in order): player, aliens,
+        player bullets, aliens bullets</li>
+        <li>This game is <b>partially observable</b>, because observations
+        don't encode shooting cooldown time. However, most of the time this
+        can be inferred by how far the player bullet has traveled.
+        Also, note that aliens speed can be inferred from how far they have moved down.</li>
+      </ul>
     </td>
   </tr>
 </table>
