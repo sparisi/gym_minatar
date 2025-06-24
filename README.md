@@ -281,7 +281,6 @@ print_obs(obs)
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]]
 ```
 <div style="clear: both;"></div>
-<br>
 Third channel of Breakout observation. The sign of non-zero elements denotes
 the ball direction (negative going up, positive going down); the
 absolute value is proportional to the speed <it>if the ball moves slower than
@@ -302,7 +301,6 @@ absolute value is proportional to the speed <it>if the ball moves slower than
  [ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]]
 ```
 <div style="clear: both;"></div>
-<br>
 Second channel of Freeway observation. The encoding of speed and trail
 follows the same rules of Breakout. The example shows that cars moving at 1 tile
 per timestep (third and seventh car) encode trails with absolute value 1.
@@ -323,7 +321,6 @@ It also shows cars moving slower than 1 tile every 2 timestep (first, fourth, an
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]]
 ```
 <div style="clear: both;"></div>
-<br>
 Second channel of Asterix observation. It's like Freeway's, but it only encodes
 enemies (treasures are encoded in the third channel).
 <br><br>
@@ -342,6 +339,5 @@ enemies (treasures are encoded in the third channel).
  [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]]
 ```
 <div style="clear: both;"></div>
-<br>
 Third channel of Seaquest observation. It's like Asterix's but for submarines,
 and with the addition of bullets.
