@@ -113,7 +113,7 @@ For full details, please refer to the docs in the source code (click on the game
       The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
       has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
       up, 1 moving down).  
-      This game is **fully observable**.
+      This game is <b>fully observable</b>.
     </td>
   </tr>
 </table>
@@ -136,7 +136,7 @@ For full details, please refer to the docs in the source code (click on the game
       The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
       has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
       bullets position (-1 moving up, 1 moving down).  
-      This game is **partially observable**, because observations don't encode
+      This game is <b>partially observable</b>, because observations don't encode
       shooting cooldown time.
     </td>
   </tr>
@@ -159,7 +159,7 @@ For full details, please refer to the docs in the source code (click on the game
       The player has 3 actions (UP, DOWN, NO-OP) and the observation space
       has 2 channels for (in order): player position (1), car position and
       trail (-1 moving left, 1 moving right).  
-      This game is **fully observable**.
+      This game is <b>fully observable</b>.
     </td>
   </tr>
 </table>
@@ -182,7 +182,7 @@ For full details, please refer to the docs in the source code (click on the game
       has 3 channels for (in order): player position (1), enemies position and
       trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
       left, 1 moving right).  
-      This game is **partially observable**, because observations don't encode respawn time.
+      This game is <b>partially observable</b>, because observations don't encode respawn time.
     </td>
   </tr>
 </table>
