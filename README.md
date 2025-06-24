@@ -157,7 +157,7 @@ For full details, please refer to the docs in the source code (click on the game
     </td>
     <td>
       <ul style="list-style-type:circle">
-        </li>The player (green) has to cross a road while avoiding cars (red).</li>
+        <li>The player (green) has to cross a road while avoiding cars (red).</li>
         <li>Cars move at different speed, denoted by the trail behind them
         (longer trails means faster car).
         If a car moves slower than 1 tile per step, its trail is smaller.</li>
