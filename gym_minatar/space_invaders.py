@@ -340,8 +340,8 @@ class SpaceInvaders(gym.Env):
                 if self.state[x, y, 1]:
                     draw_tile(x, y, RED if self.aliens_dir == 1 else PALE_RED)
 
-        # Draw bullets (bullets that go past aliens are not drawn)
-        for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
+        # for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
+        for x in range(self.n_rows):
             for y in range(self.n_cols):
                 if self.state[x, y, 3] == 1:
                     draw_tile(x, y, YELLOW)
