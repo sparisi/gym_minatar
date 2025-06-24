@@ -230,11 +230,13 @@ For full details, please refer to the docs in the source code (click on the game
         <li>Every time the player emerges and submerges again, difficulty increases
         (enemies and divers move faster, respawn time decreases).</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
-        the observation space has 4 channels for (in order): player and bars (oxygen and divers),
-        fishes, submarines and bullets, divers.</li>
-        <li>This game is <b>partially observable</b>, because observations
-        don't encode shooting cooldown time. However, most of the time this
-        can be inferred by how far the player bullet has traveled.</li>
+        the observation space has 6 channels for (in order): player and bullets,
+        fishes, submarines and bullets, divers, oxygen bar, and divers carried bar.</li>
+        <li>This game is <b>partially observable</b>. First, observations
+        don't encode shooting cooldown time (although this can be inferred
+        from how far the player bullet has traveled). Second, oxygen reserve is
+        not accurately represented (although the player does not need to know it
+        exactly to act optimally).</li>
       <ul>
     </td>
   </tr>
@@ -268,16 +270,16 @@ absolute value is proportional to the speed <it>if the ball moves slower than
 <img src="figures/freeway_obs.png" width="250" height="250" align="left">
 
 ```
-[[ 0.  0.   0.  0.   0.   0.  0.  0.  0.  0.]
- [-1. -0.25 0.  0.  0.    0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  0.5   1.  0.  0.  0.  0.]
- [ 0.  1.   1.  0.  0.    0.  0.  0.  0.  0.]
- [ 0.  0.   0. -1.  -0.25 0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  0.5   1.  0.  0.  0.  0.]
- [-1. -0.5  0.  0.  0.    0.  0.  0.  0.  0.]
- [ 1.  1.   0.  0.  0.    0.  0.  0.  0.  0.]
- [ 0.  0.25 1.  0.  0.    0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  0.    0.  0.  0.  0.  0.]]
+[[ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]
+ [-1. -0.25 0.  0.  0.   0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.5  1.  0.  0.  0.  0.]
+ [ 0.  1.   1.  0.  0.   0.  0.  0.  0.  0.]
+ [ 0.  0.   0. -1. -0.25 0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.5  1.  0.  0.  0.  0.]
+ [-1. -0.5  0.  0.  0.   0.  0.  0.  0.  0.]
+ [ 1.  1.   0.  0.  0.   0.  0.  0.  0.  0.]
+ [ 0.  0.25 1.  0.  0.   0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]]
 ```
 <div style="clear: both;"></div>
 <br>
@@ -304,3 +306,22 @@ It also shows cars moving slower than 1 tile every 2 timestep (first, fourth, an
 <br>
 Second channel of Asterix observation. It's like Freeway's, but it only encodes
 enemies (treasures are encoded in the third channel).
+<br><br>
+<img src="figures/seaquest_obs.png" width="250" height="250" align="left">
+
+```
+[[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0. -1. -0.5 0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [-1.  -0.5 0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  1.  1.  0.  0.  0.  0.]
+ [ 0.  0.   1.  1.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0. -1. -1.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]]
+```
+<div style="clear: both;"></div>
+<br>
+Third channel of Seaquest observation. It's like Asterix's but for submarines,
+and with the addition of bullets.

@@ -68,13 +68,16 @@ class Seaquest(gym.Env):
         oxygen.
     - When the player submerges again, the difficulty level increases
       (enemies and divers move faster, respawn time decreases).
-    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
-      for information about the game entities:
-        - Channel 0: oxygen and diver bars (denoted by 1s at the bottom of the grid),
-          player position and bullets (-1 moving left, 1 moving right).
+    - The observation space is a 6-channel grid with 0s for empty tiles, and
+      values in [-1, 1] for moving entities:
+        - Channel 0: player position and bullets (-1 moving left, 1 moving right).
         - Channel 1: fishes and their trails (-1 moving left, 1 moving right).
         - Channel 2: submarines, bullets, and their trails (-1 moving left, 1 moving right).
         - Channel 3: divers and their trails (-1 moving left, 1 moving right).
+        - Channel 4: oxygen bar (denoted by 1s at the bottom of the grid).
+        - Channel 5: divers carried bar (denoted by 1s at the bottom of the grid).
+        - Intermediate values in (-1, 1) denote the enemies and divers speed
+          when they move slower than 1 tile per step.
     """
 
     metadata = {
@@ -120,7 +123,7 @@ class Seaquest(gym.Env):
         # Fourth channel for divers and their trail.
         # For moving entities, -1 means movement to the left, +1 to the right.
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 4),
+            -1, 1, (self.n_rows, self.n_cols, 6),
         )
         self.action_space = gym.spaces.Discrete(6)
         self.action_map = {
@@ -149,7 +152,7 @@ class Seaquest(gym.Env):
         )
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape)
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[self.player_row, self.player_col, 0] = self.player_dir
         state[self.player_row, self.player_col - self.player_dir, 0] = self.player_dir
         for bullet in self.player_bullets:
@@ -174,6 +177,21 @@ class Seaquest(gym.Env):
                 state[row, col - step * dir, id] = dir
             if b_col is not None and 0 <= b_col < self.n_cols:
                 state[row, b_col, id] = dir
+
+        percentage_full = self.divers_carried / self.divers_carried_max
+        n_fill = int(self.n_cols * percentage_full)
+        if percentage_full > 0:
+            n_fill = max(1, n_fill)  # Fill at least 1 col when the player is carrying 1 diver
+        for i in range(n_fill):
+            state[-1, i, 4] = 1
+
+        percentage_full = self.oxygen / self.oxygen_max
+        n_fill = int(self.n_cols * percentage_full)
+        if percentage_full > 0:
+            n_fill = max(1, n_fill)  # Fill at least 1 col when the player has at least 1 oxygen left
+        for i in range(n_fill):
+            state[-1, i, 5] = 1
+
         return state
 
     def level_one(self):
