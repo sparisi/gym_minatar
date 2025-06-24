@@ -50,9 +50,10 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
   - Another example is Freeway. MinAtar uses one channel for each car, while
   Gym-MinAtar uses one channel for all cars (the absolute value denotes the
   speed, the sign denotes the direction).
-- Different rendering scheme. MinAtar uses one pixel for trails (like
-  car trails), with different shades for different speeds. Gym-MinAtar uses the
-  same shades, but trails are longer for faster cars.
+  - Different rendering scheme. MinAtar uses one pixel for trails (like
+  car trails), with different colors for different speeds. Gym-MinAtar uses the
+  same color for all trails, but trails are longer for faster cars.
+  - Please refer to the examples below for a description of the observation spaces.
 - Game-specific dynamics are different (like cooldown times and speeds).
 
 ### Install and Make an Environment
@@ -111,8 +112,7 @@ For full details, please refer to the docs in the source code (click on the game
       The game ends if the player misses the ball (letting it touch the bottom row).  
       The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
       has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
-      up, 1 moving down).
-
+      up, 1 moving down).  
       This game is *fully observable*.
     </td>
   </tr>
@@ -135,8 +135,7 @@ For full details, please refer to the docs in the source code (click on the game
       The game ends when the player is hit by a bullet or an alien.  
       The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
       has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
-      bullets position (-1 moving up, 1 moving down).
-
+      bullets position (-1 moving up, 1 moving down).  
       This game is *partially observable*, because observations don't encode
       shooting cooldown time.
     </td>
@@ -159,8 +158,7 @@ For full details, please refer to the docs in the source code (click on the game
       The game ends when the player is hit by a car.  
       The player has 3 actions (UP, DOWN, NO-OP) and the observation space
       has 2 channels for (in order): player position (1), car position and
-      trail (-1 moving left, 1 moving right).
-
+      trail (-1 moving left, 1 moving right).  
       This game is *fully observable*.
     </td>
   </tr>
@@ -183,8 +181,7 @@ For full details, please refer to the docs in the source code (click on the game
       The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
       has 3 channels for (in order): player position (1), enemies position and
       trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
-      left, 1 moving right).
-
+      left, 1 moving right).  
       This game is *partially observable*, because observations don't encode respawn time.
     </td>
   </tr>
