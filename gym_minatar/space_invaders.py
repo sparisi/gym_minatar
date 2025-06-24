@@ -87,7 +87,7 @@ class SpaceInvaders(gym.Env):
             "shoot": 3,
         }
 
-        self.state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        self.state = np.zeros(self.observation_space.shape)
         self.aliens_dir = None
         self.bottom_alien = None  # Keep track of how much the aliens moved down for faster rendering
         self.aliens_move_down = None

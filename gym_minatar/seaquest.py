@@ -120,7 +120,7 @@ class Seaquest(gym.Env):
         # Fourth channel for divers and their trail.
         # For moving entities, -1 means movement to the left, +1 to the right.
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 4),
         )
         self.action_space = gym.spaces.Discrete(6)
         self.action_map = {
@@ -149,7 +149,7 @@ class Seaquest(gym.Env):
         )
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(self.observation_space.shape)
         state[self.player_row, self.player_col, 0] = self.player_dir
         state[self.player_row, self.player_col - self.player_dir, 0] = self.player_dir
         for bullet in self.player_bullets:
