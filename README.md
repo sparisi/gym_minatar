@@ -106,17 +106,17 @@ For full details, please refer to the docs in the source code (click on the game
       <img src="figures/breakout.gif" width="250" height="250">
     </td>
     <td>
-      The player (green) has to bounce a ball (blue) to break bricks (gray).
-      Once all bricks are broken, a new round starts with the ball moving faster.
-      The ball speed is denoted by its trail (longer trails means faster ball).
-      <br>
-      The game ends if the player misses the ball (letting it touch the bottom row).
-      <br>
-      The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
-      has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
-      up, 1 moving down).  
-      <br>
-      This game is <b>fully observable</b>.
+      <ul style="list-style-type:circle">
+        <li>The player (green) has to bounce a ball (blue) to break bricks (gray).</li>
+        <li>For every broken brick, the player receives 1 point.</li>
+        <li>Once all bricks are broken, a new round starts with the ball moving faster.</li>
+        <li>The ball speed is denoted by its trail (longer trails means faster ball).
+        If the ball moves slower than 1 tile per step, its trail is smaller.</li>
+        <li>The game ends if the player misses the ball (letting it touch the bottom row).</li>
+        <li>The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
+        has 3 channels for (in order): bricks, player, ball.</li>
+        <li>This game is <b>fully observable</li>.
+      <ul>
     </td>
   </tr>
 </table>
