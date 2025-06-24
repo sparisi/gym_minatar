@@ -162,10 +162,12 @@ class Seaquest(gym.Env):
             row, col, speed, dir, id, timer, cooldown, b_col = entity
             if col is None:
                 continue
+            if b_col is not None and 0 <= b_col < self.n_cols:
+                state[row, b_col, id] = dir
             if speed <= 0:
                 if timer != speed:
                     speed_scaling = (timer - 0.5) / speed
-                    state[row, col, 1] = dir
+                    state[row, col, id] = dir
                     if 0 <= col - dir < self.n_cols:
                         state[row, (col - dir), id] = dir * speed_scaling
                     continue
@@ -175,8 +177,6 @@ class Seaquest(gym.Env):
                 if not 0 <= col - step * dir < self.n_cols:
                     break
                 state[row, col - step * dir, id] = dir
-            if b_col is not None and 0 <= b_col < self.n_cols:
-                state[row, b_col, id] = dir
 
         percentage_full = self.divers_carried / self.divers_carried_max
         n_fill = int(self.n_cols * percentage_full)
@@ -244,7 +244,7 @@ class Seaquest(gym.Env):
             return
         self.shoot_timer = self.shoot_cooldown
         col = self.player_col + self.player_dir
-        if not (0 <= col < self.n_cols):
+        if not 0 <= col < self.n_cols:
             return
         if self.collision_with_entity(self.player_row_old, col):
             return

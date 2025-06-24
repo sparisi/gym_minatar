@@ -103,7 +103,7 @@ class Asterix(gym.Env):
             if speed <= 0:
                 if timer != speed:
                     speed_scaling = (timer - 0.5) / speed
-                    state[row, col, 1] = dir
+                    state[row, col, 2 if is_tres else 1] = dir
                     if 0 <= col - dir < self.n_cols:
                         state[row, (col - dir), 2 if is_tres else 1] = dir * speed_scaling
                     continue
