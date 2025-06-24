@@ -242,10 +242,10 @@ understand how speed and trail are encoded.
 </table>
 Third channel of Breakout observation. The sign of non-zero elements denotes
 the ball direction (negative going up, positive going down); the
-absolute value is proportional to the speed __if the ball moves slower than
-1 tile per step__. In the example, the ball needs to steps to move once.
+absolute value is proportional to the speed <it>if the ball moves slower than
+1 tile per step</it>. In the example, the ball needs to steps to move once.
 
-<br>
+<br><br>
 <table>
   <tr>
     <td style="width: 250px;">
