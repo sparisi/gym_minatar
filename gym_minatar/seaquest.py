@@ -66,8 +66,8 @@ class Seaquest(gym.Env):
       - If the player is not carrying any divers, the game ends.
       - The player can stay at the surface as long as it wants without depleting
         oxygen.
-    - When the player submerges again, the difficulty level increases, making
-      enemies and divers move faster.
+    - When the player submerges again, the difficulty level increases
+      (enemies and divers move faster, respawn time decreases).
     - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
       for information about the game entities:
         - Channel 0: oxygen and diver bars (denoted by 1s at the bottom of the grid),
@@ -96,7 +96,7 @@ class Seaquest(gym.Env):
         self.n_rows += 2
 
         self.n_rows, self.n_cols = size
-        self.spawn_cooldown = 4
+        self.spawn_cooldown = 10
         self.max_entity_speed = -2
         self.entities = None
         self.player_row = None
@@ -161,7 +161,11 @@ class Seaquest(gym.Env):
                 continue
             if speed <= 0:
                 if timer != speed:
-                    speed = 0
+                    speed_scaling = (timer - 0.5) / speed
+                    state[row, col, 1] = dir
+                    if 0 <= col - dir < self.n_cols:
+                        state[row, (col - dir), id] = dir * speed_scaling
+                    continue
                 else:
                     speed = 1
             for step in range(speed + 1):
@@ -174,7 +178,7 @@ class Seaquest(gym.Env):
 
     def level_one(self):
         self.max_entity_speed = -2
-        self.spawn_cooldown = 4
+        self.spawn_cooldown = 10
 
     def level_up(self):
         self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
@@ -206,7 +210,7 @@ class Seaquest(gym.Env):
         rows = np.arange(1, self.n_rows - 1)
         ids = self.np_random.random(self.n_rows - 2)
         ids = (ids[None] < np.array([0.25, 0.5, 1.0])[..., None]).sum(0)  # 50% fish, 25% submarines, 25% divers
-        cdowns = self.np_random.integers(self.spawn_cooldown - 2, self.spawn_cooldown + 1, self.n_rows - 2)
+        cdowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
         self.entities = [[r, None, s, d, i, 0, cd, None] for r, s, d, i, cd in zip(rows, speeds, dirs, ids, cdowns)]
 
         self.oxygen = self.oxygen_max
@@ -249,6 +253,8 @@ class Seaquest(gym.Env):
     def despawn(self, entity):
         entity[1] = None
         entity[6] = self.spawn_cooldown
+        if entity[4] == SUBMARINE:
+            entity[7] = None
 
     def respawn(self, entity):
         speed = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1)
@@ -500,9 +506,11 @@ class Seaquest(gym.Env):
         )
         pygame.draw.rect(self.window_surface, PALE_CYAN, rect)
 
-        def draw_tile(row, col, color):
+        def draw_tile(row, col, color, scale=1.0):
             pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
+            if scale != 1.0:
+                rect = rect.scale_by(scale)
             pygame.draw.rect(self.window_surface, color, rect)
 
         # Draw entities and their trail
@@ -524,6 +532,10 @@ class Seaquest(gym.Env):
             draw_tile(row, col, color)
             if speed <= 0:
                 if timer != speed:
+                    if 0 <= col < self.n_cols:
+                        col = (col - dir)  # Backward for trail
+                        speed_scaling = (timer - 0.5) / speed
+                        draw_tile(row, col, color_trail, scale=speed_scaling)
                     continue
                 else:
                     speed = 1
