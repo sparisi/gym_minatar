@@ -211,25 +211,25 @@ For full details, please refer to the docs in the source code (click on the game
       <ul style="list-style-type:circle">
         <li>The player (bright green front, pale green back) must collect divers (blue)
         and bring them to the surface (gray) while shooting down enemies (purple fishes
-        and red submarines) with bullets (white).</il>
-        <il>Submarines can shoot as well (yellow).</il>
-        <il>The player must wait some time before it can shoot again. Submarines
+        and red submarines) with bullets (white).</li>
+        <li>Submarines can shoot as well (yellow).</li>
+        <li>The player must wait some time before it can shoot again. Submarines
         shoot as soon as they enter the board, and then again as soon as
-        their bullet leaves the board.</il>
-        <il>The player has limited oxygen (pale yellow bar at the bottom left of the screen)
-        that depletes over time.</il>
-        <il>Hitting an enemy gives the player 1 point.</il>
-        <il>Carrying 6 divers to the surface gives as many points as the amount of
+        their bullet leaves the board.</li>
+        <li>The player has limited oxygen (pale yellow bar at the bottom left of the screen)
+        that depletes over time.</li>
+        <li>Hitting an enemy gives the player 1 point.</li>
+        <li>Carrying 6 divers to the surface gives as many points as the amount of
         oxygen left, and the oxygen is replenished. The number of divers carried by
-        the player is denoted by the pale blue bar at the bottom right of the board.</il>
-        <il>If the player is carrying less than 6 divers but at least 1, it doesn't
-        receive any point, but its oxygen is still replenished.</il>
-        <il>The game ends if the player is hit by an enemy or a bullet, its oxygen
-        depletes, or if it emerges without carrying any divers.</il>
-        <il>Enemies and divers move at random speeds and leave a trail. When one
-        leaves the board, some time must pass before a new one respawns (like Asterix).</il>
-        <il>Every time the player emerges and submerges again, difficulty increase
-        (enemies and divers move faster, respawn time decreases).</il>
+        the player is denoted by the pale blue bar at the bottom right of the board.</li>
+        <li>If the player is carrying less than 6 divers but at least 1, it doesn't
+        receive any point, but its oxygen is still replenished.</li>
+        <li>The game ends if the player is hit by an enemy or a bullet, its oxygen
+        depletes, or if it emerges without carrying any divers.</li>
+        <li>Enemies and divers move at random speeds and leave a trail. When one
+        leaves the board, some time must pass before a new one respawns (like Asterix).</li>
+        <li>Every time the player emerges and submerges again, difficulty increase
+        (enemies and divers move faster, respawn time decreases).</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 4 channels for (in order): player and bars (oxygen and divers),
         fishes, submarines and bullets, divers.</li>
