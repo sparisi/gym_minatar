@@ -111,7 +111,7 @@ For full details, please refer to the docs in the source code (click on the game
         <li>For every broken brick, the player receives 1 point.</li>
         <li>Once all bricks are broken, a new round starts with the ball moving faster.</li>
         <li>The ball speed is denoted by its trail (longer trails means faster ball).
-        If the ball moves slower than 1 tile per step, its trail is smaller.</li>
+        If the ball moves slower than 1 tile per timestep, its trail is smaller.</li>
         <li>The game ends if the player misses the ball.</li>
         <li>The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
         has 3 channels for (in order): player, bricks, ball.</li>
@@ -133,7 +133,7 @@ For full details, please refer to the docs in the source code (click on the game
         (white), and receives 1 point every time it hits one alien.</li>
         <li>Aliens shoot the player as well (yellow), move left (pale red) or
         right (bright red), and change direction when they hit the sides of the board.</li>
-        <li>Before changing direction, they move one step down.
+        <li>Before changing direction, they move one tile down.
         As they move down, their speed increases.</li>
         <li>If the player destroys all aliens, a new round starts, with the aliens
         starting closer to the player.</li>
@@ -160,7 +160,7 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player (green) has to cross a road while avoiding cars (red).</li>
         <li>Cars move at different speed, denoted by the trail behind them
         (longer trails means faster car).
-        If a car moves slower than 1 tile per step, its trail is smaller.</li>
+        If a car moves slower than 1 tile per timestep, its trail is smaller.</li>
         <li>When a car leaves the board, it spawns in the same row from the opposite side.</li>
         <li>When the player crosses the road (reaches the top), it receives 1 point
         and a new round starts with faster cars.</li>
@@ -186,7 +186,7 @@ For full details, please refer to the docs in the source code (click on the game
         while avoiding enemies (red).</li>
         <li>Treasures and enemies move at different speed, denoted by the trail behind them
         (longer trails means faster entity).
-        If they moves slower than 1 tile per step, theyr trail is smaller.</li>
+        If they moves slower than 1 tile per timestep, theyr trail is smaller.</li>
         <li>When treasures and enemies leaves the screen (or are collected, if treasure)
         some time must pass before a new one randomly appears in the same row.</li>
         <li>Over time, enemies and treasures speed increases and respawn wait time decreases.</li>
@@ -236,7 +236,7 @@ understand how speed and trail are encoded.
 Third channel of Breakout observation. The sign of non-zero elements denotes
 the ball direction (negative going up, positive going down); the
 absolute value is proportional to the speed <it>if the ball moves slower than
-1 tile per step</it>. In the example, the ball takes 2 timesteps to move.
+1 tile per timestep</it>. In the example, the ball takes 2 timesteps to move.
 <br><br>
 <img src="figures/freeway_obs.png" width="250" height="250" align="left">
 
@@ -255,8 +255,8 @@ absolute value is proportional to the speed <it>if the ball moves slower than
 <div style="clear: both;"></div>
 <br>
 Second channel of Freeway observation. The encoding of speed and trail
-follow the same rules of Breakout. The example shows that cars moving at 1 tile
-per step (third and seventh car) encode trails with absolute value 1.
+follows the same rules of Breakout. The example shows that cars moving at 1 tile
+per timestep (third and seventh car) encode trails with absolute value 1.
 It also shows cars moving slower than 1 tile per timestep (first, fourth, and eighth car).
 <br><br>
 <img src="figures/asterix_obs.png" width="250" height="250" align="left">
