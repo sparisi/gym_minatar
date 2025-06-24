@@ -64,7 +64,7 @@ class Asterix(gym.Env):
         # Second channel for enemies position and their trail (-1 moving left, 1 moving right).
         # Third channel for treasures position and their trail (-1 moving left, 1 moving right).
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 3),
         )
         self.action_space = gym.spaces.Discrete(5)
         self.action_map = {
@@ -100,7 +100,11 @@ class Asterix(gym.Env):
                 break
             if speed <= 0:
                 if timer != speed:
-                    speed = 0
+                    speed_scaling = (timer - 0.5) / speed
+                    state[row, (col) % self.n_cols, 1] = dir
+                    if 0 <= col - dir < self.n_cols:
+                        state[row, (col - dir), 2 if is_tres else 1] = dir * speed_scaling
+                    continue
                 else:
                     speed = 1
             for step in range(speed + 1):
@@ -292,9 +296,11 @@ class Asterix(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        def draw_tile(row, col, color):
+        def draw_tile(row, col, color, scale=1.0):
             pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
+            if scale != 1.0:
+                rect = rect.scale_by(scale)
             pygame.draw.rect(self.window_surface, color, rect)
 
         # Draw entities and their trail
@@ -305,6 +311,10 @@ class Asterix(gym.Env):
             draw_tile(row, col, BLUE if is_tres else RED)
             if speed <= 0:
                 if timer != speed:
+                    if 0 <= col < self.n_cols:
+                        col = (col - dir)  # Backward for trail
+                        speed_scaling = (timer - 0.5) / speed
+                        draw_tile(row, col, CYAN if is_tres else PALE_RED, scale=speed_scaling)
                     continue
                 else:
                     speed = 1

@@ -55,7 +55,7 @@ class Freeway(gym.Env):
         # First channel for player pos
         # Second channel for cars pos and trail (-1 moving left, 1 moving right)
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 2), dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 2),
         )
         self.action_space = gym.spaces.Discrete(3)
         self.action_map = {
@@ -123,17 +123,20 @@ class Freeway(gym.Env):
         self.reset()
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(self.observation_space.shape)
         state[self.player_row, self.player_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car
             if speed <= 0:
                 if timer != speed:
-                    speed = 0
+                    speed_scaling = (timer - 0.5) / speed
+                    state[row, (col - dir) % self.n_cols, 1] = dir * speed_scaling
+                    state[row, (col) % self.n_cols, 1] = dir
+                    continue
                 else:
                     speed = 1
             for step in range(speed + 1):
-                state[row, (col + step * dir) % self.n_cols, 1] = dir
+                state[row, (col - step * dir) % self.n_cols, 1] = dir
         return state
 
     def collision(self, row, col, action):
@@ -218,9 +221,11 @@ class Freeway(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        def draw_tile(row, col, color):
+        def draw_tile(row, col, color, scale=1.0):
             pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
+            if scale != 1.0:
+                rect = rect.scale_by(scale)
             pygame.draw.rect(self.window_surface, color, rect)
 
         # Draw cars and their trail
@@ -229,11 +234,14 @@ class Freeway(gym.Env):
             draw_tile(row, col, RED)
             if speed <= 0:
                 if timer != speed:
+                    col = (col - dir) % self.n_cols  # Backward for trail
+                    speed_scaling = (timer - 0.5) / speed
+                    draw_tile(row, col, PALE_RED, scale=speed_scaling)
                     continue
                 else:
                     speed = 1
             for step in range(max(0, speed)):
-                col = (col - dir) % self.n_cols  # Backward for trail
+                col = (col - dir) % self.n_cols
                 draw_tile(row, col, PALE_RED)
 
         # Draw player

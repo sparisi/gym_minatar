@@ -162,14 +162,14 @@ For full details, please refer to the docs in the source code (click on the game
       (longer trails means faster car).
       <br>
       When a car leaves the board, it spawns in the same row from the opposite side.
-      When the player crosses the road (i.e., reaches the top), a new round starts with
-      cars moving faster.
+      When the player crosses the road (i.e., reaches the top), it gets a positive
+      reward and a new round starts with faster cars.
       <br>
       The game ends when the player is hit by a car.
       <br>
       The player has 3 actions (UP, DOWN, NO-OP) and the observation space
-      has 2 channels for (in order): player position (1), car position and
-      trail (-1 moving left, 1 moving right).  
+      has 2 channels for (in order): player position, cars position and
+      trail.
       <br>
       This game is <b>fully observable</b>.
     </td>
@@ -198,11 +198,12 @@ For full details, please refer to the docs in the source code (click on the game
 </table>
 <br>
 Example of observation's second channel (info about cars): 1 and -1 denote the
-position of the car and (if the car is about to move, its trail -- see fourth row).
+position of the car and (if the car moves at least 1 tile per step,
+its trail -- see fourth row).
 Intermediate values indicate the trail as well, but for when the car is not about
-to move yet (speed lower than 1). When rendered, this is depicted with smaller
-traces (see second and third row).
-
+to move yet (speed lower than 1). When rendered, trails of fast cars take occupy
+tiles, while trails of slow cars are smaller (see second and third row).
+As the cars become faster, their trail gets longer (see animation above).
 
 
 ### [`Gym-MinAtar/Asterix-v1`](gym_minatar/asterix.py)
@@ -227,10 +228,38 @@ traces (see second and third row).
       trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
       left, 1 moving right).
       <br>
-      This game is <b>partially observable</b>, because observations don't encode respawn time.
+      This game is <b>partially observable</b>, because observations don't encode
+      respawn time, and when entities spawn their direction cannot be determined
+      immediately (they have no trace yet).
     </td>
   </tr>
+  <tr>
+  <td style="width: 250px;">
+    <img src="figures/asterix_obs.png" width="250" height="250">
+  </td>
+  <td style="width: 250px;">
+  <pre>
+  <code>
+  [[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
+   [ 0.  0.   0.  0.  0.  0. -1. -0.5 0.  0.  ]
+   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
+   [-1.  -0.5 0.  0.  0.  0.  0.  0.  0.  0.  ]
+   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
+   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
+   [ 0.  0.   0.  0.  1.  1.  0.  0.  0.  0.  ]
+   [ 0.  0.   1.  1.  0.  0.  0.  0.  0.  0.  ]
+   [ 0.  0.   0.  0.  -1. -1. 0.  0.  0.  0.  ]
+   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]]
+  </code>
+  </pre>
+  </td>
+  </tr>
 </table>
+<br>
+Example of observation's second channel (info about enemies). The way speed and trail
+are encoded is the same as Freeway, with the difference that the second channel is
+dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
+of the second channel have all 0s, there are treasures).
 
 ### [`Gym-MinAtar/Seaquest-v1`](gym_minatar/seaquest.py)
 <table>
