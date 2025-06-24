@@ -211,18 +211,18 @@ For full details, please refer to the docs in the source code (click on the game
       <ul style="list-style-type:circle">
         <li>The player (green) must collect divers (blue) and bring them to the
         surface (gray) while hitting enemies shooting bullets (white) from its front (bright green).</li>
-        <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot (yellow).</li>
-        <li>The player must wait some time before it can shoot again. Submarines
+        <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot bullets (yellow).</li>
+        <li>The player must wait some time before shooting again. Submarines
         shoot as soon as they enter the board, and then again as soon as
         their bullet leaves the board.</li>
-        <li>The player has limited oxygen (pale yellow bar at the bottom left of the board)
+        <li>The player has limited oxygen (gauge at the bottom left of the board)
         that depletes over time.</li>
         <li>Hitting an enemy gives the player 1 point.</li>
         <li>Carrying 6 divers to the surface gives as many points as the amount of
         oxygen left, and the oxygen is replenished. The number of divers carried by
-        the player is denoted by the pale blue bar at the bottom right of the board.</li>
-        <li>If the player is carrying less than 6 divers but at least 1, it doesn't
-        receive any point, but its oxygen is still replenished.</li>
+        the player is denoted by gauge at the bottom right of the board.
+        If the player is carrying less than 6 divers but at least 1, it doesn't
+        receive any point but its oxygen is still replenished.</li>
         <li>The game ends if the player is hit by an enemy or a bullet, its oxygen
         depletes, or if it emerges without carrying any diver.</li>
         <li>Enemies and divers move at different speeds and leave a trail. When one
@@ -231,7 +231,7 @@ For full details, please refer to the docs in the source code (click on the game
         (enemies and divers move faster, respawn time decreases).</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 6 channels for (in order): player and bullets,
-        fishes, submarines and bullets, divers, oxygen bar, and divers carried bar.</li>
+        fishes, submarines and bullets, divers, oxygen gauge, and divers carried gauge.</li>
         <li>This game is <b>partially observable</b>. First, observations
         don't encode shooting cooldown time (although this can be inferred
         from how far the player bullet has traveled). Second, oxygen reserve is
