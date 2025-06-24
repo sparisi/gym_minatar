@@ -156,21 +156,19 @@ For full details, please refer to the docs in the source code (click on the game
       <img src="figures/freeway.gif" width="250" height="250">
     </td>
     <td>
-      The player (green) has to cross a road while avoiding cars (red).
-      Cars move at different speed, denoted by the trail behind them
-      (longer trails means faster car).
-      <br>
-      When a car leaves the board, it spawns in the same row from the opposite side.
-      When the player crosses the road (i.e., reaches the top), it gets a positive
-      reward and a new round starts with faster cars.
-      <br>
-      The game ends when the player is hit by a car.
-      <br>
-      The player has 3 actions (UP, DOWN, NO-OP) and the observation space
-      has 2 channels for (in order): player position, cars position and
-      trail.
-      <br>
-      This game is <b>fully observable</b>.
+      <ul style="list-style-type:circle">
+        </li>The player (green) has to cross a road while avoiding cars (red).</li>
+        <li>Cars move at different speed, denoted by the trail behind them
+        (longer trails means faster car).
+        If a car moves slower than 1 tile per step, its trail is smaller.</li>
+        <li>When a car leaves the board, it spawns in the same row from the opposite side.</li>
+        <li>When the player crosses the road (reaches the top), it receives 1 point
+        and a new round starts with faster cars.</li>
+        <li>The game ends when the player is hit by a car.</li>
+        <li>The player has 3 actions (UP, DOWN, NO-OP) and the observation space
+        has 2 channels for (in order): player and cars.</li>
+        <li>This game is <b>fully observable</b>.</li>
+      </ul>
     </td>
   </tr>
 </table>
