@@ -40,12 +40,16 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 - All games are rendered with [PyGame](https://www.pygame.org/news) rather than
   [Matplotlib](https://matplotlib.org/), as in classic
   [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) environments.
-- Different observation spaces. In MinAtar, the observation space has a separate
-  channel for every entity in the game with binary values (0/1). Gym-MinAtar
-  has a lower dimensional observation space with ternary values (-1/0/1).
-  For example, in MinAtar's Space Invaders, aliens moving left and aliens moving
-  right are encoded in two separate channels. Instead, Gym-MinAtar uses one
-  channel with -1 for aliens moving left, and 1 for aliens moving right.
+- Different observation spaces. In MinAtar, the observation space has separate
+  channels for every entity in the game. Gym-MinAtar uses lower dimensional
+  observation spaces with continuous values in [-1, 1].
+  - For example, in MinAtar's Space Invaders, aliens moving left and aliens moving
+  right are encoded in two separate channels (with binary values). Instead,
+  Gym-MinAtar uses one channel with -1 for aliens moving left, and 1 for aliens
+  moving right.
+  - Another example is Freeway. MinAtar uses one channel for each car, while
+  Gym-MinAtar uses one channel for all cars (the absolute value denotes the
+  speed, the sign denotes the direction).
 - Different rendering scheme. MinAtar uses one pixel for trails (like
   car trails), with different shades for different speeds. Gym-MinAtar uses the
   same shades, but trails are longer for faster cars.
@@ -78,8 +82,7 @@ The flag `--practice` makes the game wait until press a key to act.
 ## Games
 Actions are discrete, while observations have shape `(rows, cols, channels)`
 with ternary values (-1, 0, or 1).
-The number of actions and channels depends on the game. Below are some details
-about the games. For full details, please see docs in the source code.  
+The number of actions and channels depends on the game.
 All boards have size (10, 10) by default. To change it:
 ```python
 gymnasium.make(..., size=(rows, cols))
@@ -91,8 +94,9 @@ import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84))
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
 ```
-Note that both ternary and pixel observations are *partially observable*, as
-they cannot encode time (e.g., shooting cooldown and respawn time).
+
+Below are some details about the games.
+For full details, please refer to the docs in the source code (click on the game name).
 
 ### [`Gym-MinAtar/Breakout-v1`](gym_minatar/breakout.py)
 <table>
@@ -108,6 +112,8 @@ they cannot encode time (e.g., shooting cooldown and respawn time).
       The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
       has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
       up, 1 moving down).
+
+      This game is *fully observable*.
     </td>
   </tr>
 </table>
@@ -130,6 +136,9 @@ they cannot encode time (e.g., shooting cooldown and respawn time).
       The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
       has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
       bullets position (-1 moving up, 1 moving down).
+
+      This game is *partially observable*, because observations don't encode
+      shooting cooldown time.
     </td>
   </tr>
 </table>
@@ -151,6 +160,8 @@ they cannot encode time (e.g., shooting cooldown and respawn time).
       The player has 3 actions (UP, DOWN, NO-OP) and the observation space
       has 2 channels for (in order): player position (1), car position and
       trail (-1 moving left, 1 moving right).
+
+      This game is *fully observable*.
     </td>
   </tr>
 </table>
@@ -173,6 +184,8 @@ they cannot encode time (e.g., shooting cooldown and respawn time).
       has 3 channels for (in order): player position (1), enemies position and
       trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
       left, 1 moving right).
+
+      This game is *partially observable*, because observations don't encode respawn time.
     </td>
   </tr>
 </table>
