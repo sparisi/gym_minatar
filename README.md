@@ -192,9 +192,6 @@ For full details, please refer to the docs in the source code (click on the game
    [ 0.    0.    0.    0.    0.    0.    0.    0.    0.    0.  ]]
   ```
   </td>
-  <td>
-    <img src="figures/freeway.gif" width="250" height="250">
-  </td>
   </tr>
 </table>
 
