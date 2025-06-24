@@ -125,7 +125,7 @@ class Freeway(gym.Env):
         self.reset()
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape)
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[self.player_row, self.player_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car

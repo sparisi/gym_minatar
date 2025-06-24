@@ -94,7 +94,7 @@ class Asterix(gym.Env):
         )  # fmt: skip
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape)
+        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[self.player_row, self.player_col, 0] = 1
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
