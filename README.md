@@ -266,9 +266,13 @@ obs, *_ = env.step(1)
 print_obs(obs)
 ```
 
-<img src="figures/breakout_obs.png" width="250" height="250" align="left">
-
-```
+<table>
+  <tr>
+    <td>
+      <img src="figures/breakout_obs.png" width="250" height="250">
+    </td>
+    <td>
+      <pre>
 [[0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
@@ -279,16 +283,24 @@ print_obs(obs)
  [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  1. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]]
-```
-<div style="clear: both;"></div>
-Third channel of Breakout observation. The sign of non-zero elements denotes
-the ball direction (negative going up, positive going down); the
-absolute value is proportional to the speed <it>if the ball moves slower than
-1 tile per timestep</it>. In the example, the ball takes 2 timesteps to move.
-<br><br>
-<img src="figures/freeway_obs.png" width="250" height="250" align="left">
+      </pre>
+    </td>
+  </tr>
+</table>
 
-```
+<p>
+Third channel of <b>Breakout</b> observation. The sign of non-zero elements denotes the ball direction
+(negative going up, positive going down); the absolute value is proportional to the speed <i>if the ball moves
+slower than 1 tile per timestep</i>. In the example, the ball takes 2 timesteps to move.
+</p>
+
+<table>
+  <tr>
+    <td>
+      <img src="figures/freeway_obs.png" width="250" height="250">
+    </td>
+    <td>
+      <pre>
 [[ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]
  [-1. -0.25 0.  0.  0.   0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.5  1.  0.  0.  0.  0.]
@@ -299,34 +311,50 @@ absolute value is proportional to the speed <it>if the ball moves slower than
  [ 1.  1.   0.  0.  0.   0.  0.  0.  0.  0.]
  [ 0.  0.25 1.  0.  0.   0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]]
-```
-<div style="clear: both;"></div>
-Second channel of Freeway observation. The encoding of speed and trail
-follows the same rules of Breakout. The example shows that cars moving at 1 tile
-per timestep (third and seventh car) encode trails with absolute value 1.
-It also shows cars moving slower than 1 tile every 2 timestep (first, fourth, and eighth car).
-<br><br>
-<img src="figures/asterix_obs.png" width="250" height="250" align="left">
+      </pre>
+    </td>
+  </tr>
+</table>
 
-```
+<p>
+Second channel of <b>Freeway</b> observation. The encoding of speed and trail follows the same rules of Breakout.
+The example shows that cars moving at 1 tile per timestep (third and seventh car) encode trails with absolute value 1.
+It also shows cars moving slower than 1 tile every 2 timesteps (first, fourth, and eighth car).
+</p>
+
+<table>
+  <tr>
+    <td>
+      <img src="figures/asterix_obs.png" width="250" height="250">
+    </td>
+    <td>
+      <pre>
 [[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.  0. -1. -0.5 0.  0.]
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
- [-1.  -0.5 0.  0.  0.  0.  0.  0.  0.  0.]
+ [-1. -0.5 0.  0.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  1.  1.  0.  0.  0.  0.]
  [ 0.  0.   1.  1.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0. -1. -1.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]]
-```
-<div style="clear: both;"></div>
-Second channel of Asterix observation. It's like Freeway's, but it only encodes
-enemies (treasures are encoded in the third channel).
-<br><br>
-<img src="figures/seaquest_obs.png" width="250" height="250" align="left">
+      </pre>
+    </td>
+  </tr>
+</table>
 
-```
+<p>
+Second channel of <b>Asterix</b> observation. It’s like Freeway’s, but it only encodes enemies (treasures are encoded in the third channel).
+</p>
+
+<table>
+  <tr>
+    <td>
+      <img src="figures/seaquest_obs.png" width="250" height="250">
+    </td>
+    <td>
+      <pre>
 [[ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
  [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
  [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
@@ -337,7 +365,11 @@ enemies (treasures are encoded in the third channel).
  [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
  [ 0.75 1. 0.  0. 0. 1. 0. 0.  0.  0.  ]
  [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]]
-```
-<div style="clear: both;"></div>
-Third channel of Seaquest observation. It's like Asterix's but for submarines,
-and with the addition of bullets.
+      </pre>
+    </td>
+  </tr>
+</table>
+
+<p>
+Third channel of <b>Seaquest</b> observation. It’s like Asterix’s but for submarines, and with the addition of bullets.
+</p>
