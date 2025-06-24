@@ -53,7 +53,7 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
   - Different rendering scheme. MinAtar uses one pixel for trails (like
   car trails), with different colors for different speeds. Gym-MinAtar uses the
   same color for all trails, but trails are longer for faster cars.
-  - Please refer to the examples below for a description of the observation spaces.
+  - Please refer to the examples below for more details about the observation spaces.
 - Game-specific dynamics are different (like cooldown times and speeds).
 
 ### Install and Make an Environment
@@ -258,7 +258,7 @@ understand how speed and trail are encoded.
 </table>
 
 
-
+<!--
 
   <tr>
   <td style="width: 250px;">
@@ -329,4 +329,4 @@ understand how speed and trail are encoded.
   Example of observation's second and third channels. In the former, 1s denote bricks;
   in the latter, values in [-1, 1] denote ball speed and direction (-1 going up,
   1 going down). Intermediate values are for when the ball moves slower than
-  1 tile per step.
+  1 tile per step. -->
