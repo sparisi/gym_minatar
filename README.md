@@ -238,14 +238,12 @@ understand how speed and trail are encoded.
         </code>
       </pre>
     </td>
-    <td>
-      Third channel of Breakout observation. The sign of non-zero elements denotes
-      the ball direction (negative going up, positive going down); the
-      absolute value is proportional to the speed __if the ball moves slower than
-      1 tile per step__. In the example, the ball needs to steps to move once.
-    </td>    
   </tr>
 </table>
+Third channel of Breakout observation. The sign of non-zero elements denotes
+the ball direction (negative going up, positive going down); the
+absolute value is proportional to the speed __if the ball moves slower than
+1 tile per step__. In the example, the ball needs to steps to move once.
 
 <table>
   <tr>
@@ -268,14 +266,12 @@ understand how speed and trail are encoded.
         </code>
       </pre>
     </td>
-    <td>
-      Second channel of Freeway observation. The encoding of speed and trail
-      follow the same rules of Breakout. The example shows that cars moving at 1 tile
-      per step (fourth and seventh row) encode trails with absolute value 1.
-      It also shows cars moving slower than 1 tile per step (second, fifth, and eighth rows).
-    </td>    
   </tr>
 </table>
+Second channel of Freeway observation. The encoding of speed and trail
+follow the same rules of Breakout. The example shows that cars moving at 1 tile
+per step (fourth and seventh row) encode trails with absolute value 1.
+It also shows cars moving slower than 1 tile per step (second, fifth, and eighth rows).
 
 
 <table>
@@ -283,7 +279,7 @@ understand how speed and trail are encoded.
     <td style="width: 250px;">
       <img src="figures/asterix_obs.png" width="250" height="250">
     </td>
-    <td style="width: 250px;">
+    <td>
       <pre>
         <code>
 [[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
@@ -299,11 +295,9 @@ understand how speed and trail are encoded.
         </code>
       </pre>
     </td>
-    <td style="width: 250px;">
-      Example of observation's second channel (info about enemies). The way speed and trail
-      are encoded is the same as Freeway, with the difference that the second channel is
-      dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
-      of the second channel have all 0s, there are treasures).
-    </td>    
   </tr>
 </table>
+Example of observation's second channel (info about enemies). The way speed and trail
+are encoded is the same as Freeway, with the difference that the second channel is
+dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
+of the second channel have all 0s, there are treasures).
