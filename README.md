@@ -193,15 +193,15 @@ For full details, please refer to the docs in the source code (click on the game
   [ 0.   0.   0.   0.   0.   0.   0.   0.   0.   0.  ]]
   </code>
   </pre>
-  <br>
-  Example of observation's second channel (info about cars): 1 and -1 denote the
-  position of the car and (if the car is about to move, its trail -- see fourth row).
-  Intermediate values indicate the trail as well, but for when the car is not about
-  to move yet (speed lower than 1). When rendered, this is depicted with smaller
-  traces (see second and third row).
   </td>
   </tr>
 </table>
+<br>
+Example of observation's second channel (info about cars): 1 and -1 denote the
+position of the car and (if the car is about to move, its trail -- see fourth row).
+Intermediate values indicate the trail as well, but for when the car is not about
+to move yet (speed lower than 1). When rendered, this is depicted with smaller
+traces (see second and third row).
 
 
 
