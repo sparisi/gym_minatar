@@ -130,12 +130,11 @@ For full details, please refer to the docs in the source code (click on the game
     <td>
       <ul style="list-style-type:circle">
         <li>The player (green) has to shoot down waves of aliens (red) with bullets
-        (white). Aliens shoot the player as well (yellow).</li>
-        <li>Aliens move left (pale red) or right (bright red), and change direction
-        when they hit the sides of the board.</li>
+        (white), and receives 1 point every time it hits one alien.</li>
+        <li>Aliens shoot the player as well (yellow), move left (pale red) or
+        right (bright red), and change direction when they hit the sides of the board.</li>
         <li>Before changing direction, they move one step down.
         As they move down, their speed increases.</li>
-        <li>The player receives 1 point when it hits an alien.
         <li>If the player destroys all aliens, a new round starts, with the aliens
         starting closer to the player.</li>
         <li>The game ends when the player is hit by a bullet or an alien.</li>
@@ -145,7 +144,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>This game is <b>partially observable</b>, because observations
         don't encode shooting cooldown time. However, most of the time this
         can be inferred by how far the player bullet has traveled.
-        Also, note that aliens speed can be inferred from how far they have moved down.</li>
       </ul>
     </td>
   </tr>
