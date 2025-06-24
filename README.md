@@ -179,7 +179,7 @@ For full details, please refer to the docs in the source code (click on the game
     <img src="figures/freeway_obs.png" width="250" height="250">
   </td>
   <td style="width: 250px;">
-  <code>
+  <samp>
   [[ 0.    0.    0.    0.    0.    0.    0.    0.    0.    0.  ]
    [-1.   -0.25  0.    0.    0.    0.    0.    0.    0.    0.  ]
    [ 0.    0.    0.    0.    0.5   1.    0.    0.    0.    0.  ]
@@ -190,7 +190,7 @@ For full details, please refer to the docs in the source code (click on the game
    [ 1.    1.    0.    0.    0.    0.    0.    0.    0.    0.  ]
    [ 0.    0.25  1.    0.    0.    0.    0.    0.    0.    0.  ]
    [ 0.    0.    0.    0.    0.    0.    0.    0.    0.    0.  ]]
-   </code>
+   </samp>
   </td>
   </tr>
 </table>
