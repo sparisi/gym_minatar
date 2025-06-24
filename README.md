@@ -245,6 +245,7 @@ the ball direction (negative going up, positive going down); the
 absolute value is proportional to the speed __if the ball moves slower than
 1 tile per step__. In the example, the ball needs to steps to move once.
 
+<br>
 <table>
   <tr>
     <td style="width: 250px;">
@@ -274,6 +275,7 @@ per step (fourth and seventh row) encode trails with absolute value 1.
 It also shows cars moving slower than 1 tile per step (second, fifth, and eighth rows).
 
 
+<br>
 <table>
   <tr>
     <td style="width: 250px;">
