@@ -209,14 +209,13 @@ For full details, please refer to the docs in the source code (click on the game
     </td>
     <td>
       <ul style="list-style-type:circle">
-        <li>The player (bright green front, pale green back) must collect divers (blue)
-        and bring them to the surface (gray) while shooting down enemies (purple fishes
-        and red submarines) with bullets (white).</li>
-        <li>Submarines can shoot as well (yellow).</li>
+        <li>The player (green) must collect divers (blue) and bring them to the
+        surface (gray) while hitting enemies shooting bullets (white) from its front (bright green).</li>
+        <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot (yellow).</li>
         <li>The player must wait some time before it can shoot again. Submarines
         shoot as soon as they enter the board, and then again as soon as
         their bullet leaves the board.</li>
-        <li>The player has limited oxygen (pale yellow bar at the bottom left of the screen)
+        <li>The player has limited oxygen (pale yellow bar at the bottom left of the board)
         that depletes over time.</li>
         <li>Hitting an enemy gives the player 1 point.</li>
         <li>Carrying 6 divers to the surface gives as many points as the amount of
@@ -225,14 +224,17 @@ For full details, please refer to the docs in the source code (click on the game
         <li>If the player is carrying less than 6 divers but at least 1, it doesn't
         receive any point, but its oxygen is still replenished.</li>
         <li>The game ends if the player is hit by an enemy or a bullet, its oxygen
-        depletes, or if it emerges without carrying any divers.</li>
-        <li>Enemies and divers move at random speeds and leave a trail. When one
+        depletes, or if it emerges without carrying any diver.</li>
+        <li>Enemies and divers move at different speeds and leave a trail. When one
         leaves the board, some time must pass before a new one respawns (like Asterix).</li>
-        <li>Every time the player emerges and submerges again, difficulty increase
+        <li>Every time the player emerges and submerges again, difficulty increases
         (enemies and divers move faster, respawn time decreases).</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 4 channels for (in order): player and bars (oxygen and divers),
         fishes, submarines and bullets, divers.</li>
+        <li>This game is <b>partially observable</b>, because observations
+        don't encode shooting cooldown time. However, most of the time this
+        can be inferred by how far the player bullet has traveled.</li>
       <ul>
     </td>
   </tr>
