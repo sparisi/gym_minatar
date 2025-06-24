@@ -25,7 +25,7 @@ PURPLE = (102, 51, 153)  # fish
 PALE_PURPLE = (200, 155, 255)  # fish trail
 BLUE = (0, 0, 255)  # diver
 CYAN = (0, 255, 255)  # diver trail
-PALE_CYAN = (200, 255, 255)  # diver bar
+PALE_CYAN = (200, 255, 255)  # diver gauge
 GREEN = (0, 255, 0)  # player front
 PALE_GREEN = (200, 255, 200)  # player back
 WHITE = (255, 255, 255)  # player bullet
@@ -57,7 +57,7 @@ class Seaquest(gym.Env):
         - Player and enemies bullets don't collide.
         - If the player is hit by the enemies bullets, it dies.
     - The player can collect divers (up to 6) on collision.
-    - The player has an oxygen reserve (bar at the bottom left) that depletes
+    - The player has an oxygen reserve (gauge at the bottom left) that depletes
       over time. When it's empty, the game ends.
     - The player can emerge by moving to the top.
       - If the player is carrying 6 divers, it gets a reward proportional to the
@@ -74,8 +74,8 @@ class Seaquest(gym.Env):
         - Channel 1: fishes and their trails (-1 moving left, 1 moving right).
         - Channel 2: submarines, bullets, and their trails (-1 moving left, 1 moving right).
         - Channel 3: divers and their trails (-1 moving left, 1 moving right).
-        - Channel 4: oxygen bar (denoted by 1s at the bottom of the grid).
-        - Channel 5: divers carried bar (denoted by 1s at the bottom of the grid).
+        - Channel 4: oxygen gauge (denoted by 1s at the bottom of the grid).
+        - Channel 5: divers carried gauge (denoted by 1s at the bottom of the grid).
         - Intermediate values in (-1, 1) denote the enemies and divers speed
           when they move slower than 1 tile per step.
     """
@@ -92,7 +92,7 @@ class Seaquest(gym.Env):
         window_size: tuple = None,
         **kwargs,
     ):
-        # Last row is for oxygen and divers bar, first row is the surface
+        # Last row is for oxygen and divers gauge, first row is the surface
         self.n_rows, self.n_cols = size
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
@@ -117,7 +117,7 @@ class Seaquest(gym.Env):
         self.oxygen_counter = 0
         self.divers_carried = 0
 
-        # First channel for oxygen and diver bars, player and its bullet.
+        # First channel for oxygen and diver gauges, player and its bullet.
         # Second channel for fishes and their trail.
         # Third channel for submarines and their trail.
         # Fourth channel for divers and their trail.
@@ -508,7 +508,7 @@ class Seaquest(gym.Env):
         rect = pygame.Rect((0, 0), (self.window_size[0], self.tile_size[1]))
         pygame.draw.rect(self.window_surface, GRAY, rect)
 
-        # Draw oxygen bar
+        # Draw oxygen gauge
         percentage_full = self.oxygen / self.oxygen_max
         rect = pygame.Rect(
             (0, (self.n_rows - 1) * self.tile_size[1]),
@@ -516,7 +516,7 @@ class Seaquest(gym.Env):
         )
         pygame.draw.rect(self.window_surface, PALE_YELLOW, rect)
 
-        # Draw divers bar
+        # Draw divers gauge
         percentage_full = self.divers_carried / self.divers_carried_max
         rect = pygame.Rect(
             (self.window_size[0] // (1.0 + percentage_full), (self.n_rows - 1) * self.tile_size[1]),
