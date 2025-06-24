@@ -181,24 +181,21 @@ For full details, please refer to the docs in the source code (click on the game
       <img src="figures/asterix.gif" width="250" height="250">
     </td>
     <td>
-      The player (green) has to collect treasures (blue) while avoiding enemies (red).
-      Entities (treasures and enemies) move at different speed, denoted by the trail behind them
-      (longer trails means faster entity).
-      <br>
-      After an entity leaves the screen (or is collected, if treasure) some time must
-      pass before a new one randomly appears in the same row.
-      Over time, entity speed increases and respawn wait time decreases.
-      <br>
-      The game ends when the player is hit by an enemy.
-      <br>
-      The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
-      has 3 channels for (in order): player position (1), enemies position and
-      trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
-      left, 1 moving right).
-      <br>
-      This game is <b>partially observable</b>, because observations don't encode
-      respawn time, and when entities spawn their direction cannot be determined
-      immediately (they have no trace yet).
+      <ul style="list-style-type:circle">
+        <li>The player (green) has to collect treasures (blue) to get points (1 per treasure)
+        while avoiding enemies (red).</li>
+        <li>Treasures and enemies move at different speed, denoted by the trail behind them
+        (longer trails means faster entity).
+        If they moves slower than 1 tile per step, theyr trail is smaller.</li>
+        <li>When treasures and enemies leaves the screen (or are collected, if treasure)
+        some time must pass before a new one randomly appears in the same row.</li>
+        <li>Over time, enemies and treasures speed increases and respawn wait time decreases.</li>
+        <li>The game ends when the player is hit by an enemy.</li>
+        <li>The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
+        has 3 channels for (in order): player, enemies, and treasures.</li>
+        <li>This game is <b>partially observable</b>, because observations don't encode
+        respawn time, and when entities spawn their direction cannot be determined
+        immediately (they have no trace yet).</li>
     </td>
   </tr>
 </table>
