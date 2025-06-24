@@ -299,7 +299,7 @@ understand how speed and trail are encoded.
         </code>
       </pre>
     </td>
-    <td>
+    <td style="width: 250px;">
       Example of observation's second channel (info about enemies). The way speed and trail
       are encoded is the same as Freeway, with the difference that the second channel is
       dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
