@@ -243,9 +243,9 @@ understand how speed and trail are encoded.
 Third channel of Breakout observation. The sign of non-zero elements denotes
 the ball direction (negative going up, positive going down); the
 absolute value is proportional to the speed <it>if the ball moves slower than
-1 tile per step</it>. In the example, the ball needs to steps to move once.
+1 tile per step</it>. In the example, the ball takes 2 timesteps to move.
 
-<br><br>
+<br>
 <table>
   <tr>
     <td style="width: 250px;">
@@ -271,9 +271,8 @@ absolute value is proportional to the speed <it>if the ball moves slower than
 </table>
 Second channel of Freeway observation. The encoding of speed and trail
 follow the same rules of Breakout. The example shows that cars moving at 1 tile
-per step (fourth and seventh row) encode trails with absolute value 1.
-It also shows cars moving slower than 1 tile per step (second, fifth, and eighth rows).
-
+per step (third and seventh car) encode trails with absolute value 1.
+It also shows cars moving slower than 1 tile per timestep (first, fourth, and eighth car).
 
 <br>
 <table>
@@ -299,7 +298,5 @@ It also shows cars moving slower than 1 tile per step (second, fifth, and eighth
     </td>
   </tr>
 </table>
-Example of observation's second channel (info about enemies). The way speed and trail
-are encoded is the same as Freeway, with the difference that the second channel is
-dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
-of the second channel have all 0s, there are treasures).
+Second channel of Asterix observation. It's like Freeway's, but it only encodes
+enemies (treasures are encoded in the third channel).
