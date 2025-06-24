@@ -245,7 +245,7 @@ For full details, please refer to the docs in the source code (click on the game
 ## Observations
 Below are some example of both default and pixels observations to better
 understand how speed and trail are encoded.  
-To have a better understanding of the observation channels, play around with the games.
+To see all observation channels, run the following code with the game you want.
 
 ```python
 import gymnasium
