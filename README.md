@@ -244,7 +244,27 @@ For full details, please refer to the docs in the source code (click on the game
 
 ## Observations
 Below are some example of both default and pixels observations to better
-understand how speed and trail are encoded.
+understand how speed and trail are encoded.  
+To have a better understanding of the observation channels, play around with the games.
+
+```python
+import gymnasium
+import gym_minatar
+import numpy as np
+
+@np.printoptions(precision=2)
+def print_obs(obs):
+    print()
+    for i in range(obs.shape[-1]):
+        print(f"--- channel {i}")
+        print(obs[..., i])
+
+env = gymnasium.make("Gym-MinAtar/Asterix-v1", render_mode="human")
+obs, _ = env.reset()
+print_obs(obs)
+obs, *_ = env.step(1)
+print_obs(obs)
+```
 
 <img src="figures/breakout_obs.png" width="250" height="250" align="left">
 
