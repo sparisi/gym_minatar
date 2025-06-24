@@ -108,8 +108,10 @@ For full details, please refer to the docs in the source code (click on the game
     <td>
       The player (green) has to bounce a ball (blue) to break bricks (gray).
       Once all bricks are broken, a new round starts with the ball moving faster.
-      The ball speed is denoted by its trail (longer trails means faster ball).  
-      The game ends if the player misses the ball (letting it touch the bottom row).  
+      The ball speed is denoted by its trail (longer trails means faster ball).
+      <br>
+      The game ends if the player misses the ball (letting it touch the bottom row).
+      <br>
       The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
       has 3 channels for (in order): bricks (1), player position (1), ball position and trail (-1 moving
       up, 1 moving down).  
@@ -127,13 +129,17 @@ For full details, please refer to the docs in the source code (click on the game
     </td>
     <td>
       The player (green) has to shoot down waves of aliens (red) with bullets
-      (white). Aliens shoot bullets as well (yellow).  
+      (white). Aliens shoot bullets as well (yellow).
+      <br>
       Aliens move left (pale red) or right (bright red), and they change direction
       when they hit the sides of the board. Before changing direction, they move one
-      step down. As they move down, their speed increases.  
+      step down. As they move down, their speed increases.
+      <br>
       If the player destroys all aliens, a new round starts,
       with the aliens starting closer to the player.
-      The game ends when the player is hit by a bullet or an alien.  
+      <br>
+      The game ends when the player is hit by a bullet or an alien.
+      <br>
       The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and the observation space
       has 3 channels for (in order): player position (1), aliens position (-1 moving left, 1 moving right),
       bullets position (-1 moving up, 1 moving down).  
@@ -154,10 +160,13 @@ For full details, please refer to the docs in the source code (click on the game
       The player (green) has to cross a road while avoiding cars (red).
       Cars move at different speed, denoted by the trail behind them
       (longer trails means faster car).
+      <br>
       When a car leaves the board, it spawns in the same row from the opposite side.
       When the player crosses the road (i.e., reaches the top), a new round starts with
       cars moving faster.
-      The game ends when the player is hit by a car.  
+      <br>
+      The game ends when the player is hit by a car.
+      <br>
       The player has 3 actions (UP, DOWN, NO-OP) and the observation space
       has 2 channels for (in order): player position (1), car position and
       trail (-1 moving left, 1 moving right).  
@@ -176,11 +185,14 @@ For full details, please refer to the docs in the source code (click on the game
     <td>
       The player (green) has to collect treasures (blue) while avoiding enemies (red).
       Entities (treasures and enemies) move at different speed, denoted by the trail behind them
-      (longer trails means faster entity).  
+      (longer trails means faster entity).
+      <br>
       After an entity leaves the screen (or is collected, if treasure) some time must
       pass before a new one randomly appears in the same row.
-      Over time, entity speed increases and respawn wait time decreases.  
-      The game ends when the player is hit by an enemy.  
+      Over time, entity speed increases and respawn wait time decreases.
+      <br>
+      The game ends when the player is hit by an enemy.
+      <br>
       The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
       has 3 channels for (in order): player position (1), enemies position and
       trail (-1 moving left, 1 moving right), treasures position and trail (-1 moving
