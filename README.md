@@ -222,111 +222,88 @@ understand how speed and trail are encoded.
     <td style="width: 250px;">
       <img src="figures/breakout_obs.png" width="250" height="250">
     </td>
-    <td style="width: 250px;">
+    <td>
       <pre>
         <code>
-        [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-         [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
-         [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
-         [1. 1. 0. 1. 1. 0. 1. 1. 1. 1.]
-         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-         [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]
-        [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. ]
+[[0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  1. 0. 0. 0.]
+ [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]]
         </code>
       </pre>
     </td>
+    <td>
+      Third channel of Breakout observation. The sign of non-zero elements denotes
+      the ball direction (negative going up, positive going down); the
+      absolute value is proportional to the speed __if the ball moves slower than
+      1 tile per step__. In the example, the ball needs to steps to move once.
+    </td>    
+  </tr>
+</table>
+
+<table>
+  <tr>
     <td style="width: 250px;">
+      <img src="figures/freeway_obs.png" width="250" height="250">
+    </td>
+    <td>
       <pre>
         <code>
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  1. 0. 0. 0. ]
-          [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]]
+[[ 0.  0.   0.  0.   0.   0.  0.  0.  0.  0.]
+ [-1. -0.25 0.  0.  0.    0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.5   1.  0.  0.  0.  0.]
+ [ 0.  1.   1.  0.  0.    0.  0.  0.  0.  0.]
+ [ 0.  0.   0. -1.  -0.25 0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.5   1.  0.  0.  0.  0.]
+ [-1. -0.5  0.  0.  0.    0.  0.  0.  0.  0.]
+ [ 1.  1.   0.  0.  0.    0.  0.  0.  0.  0.]
+ [ 0.  0.25 1.  0.  0.    0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.    0.  0.  0.  0.  0.]]
         </code>
       </pre>
     </td>
+    <td>
+      Second channel of Freeway observation. The encoding of speed and trail
+      follow the same rules of Breakout. The example shows that cars moving at 1 tile
+      per step (fourth and seventh row) encode trails with absolute value 1.
+      It also shows cars moving slower than 1 tile per step (second, fifth, and eighth rows).
+    </td>    
   </tr>
 </table>
 
 
-<!--
-
+<table>
   <tr>
-  <td style="width: 250px;">
-    <img src="figures/freeway_obs.png" width="250" height="250">
-  </td>
-  <td style="width: 250px;">
-  <pre>
-  <code>
-  [[ 0.   0.  0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [-1.  -0.25 0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.   0.   0.5  1.   0.   0.   0.   0.  ]
-  [ 0.   1.   1.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.  -1.  -0.25 0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.   0.   0.5  1.   0.   0.   0.   0.  ]
-  [-1.  -0.5  0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 1.   1.   0.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.25 1.   0.   0.   0.   0.   0.   0.   0.  ]
-  [ 0.   0.   0.   0.   0.   0.   0.   0.   0.   0.  ]]
-  </code>
-  </pre>
-  </td>
+    <td style="width: 250px;">
+      <img src="figures/asterix_obs.png" width="250" height="250">
+    </td>
+    <td>
+      <pre>
+        <code>
+[[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0. -1. -0.5 0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [-1.  -0.5 0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  1.  1.  0.  0.  0.  0.]
+ [ 0.  0.   1.  1.  0.  0.  0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  -1. -1. 0.  0.  0.  0.]
+ [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]]
+        </code>
+      </pre>
+    </td>
+    <td>
+      Example of observation's second channel (info about enemies). The way speed and trail
+      are encoded is the same as Freeway, with the difference that the second channel is
+      dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
+      of the second channel have all 0s, there are treasures).
+    </td>    
   </tr>
-
-
-  <br>
-  Example of observation's second channel (info about cars): 1 and -1 denote the
-  position of the car and (if the car moves at least 1 tile per step,
-  its trail -- see fourth row).
-  Intermediate values indicate the trail as well, but for when the car is not about
-  to move yet (speed lower than 1). When rendered, trails of fast cars take occupy
-  tiles, while trails of slow cars are smaller (see second and third row).
-  As the cars become faster, their trail gets longer (see animation above).
-
-
-
-
-  <tr>
-  <td style="width: 250px;">
-    <img src="figures/asterix_obs.png" width="250" height="250">
-  </td>
-  <td style="width: 250px;">
-  <pre>
-  <code>
-  [[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
-   [ 0.  0.   0.  0.  0.  0. -1. -0.5 0.  0.  ]
-   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
-   [-1.  -0.5 0.  0.  0.  0.  0.  0.  0.  0.  ]
-   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
-   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]
-   [ 0.  0.   0.  0.  1.  1.  0.  0.  0.  0.  ]
-   [ 0.  0.   1.  1.  0.  0.  0.  0.  0.  0.  ]
-   [ 0.  0.   0.  0.  -1. -1. 0.  0.  0.  0.  ]
-   [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.  ]]
-  </code>
-  </pre>
-  </td>
-  </tr>
-
-  <br>
-  Example of observation's second channel (info about enemies). The way speed and trail
-  are encoded is the same as Freeway, with the difference that the second channel is
-  dedicated to enemies, the third to treasures (in the example, the third, fifth, and sixth row
-  of the second channel have all 0s, there are treasures).
-
-
-
-  <br>
-  Example of observation's second and third channels. In the former, 1s denote bricks;
-  in the latter, values in [-1, 1] denote ball speed and direction (-1 going up,
-  1 going down). Intermediate values are for when the ball moves slower than
-  1 tile per step. -->
+</table>
