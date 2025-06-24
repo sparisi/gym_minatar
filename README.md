@@ -217,14 +217,9 @@ For full details, please refer to the docs in the source code (click on the game
 Below are some example of both default and pixels observations to better
 understand how speed and trail are encoded.
 
-<table>
-  <tr>
-    <td style="width: 250px;">
-      <img src="figures/breakout_obs.png" width="250" height="250">
-    </td>
-    <td>
-      <pre>
-        <code>
+<img src="figures/breakout_obs.png" width="250" height="250" align="left">
+
+```
 [[0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]
@@ -235,25 +230,17 @@ understand how speed and trail are encoded.
  [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  1. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0.  0. 0. 0. 0.]]
-        </code>
-      </pre>
-    </td>
-  </tr>
-</table>
+```
+<div style="clear: both;"></div>
+<br>
 Third channel of Breakout observation. The sign of non-zero elements denotes
 the ball direction (negative going up, positive going down); the
 absolute value is proportional to the speed <it>if the ball moves slower than
 1 tile per step</it>. In the example, the ball takes 2 timesteps to move.
+<br><br>
+<img src="figures/freeway_obs.png" width="250" height="250" align="left">
 
-<br>
-<table>
-  <tr>
-    <td style="width: 250px;">
-      <img src="figures/freeway_obs.png" width="250" height="250">
-    </td>
-    <td>
-      <pre>
-        <code>
+```
 [[ 0.  0.   0.  0.   0.   0.  0.  0.  0.  0.]
  [-1. -0.25 0.  0.  0.    0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.5   1.  0.  0.  0.  0.]
@@ -264,25 +251,17 @@ absolute value is proportional to the speed <it>if the ball moves slower than
  [ 1.  1.   0.  0.  0.    0.  0.  0.  0.  0.]
  [ 0.  0.25 1.  0.  0.    0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.    0.  0.  0.  0.  0.]]
-        </code>
-      </pre>
-    </td>
-  </tr>
-</table>
+```
+<div style="clear: both;"></div>
+<br>
 Second channel of Freeway observation. The encoding of speed and trail
 follow the same rules of Breakout. The example shows that cars moving at 1 tile
 per step (third and seventh car) encode trails with absolute value 1.
 It also shows cars moving slower than 1 tile per timestep (first, fourth, and eighth car).
+<br><br>
+<img src="figures/asterix_obs.png" width="250" height="250" align="left">
 
-<br>
-<table>
-  <tr>
-    <td style="width: 250px;">
-      <img src="figures/asterix_obs.png" width="250" height="250">
-    </td>
-    <td>
-      <pre>
-        <code>
+```
 [[ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.  0. -1. -0.5 0.  0.]
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
@@ -291,12 +270,10 @@ It also shows cars moving slower than 1 tile per timestep (first, fourth, and ei
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  1.  1.  0.  0.  0.  0.]
  [ 0.  0.   1.  1.  0.  0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  -1. -1. 0.  0.  0.  0.]
+ [ 0.  0.   0.  0. -1. -1.  0.  0.  0.  0.]
  [ 0.  0.   0.  0.  0.  0.  0.  0.  0.  0.]]
-        </code>
-      </pre>
-    </td>
-  </tr>
-</table>
+```
+<div style="clear: both;"></div>
+<br>
 Second channel of Asterix observation. It's like Freeway's, but it only encodes
 enemies (treasures are encoded in the third channel).
