@@ -24,10 +24,12 @@ class Freeway(gym.Env):
     - The game ends when the player is hit by a car.
     - Each time the player reaches the top, a reward of +1 is given and the car
       speeds increase (still random, though).
-    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
-      for information about the game entities:
+    - The observation space is a 2-channel grid with 0s for empty tiles, and
+      values in [-1, 1] for moving entities:
         - Channel 0: player position (1).
         - Channel 1: car positions and their trails (-1 moving left, 1 moving right).
+        - Intermediate values in (-1, 1) denote the speed of entities moving slower
+          than 1 tile per step.
     """
 
     metadata = {

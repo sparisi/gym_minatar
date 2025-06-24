@@ -24,11 +24,13 @@ class Breakout(gym.Env):
     - When all bricks are destroyed, a new game starts at increased difficulty.
       - Difficulty increases ball speed.
     - The game ends if the ball falls below the paddle.
-    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
-      for information about the game entities:
+    - The observation space is a 3-channel grid with 0s for empty tiles, and
+      values in [-1, 1] for moving entities:
         - Channel 0: bricks (1s).
         - Channel 1: paddle position (1).
         - Channel 2: ball and its trail (-1 moving up, 1 moving down).
+        - Intermediate values in (-1, 1) denote the ball speed when it moves slower
+          than 1 tile per step.
     """
 
     metadata = {
@@ -54,11 +56,11 @@ class Breakout(gym.Env):
             self.brick_rows + 3 < self.n_rows
         ), f"cannot fit {brick_rows} brick rows in a board with {self.n_rows} rows"
 
-        # First channel for bricks.
-        # Second channel for paddle position.
+        # First channel for paddle position.
+        # Second channel for bricks.
         # Third channel for ball and its trail (-1 moving up, 1 moving down).
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 3), dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 3),
         )
         self.action_space = gym.spaces.Discrete(3)
         self.action_map = {
@@ -103,13 +105,17 @@ class Breakout(gym.Env):
 
     def get_state(self):
         state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
-        state[..., 0] = self.bricks
-        state[self.paddle_pos[0], self.paddle_pos[1], 1] = 1
+        state[..., 1] = self.bricks
+        state[self.paddle_pos[0], self.paddle_pos[1], 0] = 1
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
         if self.contact_pos is not None:
             state[self.contact_pos[0], self.contact_pos[1], 2] = self.ball_dir[0]
         for ball_pos in self.last_ball_pos:
-            state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0]
+            if self.ball_timesteps < self.ball_delay:
+                speed_scaling = (self.ball_timesteps + 0.5) / self.ball_delay
+            else:
+                speed_scaling = 1.0
+            state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0] * speed_scaling
         return state
 
     def level_one(self):
@@ -319,9 +325,11 @@ class Breakout(gym.Env):
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        def draw_tile(row, col, color):
+        def draw_tile(row, col, color, scale=1.0):
             pos = (col * self.tile_size[0], row * self.tile_size[1])
             rect = pygame.Rect(pos, self.tile_size)
+            if scale != 1.0:
+                rect = rect.scale_by(scale)
             pygame.draw.rect(self.window_surface, color, rect)
 
         # Draw bricks
@@ -332,7 +340,11 @@ class Breakout(gym.Env):
 
         # Draw trail
         for trail in self.last_ball_pos:
-            draw_tile(trail[0], trail[1], CYAN)
+            if self.ball_timesteps < self.ball_delay:
+                speed_scaling = (self.ball_timesteps + 0.5) / self.ball_delay
+            else:
+                speed_scaling = 1.0
+            draw_tile(trail[0], trail[1], CYAN, speed_scaling)
 
         # Draw ball
         draw_tile(self.ball_pos[0], self.ball_pos[1], BLUE)

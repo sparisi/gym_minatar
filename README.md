@@ -117,9 +117,46 @@ For full details, please refer to the docs in the source code (click on the game
       up, 1 moving down).  
       <br>
       This game is <b>fully observable</b>.
+      </td>
+    </tr>
+    <tr>
+    <td style="width: 250px;">
+      <img src="figures/breakout_obs.png" width="250" height="250">
     </td>
-  </tr>
-</table>
+    <td style="width: 250px;">
+    <pre>
+    <code>
+    [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+     [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+     [1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+     [1. 1. 0. 1. 1. 0. 1. 1. 1. 1.]
+     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]
+    [[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. ]
+    <br>
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.5 0. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  1. 0. 0. 0. ]
+    [0. 0. 0. 0. 0. 0.  0. 0. 0. 0. ]]
+    </code>
+    </pre>
+    </td>
+    </tr>
+  </table>
+  <br>
+  Example of observation's second and third channels. In the former, 1s denote bricks;
+  in the latter, values in [-1, 1] denote ball speed and direction (-1 going up,
+  1 going down). Intermediate values are for when the ball moves slower than
+  1 tile per step.
 
 ### [`Gym-MinAtar/SpaceInvaders-v1`](gym_minatar/space_invaders.py)
 <table>
@@ -145,7 +182,8 @@ For full details, please refer to the docs in the source code (click on the game
       bullets position (-1 moving up, 1 moving down).  
       <br>
       This game is <b>partially observable</b>, because observations don't encode
-      shooting cooldown time.
+      shooting cooldown time. However, most of the time this can be inferred
+      by how far the player bullet has traveled.
     </td>
   </tr>
 </table>
