@@ -3,6 +3,7 @@ import gymnasium as gym
 from gymnasium.error import DependencyNotInstalled
 from typing import Optional
 
+
 class Game(gym.Env):
     """
     Base class of Gym-MinAtar games.
@@ -27,7 +28,9 @@ class Game(gym.Env):
         self.window_surface = None
         self.clock = None
         if window_size is not None:
-            assert np.all(np.array(window_size) >= np.array(size)), f"window size too small {window_size} for the board size {size}"
+            assert np.all(
+                np.array(window_size) >= np.array(size)
+            ), f"window size too small {window_size} for the board size {size}"
             self.window_size = window_size
         else:
             self.window_size = (
@@ -38,7 +41,6 @@ class Game(gym.Env):
             self.window_size[0] // self.n_cols,
             self.window_size[1] // self.n_rows,
         )  # fmt: skip
-
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
@@ -51,7 +53,6 @@ class Game(gym.Env):
     def _reset(self, seed: int = None, **kwargs):
         pass
 
-
     def step(self, action: int):
         obs, reward, terminated, truncated, info = self._step(action)
         self.last_action = action
@@ -61,7 +62,6 @@ class Game(gym.Env):
 
     def _step(self, action: int):
         pass
-
 
     def render(self):
         if self.render_mode is None:
@@ -117,6 +117,7 @@ class Game(gym.Env):
 
     def draw_tile(self, row, col, color, scale=1.0):
         import pygame
+
         pos = (col * self.tile_size[0], row * self.tile_size[1])
         rect = pygame.Rect(pos, self.tile_size)
         if scale != 1.0:

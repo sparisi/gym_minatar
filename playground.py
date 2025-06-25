@@ -51,6 +51,7 @@ if args.record:
     env_record = gymnasium.make(env_id, render_mode="rgb_array")
     frames = []
 
+
 def step(action):
     action = env.unwrapped.action_map.get(action, None)
     if action is None or not env.action_space.contains(action):
@@ -62,6 +63,7 @@ def step(action):
         if frame is not None:
             frames.append(frame)
 
+
 def reset():
     seed = np.random.randint(999)
     env.reset(seed=seed)
@@ -71,15 +73,18 @@ def reset():
         if frame is not None:
             frames.append(frame)
 
+
 def level_up():
     env.unwrapped.level_up()
     if args.record:
         env_record.unwrapped.level_up()
 
+
 def level_one():
     env.unwrapped.level_one()
     if args.record:
         env_record.unwrapped.level_one()
+
 
 def on_press(key):
     last_keypress_time[0] = time.time()  # Update on any key press
@@ -110,6 +115,7 @@ def on_press(key):
             pass
     except AttributeError:
         pass
+
 
 print(
     "\n"
