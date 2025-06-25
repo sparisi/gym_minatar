@@ -1,7 +1,6 @@
 import numpy as np
 import gymnasium as gym
-from gymnasium.error import DependencyNotInstalled
-from typing import Optional
+from gym_minatar.minatar_game import Game
 
 # Action IDs
 NOP = 0
@@ -17,7 +16,7 @@ WHITE = (255, 255, 255)  # player bullet
 YELLOW = (255, 255, 0)  # alien bullet
 
 
-class SpaceInvaders(gym.Env):
+class SpaceInvaders(Game):
     """
     The player controls a spaceship at the bottom of the screen that must shoot
     down waves of aliens.
@@ -46,20 +45,9 @@ class SpaceInvaders(gym.Env):
         - Channel 2: bullets (-1 moving up, 1 moving down).
     """
 
-    metadata = {
-        "render_modes": ["human", "rgb_array"],
-        "render_fps": 30,
-    }
+    def __init__(self, aliens_rows: int = 3, **kwargs):
+        Game.__init__(self, **kwargs)
 
-    def __init__(
-        self,
-        render_mode: Optional[str] = None,
-        size: tuple = (10, 10),
-        aliens_rows: int = 3,
-        window_size: tuple = None,
-        **kwargs,
-    ):
-        self.n_rows, self.n_cols = size
         self.aliens_rows = aliens_rows
 
         assert self.aliens_rows > 0, f"aliens rows must be positive (received {self.n_rows})"
@@ -112,37 +100,18 @@ class SpaceInvaders(gym.Env):
         self.aliens_timesteps = 0
         self.lowest_row_reached = self.bottom_alien
 
-        self.render_mode = render_mode
-        self.window_surface = None
-        self.clock = None
-        if window_size is not None:
-            assert np.all(np.array(window_size) >= np.array(size)), f"window size too small {window_size} for the board size {size}"
-            self.window_size = window_size
-        else:
-            self.window_size = (
-                min(64 * self.n_cols, 512),
-                min(64 * self.n_rows, 512),
-            )  # fmt: skip
-        self.tile_size = (
-            self.window_size[0] // self.n_cols,
-            self.window_size[1] // self.n_rows,
-        )  # fmt: skip
-
     def get_state(self):
         return self.state.copy()
 
     def level_one(self):
         self.starting_row = 0
-        self.reset()
+        self._reset()
 
     def level_up(self):
         self.starting_row = min(self.starting_row + 1, self.n_rows - self.aliens_rows - 1)
-        self.reset()
+        self._reset()
 
-    def reset(self, seed: int = None, **kwargs):
-        super().reset(seed=seed, **kwargs)
-        self.last_action = None
-
+    def _reset(self, seed: int = None, **kwargs):
         self.player_shoot_timer = 0
         self.alien_shoot_timer = 0
         self.state[:] = 0
@@ -166,15 +135,7 @@ class SpaceInvaders(gym.Env):
         self.lowest_row_reached = self.bottom_alien
         self.aliens_move_down = False
 
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
         return self.get_state(), {}
-
-    def step(self, action: int):
-        obs, reward, terminated, truncated, info = self._step(action)
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
-        return obs, reward, terminated, truncated, info
 
     def player_shoot(self):
         if self.player_shoot_timer > 0:
@@ -285,86 +246,30 @@ class SpaceInvaders(gym.Env):
             terminated = True
             self.level_one()
 
-        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
-    def render(self):
-        if self.render_mode is None:
-            assert self.spec is not None
-            gym.logger.warn(
-                "You are calling render method without specifying any render mode. "
-                "You can specify the render_mode at initialization, "
-                f'e.g. gym.make("{self.spec.id}", render_mode="rgb_array")'
-            )
-            return
-        else:  # self.render_mode in {"human", "rgb_array"}:
-            return self._render_gui(self.render_mode)
+    def _render_board(self):
+        import pygame
 
-    def _render_gui(self, mode):
-        try:
-            import pygame
-        except ImportError as e:
-            raise DependencyNotInstalled(
-                "pygame is not installed, run `pip install gymnasium[toy-text]`"
-            ) from e
-
-        if self.window_surface is None:
-            pygame.init()
-            if mode == "human":
-                pygame.display.init()
-                pygame.display.set_caption(self.unwrapped.spec.id)
-                self.window_surface = pygame.display.set_mode(self.window_size)
-            elif mode == "rgb_array":
-                self.window_surface = pygame.Surface(self.window_size)
-
-        assert (
-            self.window_surface is not None
-        ), "Something went wrong with pygame. This should never happen."
-
-        if self.clock is None:
-            self.clock = pygame.time.Clock()
         state = self.get_state()
 
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        def draw_tile(row, col, color):
-            pos = (col * self.tile_size[0], row * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            pygame.draw.rect(self.window_surface, color, rect)
-
         # Draw aliens
         for x in range(self.bottom_alien - self.aliens_rows + 1, self.bottom_alien + 1):
             for y in range(self.n_cols):
                 if self.state[x, y, 1]:
-                    draw_tile(x, y, RED if self.aliens_dir == 1 else PALE_RED)
+                    self.draw_tile(x, y, RED if self.aliens_dir == 1 else PALE_RED)
 
         # for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
         for x in range(self.n_rows):
             for y in range(self.n_cols):
                 if self.state[x, y, 3] == 1:
-                    draw_tile(x, y, YELLOW)
+                    self.draw_tile(x, y, YELLOW)
                 elif self.state[x, y, 2] == -1:
-                    draw_tile(x, y, WHITE)
+                    self.draw_tile(x, y, WHITE)
 
         # Draw player
-        draw_tile(self.player_pos[0], self.player_pos[1], GREEN)
-
-        if mode == "human":
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        elif mode == "rgb_array":
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.window_surface)), axes=(1, 0, 2)
-            )
-        else:
-            raise NotImplementedError
-
-    def close(self):
-        if self.window_surface is not None:
-            import pygame
-
-            pygame.display.quit()
-            pygame.quit()
+        self.draw_tile(self.player_pos[0], self.player_pos[1], GREEN)

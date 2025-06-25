@@ -1,7 +1,6 @@
 import numpy as np
 import gymnasium as gym
-from gymnasium.error import DependencyNotInstalled
-from typing import Optional
+from gym_minatar.minatar_game import Game
 
 # Action IDs
 NOP = 0
@@ -17,7 +16,7 @@ GREEN = (0, 255, 0)  # player
 BLUE = (0, 0, 255)  # treasure
 CYAN = (0, 255, 255)  # treasure trail
 
-class Asterix(gym.Env):
+class Asterix(Game):
     """
     The player moves on a grid and must collect treasures while avoiding enemies.
     - The player can move left/right/up/down or not move at all.
@@ -37,21 +36,12 @@ class Asterix(gym.Env):
           than 1 tile per step.
     """
 
-    metadata = {
-        "render_modes": ["human", "rgb_array"],
-        "render_fps": 30,
-    }
+    def __init__(self, **kwargs):
+        Game.__init__(self, **kwargs)
 
-    def __init__(
-        self,
-        render_mode: Optional[str] = None,
-        size: tuple = (10, 10),
-        window_size: tuple = None,
-        **kwargs,
-    ):
-        self.n_rows, self.n_cols = size
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
+
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
         self.cooldown = 3
@@ -77,22 +67,6 @@ class Asterix(gym.Env):
             "down": 4,
         }
 
-        self.render_mode = render_mode
-        self.window_surface = None
-        self.clock = None
-        if window_size is not None:
-            assert np.all(np.array(window_size) >= np.array(size)), f"window size too small {window_size} for the board size {size}"
-            self.window_size = window_size
-        else:
-            self.window_size = (
-                min(64 * self.n_cols, 512),
-                min(64 * self.n_rows, 512),
-            )  # fmt: skip
-        self.tile_size = (
-            self.window_size[0] // self.n_cols,
-            self.window_size[1] // self.n_rows,
-        )  # fmt: skip
-
     def get_state(self):
         state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[self.player_row, self.player_col, 0] = 1
@@ -115,10 +89,7 @@ class Asterix(gym.Env):
                 state[row, col - step * dir, 2 if is_tres else 1] = dir
         return state
 
-    def reset(self, seed: int = None, **kwargs):
-        super().reset(seed=seed, **kwargs)
-        self.last_action = None
-
+    def _reset(self, seed: int = None, **kwargs):
         self.difficulty_timer = 0
         self.player_row = self.n_rows - 1
         self.player_col = self.n_cols // 2
@@ -135,8 +106,6 @@ class Asterix(gym.Env):
         is_tres = self.np_random.random(self.n_rows - 2) < 1.0 / 3.0
         self.entities = [[r, c, s, d, i, 0, -1] for r, c, s, d, i in zip(rows, cols, speeds, dirs, is_tres)]
 
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
         return self.get_state(), {}
 
     def move(self, a):
@@ -191,7 +160,7 @@ class Asterix(gym.Env):
             (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
         )
 
-    def step(self, action: int):
+    def _step(self, action: int):
         reward = 0.0
         terminated = False
 
@@ -230,7 +199,7 @@ class Asterix(gym.Env):
                         else:
                             terminated = True
                             self.level_one()
-                            self.reset()
+                            self._reset()
                             break
                     continue
                 else:
@@ -252,71 +221,30 @@ class Asterix(gym.Env):
                     else:
                         terminated = True
                         self.level_one()
-                        self.reset()
+                        self._reset()
                         break
 
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
-        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
-    def render(self):
-        if self.render_mode is None:
-            assert self.spec is not None
-            gym.logger.warn(
-                "You are calling render method without specifying any render mode. "
-                "You can specify the render_mode at initialization, "
-                f'e.g. gym.make("{self.spec.id}", render_mode="rgb_array")'
-            )
-            return
-        else:
-            return self._render_gui(self.render_mode)
-
-    def _render_gui(self, mode):
-        try:
-            import pygame
-        except ImportError as e:
-            raise DependencyNotInstalled(
-                "pygame is not installed, run `pip install gymnasium[toy-text]`"
-            ) from e
-
-        if self.window_surface is None:
-            pygame.init()
-            if mode == "human":
-                pygame.display.init()
-                pygame.display.set_caption(self.unwrapped.spec.id)
-                self.window_surface = pygame.display.set_mode(self.window_size)
-            elif mode == "rgb_array":
-                self.window_surface = pygame.Surface(self.window_size)
-
-        assert self.window_surface is not None, "Something went wrong with pygame."
-
-        if self.clock is None:
-            self.clock = pygame.time.Clock()
+    def _render_board(self):
+        import pygame
 
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
-
-        def draw_tile(row, col, color, scale=1.0):
-            pos = (col * self.tile_size[0], row * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            if scale != 1.0:
-                rect = rect.scale_by(scale)
-            pygame.draw.rect(self.window_surface, color, rect)
 
         # Draw entities and their trail
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
             if col == None:
                 continue
-            draw_tile(row, col, BLUE if is_tres else RED)
+            self.draw_tile(row, col, BLUE if is_tres else RED)
             if speed <= 0:
                 if timer != speed:
                     if 0 <= col < self.n_cols:
                         col = (col - dir)  # Backward for trail
                         speed_scaling = (timer - 0.5) / speed
-                        draw_tile(row, col, CYAN if is_tres else PALE_RED, scale=speed_scaling)
+                        self.draw_tile(row, col, CYAN if is_tres else PALE_RED, scale=speed_scaling)
                     continue
                 else:
                     speed = 1
@@ -324,24 +252,7 @@ class Asterix(gym.Env):
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     break
-                draw_tile(row, col, CYAN if is_tres else PALE_RED)
+                self.draw_tile(row, col, CYAN if is_tres else PALE_RED)
 
         # Draw player
-        draw_tile(self.player_row, self.player_col, GREEN)
-
-        if mode == "human":
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        elif mode == "rgb_array":
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.window_surface)), axes=(1, 0, 2)
-            )
-        else:
-            raise NotImplementedError
-
-    def close(self):
-        if self.window_surface is not None:
-            import pygame
-            pygame.display.quit()
-            pygame.quit()
+        self.draw_tile(self.player_row, self.player_col, GREEN)

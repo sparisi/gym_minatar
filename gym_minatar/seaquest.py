@@ -1,7 +1,6 @@
 import numpy as np
 import gymnasium as gym
-from gymnasium.error import DependencyNotInstalled
-from typing import Optional
+from gym_minatar.minatar_game import Game
 
 # Action IDs
 NOP = 0
@@ -36,7 +35,7 @@ PALE_YELLOW = (255, 255, 200)  # player oxygen
 # submarine / player position. Bullets travel faster than the entity that shot them,
 # so a bullet to the left of the agent can only be going left.
 
-class Seaquest(gym.Env):
+class Seaquest(Game):
     """
     The player controls a submarine that can move and shoot, collecting divers
     and avoiding enemies.
@@ -80,24 +79,13 @@ class Seaquest(gym.Env):
           when they move slower than 1 tile per step.
     """
 
-    metadata = {
-        "render_modes": ["human", "rgb_array"],
-        "render_fps": 30,
-    }
+    def __init__(self, **kwargs):
+        Game.__init__(self, **kwargs)
 
-    def __init__(
-        self,
-        render_mode: Optional[str] = None,
-        size: tuple = (10, 10),
-        window_size: tuple = None,
-        **kwargs,
-    ):
         # Last row is for oxygen and divers gauge, first row is the surface
-        self.n_rows, self.n_cols = size
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
 
-        self.n_rows, self.n_cols = size
         self.spawn_cooldown = 10
         self.max_entity_speed = -2
         self.entities = None
@@ -133,22 +121,6 @@ class Seaquest(gym.Env):
             "down": 4,
             "shoot": 5,
         }
-
-        self.render_mode = render_mode
-        self.window_surface = None
-        self.clock = None
-        if window_size is not None:
-            assert np.all(np.array(window_size) >= np.array(size)), f"window size too small {window_size} for the board size {size}"
-            self.window_size = window_size
-        else:
-            self.window_size = (
-                min(64 * self.n_cols, 512),
-                min(64 * self.n_rows, 512),
-            )  # fmt: skip
-        self.tile_size = (
-            self.window_size[0] // self.n_cols,
-            self.window_size[1] // self.n_rows,
-        )
 
     def get_state(self):
         state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
@@ -201,10 +173,7 @@ class Seaquest(gym.Env):
         self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
         self.spawn_cooldown = max(self.spawn_cooldown - 1, 0)
 
-    def reset(self, seed: int = None, **kwargs):
-        super().reset(seed=seed, **kwargs)
-        self.last_action = None
-
+    def _reset(self, seed: int = None, **kwargs):
         self.shoot_timer = 0
         self.player_bullets = []  # Dynamic list because there can be many bullets on the board
         self.player_row = self.n_rows - 2
@@ -234,8 +203,6 @@ class Seaquest(gym.Env):
         self.oxygen_counter = 0
         self.divers_carried = 0
 
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
         return self.get_state(), {}
 
     def shoot(self):
@@ -315,7 +282,7 @@ class Seaquest(gym.Env):
                 return True
         return False
 
-    def step(self, action: int):
+    def _step(self, action: int):
         reward = 0.0
         terminated = False
 
@@ -331,7 +298,7 @@ class Seaquest(gym.Env):
         if self.oxygen <= 0:
             terminated = True
             self.level_one()
-            self.reset()
+            self._reset()
 
         # Move player bullet
         for i in range(len(self.player_bullets) - 1, -1, -1):
@@ -361,7 +328,7 @@ class Seaquest(gym.Env):
                 if self.divers_carried == 0:  # Game over
                     terminated = True
                     self.level_one()
-                    self.reset()
+                    self._reset()
                 else:  # Level up
                     self.level_up()
                     if self.divers_carried == self.divers_carried_max:  # Big reward
@@ -391,7 +358,7 @@ class Seaquest(gym.Env):
                 if self.collision_with_player(row, b_col, action):
                     terminated = True
                     self.level_one()
-                    self.reset()
+                    self._reset()
                     break
                 continue
 
@@ -406,7 +373,7 @@ class Seaquest(gym.Env):
                     if self.collision_with_player(row, b_col, action):
                         terminated = True
                         self.level_one()
-                        self.reset()
+                        self._reset()
                         break
 
             # If the speed is negative, check if the entity has waited enough before moving it
@@ -423,7 +390,7 @@ class Seaquest(gym.Env):
                         else:
                             terminated = True
                             self.level_one()
-                            self.reset()
+                            self._reset()
                             break
                     continue
                 else:
@@ -447,7 +414,7 @@ class Seaquest(gym.Env):
                     else:
                         terminated = True
                         self.level_one()
-                        self.reset()
+                        self._reset()
                         break
                 for i in range(len(self.player_bullets) - 1, -1, -1):
                     if [self.player_bullets[i][0], self.player_bullets[i][1]] == [row, col] and id != DIVER:
@@ -458,44 +425,10 @@ class Seaquest(gym.Env):
                 if stop_moving:
                     break
 
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
-        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
-    def render(self):
-        if self.render_mode is None:
-            assert self.spec is not None
-            gym.logger.warn(
-                "You are calling render method without specifying any render mode. "
-                "You can specify the render_mode at initialization, "
-                f'e.g. gym.make("{self.spec.id}", render_mode="rgb_array")'
-            )
-            return
-        else:
-            return self._render_gui(self.render_mode)
-
-    def _render_gui(self, mode):
-        try:
-            import pygame
-        except ImportError as e:
-            raise DependencyNotInstalled(
-                "pygame is not installed, run `pip install gymnasium[toy-text]`"
-            ) from e
-
-        if self.window_surface is None:
-            pygame.init()
-            if mode == "human":
-                pygame.display.init()
-                pygame.display.set_caption(self.unwrapped.spec.id)
-                self.window_surface = pygame.display.set_mode(self.window_size)
-            elif mode == "rgb_array":
-                self.window_surface = pygame.Surface(self.window_size)
-
-        assert self.window_surface is not None, "Something went wrong with pygame."
-
-        if self.clock is None:
-            self.clock = pygame.time.Clock()
+    def _render_board(self):
+        import pygame
 
         state = self.get_state()
 
@@ -523,18 +456,11 @@ class Seaquest(gym.Env):
         )
         pygame.draw.rect(self.window_surface, PALE_CYAN, rect)
 
-        def draw_tile(row, col, color, scale=1.0):
-            pos = (col * self.tile_size[0], row * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            if scale != 1.0:
-                rect = rect.scale_by(scale)
-            pygame.draw.rect(self.window_surface, color, rect)
-
         # Draw entities and their trail
         for entity in self.entities:
             row, col, speed, dir, id, timer, cooldown, b_col = entity
             if b_col is not None:
-                draw_tile(row, b_col, YELLOW)
+                self.draw_tile(row, b_col, YELLOW)
             if col == None:
                 continue
             if id == DIVER:
@@ -546,13 +472,13 @@ class Seaquest(gym.Env):
             else:
                 color = PURPLE
                 color_trail = PALE_PURPLE
-            draw_tile(row, col, color)
+            self.draw_tile(row, col, color)
             if speed <= 0:
                 if timer != speed:
                     if 0 <= col < self.n_cols:
                         col = (col - dir)  # Backward for trail
                         speed_scaling = (timer - 0.5) / speed
-                        draw_tile(row, col, color_trail, scale=speed_scaling)
+                        self.draw_tile(row, col, color_trail, scale=speed_scaling)
                     continue
                 else:
                     speed = 1
@@ -560,30 +486,13 @@ class Seaquest(gym.Env):
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     break
-                draw_tile(row, col, color_trail)
+                self.draw_tile(row, col, color_trail)
 
         # Draw player bullet
         for i in range(len(self.player_bullets)):
             row, col, dir = self.player_bullets[i]
-            draw_tile(row, col, WHITE)
+            self.draw_tile(row, col, WHITE)
 
         # Draw player
-        draw_tile(self.player_row, self.player_col, GREEN)
-        draw_tile(self.player_row, self.player_col - self.player_dir, PALE_GREEN)
-
-        if mode == "human":
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        elif mode == "rgb_array":
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.window_surface)), axes=(1, 0, 2)
-            )
-        else:
-            raise NotImplementedError
-
-    def close(self):
-        if self.window_surface is not None:
-            import pygame
-            pygame.display.quit()
-            pygame.quit()
+        self.draw_tile(self.player_row, self.player_col, GREEN)
+        self.draw_tile(self.player_row, self.player_col - self.player_dir, PALE_GREEN)

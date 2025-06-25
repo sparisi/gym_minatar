@@ -1,7 +1,6 @@
 import numpy as np
 import gymnasium as gym
-from gymnasium.error import DependencyNotInstalled
-from typing import Optional
+from gym_minatar.minatar_game import Game
 
 # Action IDs
 NOP = 0
@@ -15,7 +14,7 @@ BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)  # bricks
 
 
-class Breakout(gym.Env):
+class Breakout(Game):
     """
     The player controls a paddle to bounce a ball and break bricks.
     - The paddle moves left/right at the bottom of the grid, or may not move at all.
@@ -33,21 +32,9 @@ class Breakout(gym.Env):
           than 1 tile per step.
     """
 
-    metadata = {
-        "render_modes": ["human", "rgb_array"],
-        "render_fps": 30,
-    }
+    def __init__(self, brick_rows: int = 3, levels: int = 3, **kwargs):
+        Game.__init__(self, **kwargs)
 
-    def __init__(
-        self,
-        render_mode: Optional[str] = None,
-        size: tuple = (10, 10),
-        brick_rows: int = 3,
-        levels: int = 3,
-        window_size: tuple = None,
-        **kwargs,
-    ):
-        self.n_rows, self.n_cols = size
         self.brick_rows = brick_rows
 
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
@@ -87,22 +74,6 @@ class Breakout(gym.Env):
         self.ball_delay = self.ball_delay_levels[self.level]
         self.ball_timesteps = self.ball_delay
 
-        self.render_mode = render_mode
-        self.window_surface = None
-        self.clock = None
-        if window_size is not None:
-            assert np.all(np.array(window_size) >= np.array(size)), f"window size too small {window_size} for the board size {size}"
-            self.window_size = window_size
-        else:
-            self.window_size = (
-                min(64 * self.n_cols, 512),
-                min(64 * self.n_rows, 512),
-            )  # fmt: skip
-        self.tile_size = (
-            self.window_size[0] // self.n_cols,
-            self.window_size[1] // self.n_rows,
-        )  # fmt: skip
-
     def get_state(self):
         state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
         state[..., 1] = self.bricks
@@ -126,9 +97,7 @@ class Breakout(gym.Env):
         self.level = min(self.level + 1, len(self.ball_delay_levels) - 1)
         self.ball_delay = self.ball_delay_levels[self.level]
 
-    def reset(self, seed: int = None, **kwargs):
-        super().reset(seed=seed, **kwargs)
-
+    def _reset(self, seed: int = None, **kwargs):
         self.paddle_pos = [
             self.n_rows - 1,
             self.np_random.integers((self.n_cols)),
@@ -145,19 +114,9 @@ class Breakout(gym.Env):
         self.ball_timesteps = self.ball_delay
         self.bricks[:] = 0
         self.bricks[1 : self.brick_rows + 1, :] = 1
-        self.last_action = None
         self.last_ball_pos = []
         self.contact_pos = None
-
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
         return self.get_state(), {}
-
-    def step(self, action: int):
-        obs, reward, terminated, truncated, info = self._step(action)
-        if self.render_mode is not None and self.render_mode == "human":
-            self.render()
-        return obs, reward, terminated, truncated, info
 
     def _step(self, action: int):
         self.contact_pos = None
@@ -246,7 +205,7 @@ class Breakout(gym.Env):
                 if game_over:
                     terminated = True
                     self.level_one()
-                    self.reset()
+                    self._reset()
                     return self.get_state(), reward, terminated, False, {}
 
             # Collision with brick (must check after wall collision)
@@ -279,64 +238,23 @@ class Breakout(gym.Env):
                     terminated = True
                 else:
                     self.level_up()
-                    self.reset()
+                    self._reset()
 
-        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
-    def render(self):
-        if self.render_mode is None:
-            assert self.spec is not None
-            gym.logger.warn(
-                "You are calling render method without specifying any render mode. "
-                "You can specify the render_mode at initialization, "
-                f'e.g. gym.make("{self.spec.id}", render_mode="rgb_array")'
-            )
-            return
-        else:  # self.render_mode in {"human", "rgb_array"}:
-            return self._render_gui(self.render_mode)
-
-    def _render_gui(self, mode):
-        try:
-            import pygame
-        except ImportError as e:
-            raise DependencyNotInstalled(
-                "pygame is not installed, run `pip install gymnasium[toy-text]`"
-            ) from e
-
-        if self.window_surface is None:
-            pygame.init()
-            if mode == "human":
-                pygame.display.init()
-                pygame.display.set_caption(self.unwrapped.spec.id)
-                self.window_surface = pygame.display.set_mode(self.window_size)
-            elif mode == "rgb_array":
-                self.window_surface = pygame.Surface(self.window_size)
-
-        assert (
-            self.window_surface is not None
-        ), "Something went wrong with pygame. This should never happen."
-
-        if self.clock is None:
-            self.clock = pygame.time.Clock()
+    def _render_board(self):
+        import pygame
         state = self.get_state()
 
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
-        def draw_tile(row, col, color, scale=1.0):
-            pos = (col * self.tile_size[0], row * self.tile_size[1])
-            rect = pygame.Rect(pos, self.tile_size)
-            if scale != 1.0:
-                rect = rect.scale_by(scale)
-            pygame.draw.rect(self.window_surface, color, rect)
-
         # Draw bricks
         for x in range(1, self.brick_rows + 1):
             for y in range(self.n_cols):
                 if self.bricks[x, y]:
-                    draw_tile(x, y, GRAY)
+                    self.draw_tile(x, y, GRAY)
 
         # Draw trail
         for trail in self.last_ball_pos:
@@ -344,32 +262,14 @@ class Breakout(gym.Env):
                 speed_scaling = (self.ball_timesteps + 0.5) / self.ball_delay
             else:
                 speed_scaling = 1.0
-            draw_tile(trail[0], trail[1], CYAN, speed_scaling)
+            self.draw_tile(trail[0], trail[1], CYAN, speed_scaling)
 
         # Draw ball
-        draw_tile(self.ball_pos[0], self.ball_pos[1], BLUE)
+        self.draw_tile(self.ball_pos[0], self.ball_pos[1], BLUE)
 
         # Draw trail if there was a collision
         if self.contact_pos is not None:
-            draw_tile(self.contact_pos[0], self.contact_pos[1], CYAN)
+            self.draw_tile(self.contact_pos[0], self.contact_pos[1], CYAN)
 
         # Draw paddle
-        draw_tile(self.paddle_pos[0], self.paddle_pos[1], GREEN)
-
-        if mode == "human":
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        elif mode == "rgb_array":
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.window_surface)), axes=(1, 0, 2)
-            )
-        else:
-            raise NotImplementedError
-
-    def close(self):
-        if self.window_surface is not None:
-            import pygame
-
-            pygame.display.quit()
-            pygame.quit()
+        self.draw_tile(self.paddle_pos[0], self.paddle_pos[1], GREEN)
