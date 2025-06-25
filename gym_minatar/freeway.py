@@ -28,7 +28,7 @@ class Freeway(Game):
         - Channel 0: player position (1).
         - Channel 1: car positions and their trails (-1 moving left, 1 moving right).
         - Intermediate values in (-1, 1) denote the speed of entities moving slower
-          than 1 tile per step.
+          than 1 tile per timestep.
     """
 
     def __init__(self, **kwargs):
@@ -36,7 +36,7 @@ class Freeway(Game):
 
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
-        self.max_car_speed = -1
+        self.max_speed = -1
         self.cars = None
         self.player_row = None
         self.player_col = None
@@ -47,7 +47,7 @@ class Freeway(Game):
         # Second channel for cars position and trail (-1 moving left, 1 moving right).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 2),
-        )
+        )  # fmt: skip
         self.action_space = gym.spaces.Discrete(3)
         self.action_map = {
             "nop": 0,
@@ -63,7 +63,7 @@ class Freeway(Game):
         # A car is denoted by (row, col, speed, direction, timer).
         # No car in the first and last row of the board.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        speeds = self.np_random.integers(self.max_car_speed - 2, self.max_car_speed + 1, self.n_rows - 2)
+        speeds = self.np_random.integers(self.max_speed - 2, self.max_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
         self.cars = [[r, c, s, d, 0] for r, c, s, d in zip(rows, cols, speeds, dirs)]
@@ -75,25 +75,23 @@ class Freeway(Game):
             self.player_row = min(self.player_row + 1, self.n_rows - 1)
         elif a == UP:
             self.player_row = max(self.player_row - 1, 0)
-        # elif a == RIGHT:
-        #     self.player_col = min(self.player_col + 1, self.n_cols - 1)
-        # elif a == LEFT:
-            # self.player_col = max(self.player_col - 1, 0)
         elif a == NOP:
             pass
         else:
             raise ValueError("illegal action")
 
     def level_one(self):
-        self.max_car_speed = -1
+        self.max_speed = -1
         self._reset()
 
     def level_up(self):
-        self.max_car_speed = min(self.max_car_speed + 1, self.n_rows - 1)
+        self.max_speed = min(self.max_speed + 1, self.n_rows - 1)
         self._reset()
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(
+            self.observation_space.shape, dtype=self.observation_space.dtype
+        )
         state[self.player_row, self.player_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car
@@ -123,6 +121,7 @@ class Freeway(Game):
         # Move cars
         for car in self.cars:
             row, col, speed, dir, timer = car
+
             if speed <= 0:
                 if timer != speed:
                     car[4] -= 1
@@ -135,12 +134,14 @@ class Freeway(Game):
                 else:
                     car[4] = 0
                     speed = 1
+
             for step in range(speed):
                 col = (col + dir) % self.n_cols
                 if self.collision(row, col, action):
                     terminated = True
                     self.level_one()
                     break
+
             car[1] = col
 
         # Win

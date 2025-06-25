@@ -9,12 +9,17 @@ RIGHT = 2
 UP = 3
 DOWN = 4
 
+# Entity IDs
+ENEMY = 1
+TREASURE = 2
+
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)  # enemy
 PALE_RED = (255, 155, 155)  # enemy trail
 GREEN = (0, 255, 0)  # player
 BLUE = (0, 0, 255)  # treasure
 CYAN = (0, 255, 255)  # treasure trail
+
 
 class Asterix(Game):
     """
@@ -33,7 +38,7 @@ class Asterix(Game):
         - Channel 1: enemies and their trails (-1 moving left, 1 moving right).
         - Channel 2: treasures and their trails (-1 moving left, 1 moving right).
         - Intermediate values in (-1, 1) denote the speed of entities moving slower
-          than 1 tile per step.
+          than 1 tile per timestep.
     """
 
     def __init__(self, **kwargs):
@@ -45,7 +50,7 @@ class Asterix(Game):
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
         self.cooldown = 3
-        self.max_entity_speed = -1
+        self.max_speed = -1
         self.entities = None
         self.player_row = None
         self.player_col = None
@@ -57,7 +62,7 @@ class Asterix(Game):
         # Third channel for treasures position and their trail (-1 moving left, 1 moving right).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3),
-        )
+        )  # fmt: skip
         self.action_space = gym.spaces.Discrete(5)
         self.action_map = {
             "nop": 0,
@@ -68,25 +73,27 @@ class Asterix(Game):
         }
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(
+            self.observation_space.shape, dtype=self.observation_space.dtype
+        )
         state[self.player_row, self.player_col, 0] = 1
         for entity in self.entities:
-            row, col, speed, dir, is_tres, timer, cooldown = entity
+            row, col, speed, dir, id, timer, cooldown = entity
             if col is None:
                 break
             if speed <= 0:
                 if timer != speed:
                     speed_scaling = (timer - 0.5) / speed
-                    state[row, col, 2 if is_tres else 1] = dir
+                    state[row, col, id] = dir
                     if 0 <= col - dir < self.n_cols:
-                        state[row, (col - dir), 2 if is_tres else 1] = dir * speed_scaling
+                        state[row, (col - dir), id] = dir * speed_scaling
                     continue
                 else:
                     speed = 1
             for step in range(speed + 1):
                 if not 0 <= col - step * dir < self.n_cols:
                     break
-                state[row, col - step * dir, 2 if is_tres else 1] = dir
+                state[row, col - step * dir, id] = dir
         return state
 
     def _reset(self, seed: int = None, **kwargs):
@@ -100,11 +107,15 @@ class Asterix(Game):
         # Cooldown is for respawing.
         # First and last row of the board are empty.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        speeds = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1, self.n_rows - 2)
+        speeds = self.np_random.integers(self.max_speed - 2, self.max_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
-        is_tres = self.np_random.random(self.n_rows - 2) < 1.0 / 3.0
-        self.entities = [[r, c, s, d, i, 0, -1] for r, c, s, d, i in zip(rows, cols, speeds, dirs, is_tres)]
+        id = np.full((self.n_rows - 2,), ENEMY)
+        id[self.np_random.random(self.n_rows - 2) < 1.0 / 3.0] = TREASURE
+        self.entities = [
+            [r, c, s, d, i, 0, -1]
+            for r, c, s, d, i in zip(rows, cols, speeds, dirs, id)
+        ]
 
         return self.get_state(), {}
 
@@ -124,12 +135,12 @@ class Asterix(Game):
 
     def level_one(self):
         self.difficulty_timer = 0
-        self.max_entity_speed = 0
+        self.max_speed = 0
         self.cooldown = 3
 
     def level_up(self):
         self.difficulty_timer = 0
-        self.max_entity_speed = min(self.max_entity_speed + 1, self.n_rows - 1)
+        self.max_speed = min(self.max_speed + 1, self.n_rows - 1)
         self.cooldown = max(self.cooldown - 1, 0)
 
     def despawn(self, entity):
@@ -137,28 +148,26 @@ class Asterix(Game):
         entity[6] = self.cooldown
 
     def respawn(self, entity):
-        speed = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1)
+        speed = self.np_random.integers(self.max_speed - 2, self.max_speed + 1)
         if self.np_random.random() < 0.5:
             col = 0
             dir = 1
         else:
             col = self.n_cols - 1
             dir = -1
-        is_tres = self.np_random.random() < 1.0 / 3.0
+        id = TREASURE if self.np_random.random() < 1.0 / 3.0 else ENEMY
         entity[1] = col
         entity[2] = speed
         entity[3] = dir
-        entity[4] = is_tres
+        entity[4] = id
         entity[5] = 0
         entity[6] = self.cooldown
 
     def collision(self, row, col, action):
-        # Must check old position, otherwise the player may "step over"
-        # an entity and collision won't be detected
-        return (
-            ([row, col] == [self.player_row, self.player_col]) or
-            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
-        )
+        static_collision = [row, col] == [self.player_row, self.player_col]
+        # Without this check, the player may "step over" an entity and collision won't be detected
+        movement_collision = action in [LEFT, RIGHT] and [row, col] == [self.player_row_old, self.player_col_old]
+        return static_collision or movement_collision
 
     def _step(self, action: int):
         reward = 0.0
@@ -174,7 +183,7 @@ class Asterix(Game):
 
         # Move enemies and treasures
         for entity in self.entities:
-            row, col, speed, dir, is_tres, timer, cooldown = entity
+            row, col, speed, dir, id, timer, cooldown = entity
 
             # Check if the entity is out of bounds, and if so check if it's time to respawn
             if col is None:
@@ -192,7 +201,7 @@ class Asterix(Game):
                     entity[5] -= 1
                     # Check if the player moved on an entity that is not moving
                     if self.collision(row, col, action):
-                        if is_tres:
+                        if id == TREASURE:
                             self.despawn(entity)
                             reward = 1.0
                             break
@@ -214,7 +223,7 @@ class Asterix(Game):
                     self.despawn(entity)
                     break
                 if self.collision(row, col, action):
-                    if is_tres:
+                    if id == TREASURE:
                         self.despawn(entity)
                         reward = 1.0
                         break
@@ -235,24 +244,33 @@ class Asterix(Game):
 
         # Draw entities and their trail
         for entity in self.entities:
-            row, col, speed, dir, is_tres, timer, cooldown = entity
+            row, col, speed, dir, id, timer, cooldown = entity
             if col is None:
                 continue
-            self.draw_tile(row, col, BLUE if is_tres else RED)
+
+            if id == TREASURE:
+                color_main = BLUE
+                color_trail = CYAN
+            else:
+                color_main = RED
+                color_trail = PALE_RED
+
             if speed <= 0:
                 if timer != speed:
                     if 0 <= col < self.n_cols:
-                        col = (col - dir)  # Backward for trail
+                        col -= dir  # Backward for trail
                         speed_scaling = (timer - 0.5) / speed
-                        self.draw_tile(row, col, CYAN if is_tres else PALE_RED, scale=speed_scaling)
+                        self.draw_tile(row, col, color_trail, scale=speed_scaling)
                     continue
                 else:
                     speed = 1
+
             for step in range(max(0, speed)):
+                speed_scaling = (timer - 0.5) / speed
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     break
-                self.draw_tile(row, col, CYAN if is_tres else PALE_RED)
+                self.draw_tile(row, col, color_trail)
 
         # Draw player
         self.draw_tile(self.player_row, self.player_col, GREEN)

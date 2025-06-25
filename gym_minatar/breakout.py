@@ -29,7 +29,7 @@ class Breakout(Game):
         - Channel 1: paddle position (1).
         - Channel 2: ball and its trail (-1 moving up, 1 moving down).
         - Intermediate values in (-1, 1) denote the ball speed when it moves slower
-          than 1 tile per step.
+          than 1 tile per timestep.
     """
 
     def __init__(self, brick_rows: int = 3, levels: int = 3, **kwargs):
@@ -48,7 +48,7 @@ class Breakout(Game):
         # Third channel for ball and its trail (-1 moving up, 1 moving down).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3),
-        )
+        )  # fmt: skip
         self.action_space = gym.spaces.Discrete(3)
         self.action_map = {
             "nop": 0,
@@ -62,9 +62,9 @@ class Breakout(Game):
         self.last_ball_pos = []
         self.ball_dir = None
         self.last_action = None
-        self.contact_pos = None  # Used to store ball contact with brick or paddle
+        self.contact_pos = None  # To store ball contact with brick or paddle
 
-        # These two variable control the ball speed: when ball_timesteps == ball_delay,
+        # These two variables control the ball speed: when ball_timesteps == ball_delay,
         # the ball moves. A delay of 1 means that the paddle moves x2 times
         # faster than the ball.
         # When difficulty increases, ball_delay decreases and can become negative.
@@ -75,7 +75,9 @@ class Breakout(Game):
         self.ball_timesteps = self.ball_delay
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(
+            self.observation_space.shape, dtype=self.observation_space.dtype
+        )
         state[..., 1] = self.bricks
         state[self.paddle_pos[0], self.paddle_pos[1], 0] = 1
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
@@ -185,7 +187,9 @@ class Breakout(Game):
             elif new_ball_pos[0] == self.n_rows - 1:
                 check_for_bricks = False
                 game_over = True
-                front_pos, diag_pos, side_pos = where_ball_is_going(self.ball_pos, self.ball_dir)
+                front_pos, diag_pos, side_pos = where_ball_is_going(
+                    self.ball_pos, self.ball_dir
+                )
                 if front_pos == self.paddle_pos:  # Keep side direction and bounce up
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
@@ -200,7 +204,7 @@ class Breakout(Game):
                 elif side_pos == self.paddle_pos:  # Keep down direction and side bounce
                     new_ball_pos = self.ball_pos
                     self.ball_dir[1] *= -1
-                    game_over = True  # Hitting the paddle from the side does not save the ball
+                    game_over = True  # Hitting the ball from the side does not save it
                     self.contact_pos = side_pos
                 if game_over:
                     terminated = True
@@ -210,7 +214,9 @@ class Breakout(Game):
 
             # Collision with brick (must check after wall collision)
             if check_for_bricks:
-                front_pos, diag_pos, side_pos = where_ball_is_going(self.ball_pos, self.ball_dir)
+                front_pos, diag_pos, side_pos = where_ball_is_going(
+                    self.ball_pos, self.ball_dir
+                )
                 if self.bricks[front_pos[0], front_pos[1]]:
                     reward = 1.0
                     self.bricks[front_pos[0], front_pos[1]] = 0

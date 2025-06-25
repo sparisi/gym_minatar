@@ -35,6 +35,7 @@ PALE_YELLOW = (255, 255, 200)  # player oxygen
 # submarine / player position. Bullets travel faster than the entity that shot them,
 # so a bullet to the left of the agent can only be going left.
 
+
 class Seaquest(Game):
     """
     The player controls a submarine that can move and shoot, collecting divers
@@ -76,7 +77,7 @@ class Seaquest(Game):
         - Channel 4: oxygen gauge (denoted by 1s at the bottom of the grid).
         - Channel 5: divers carried gauge (denoted by 1s at the bottom of the grid).
         - Intermediate values in (-1, 1) denote the enemies and divers speed
-          when they move slower than 1 tile per step.
+          when they move slower than 1 tile per timestep.
     """
 
     def __init__(self, **kwargs):
@@ -110,7 +111,9 @@ class Seaquest(Game):
         # Fourth channel for divers and their trail.
         # For moving entities, -1 means movement to the left, +1 to the right.
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 6),
+            -1,
+            1,
+            (self.n_rows, self.n_cols, 6),
         )
         self.action_space = gym.spaces.Discrete(6)
         self.action_map = {
@@ -123,7 +126,9 @@ class Seaquest(Game):
         }
 
     def get_state(self):
-        state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        state = np.zeros(
+            self.observation_space.shape, dtype=self.observation_space.dtype
+        )
         state[self.player_row, self.player_col, 0] = self.player_dir
         state[self.player_row, self.player_col - self.player_dir, 0] = self.player_dir
         for bullet in self.player_bullets:
@@ -152,14 +157,18 @@ class Seaquest(Game):
         percentage_full = self.divers_carried / self.divers_carried_max
         n_fill = int(self.n_cols * percentage_full)
         if percentage_full > 0:
-            n_fill = max(1, n_fill)  # Fill at least 1 col when the player is carrying 1 diver
+            n_fill = max(
+                1, n_fill
+            )  # Fill at least 1 col when the player is carrying 1 diver
         for i in range(n_fill):
             state[-1, i, 4] = 1
 
         percentage_full = self.oxygen / self.oxygen_max
         n_fill = int(self.n_cols * percentage_full)
         if percentage_full > 0:
-            n_fill = max(1, n_fill)  # Fill at least 1 col when the player has at least 1 oxygen left
+            n_fill = max(
+                1, n_fill
+            )  # Fill at least 1 col when the player has at least 1 oxygen left
         for i in range(n_fill):
             state[-1, i, 5] = 1
 
@@ -191,13 +200,20 @@ class Seaquest(Game):
         # First and last row of the board are empty.
         # Board is empty at the beginning (col is None) with random cooldowns,
         # so entries will spawn little by little.
-        speeds = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1, self.n_rows - 2)
+        speeds = self.np_random.integers(
+            self.max_entity_speed - 2, self.max_entity_speed + 1, self.n_rows - 2
+        )
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
         ids = self.np_random.random(self.n_rows - 2)
-        ids = (ids[None] < np.array([0.25, 0.5, 1.0])[..., None]).sum(0)  # 50% fish, 25% submarines, 25% divers
+        ids = (ids[None] < np.array([0.25, 0.5, 1.0])[..., None]).sum(
+            0
+        )  # 50% fish, 25% submarines, 25% divers
         cdowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
-        self.entities = [[r, None, s, d, i, 0, cd, None] for r, s, d, i, cd in zip(rows, speeds, dirs, ids, cdowns)]
+        self.entities = [
+            [r, None, s, d, i, 0, cd, None]
+            for r, s, d, i, cd in zip(rows, speeds, dirs, ids, cdowns)
+        ]
 
         self.oxygen = self.oxygen_max
         self.oxygen_counter = 0
@@ -241,7 +257,9 @@ class Seaquest(Game):
             entity[7] = None
 
     def respawn(self, entity):
-        speed = self.np_random.integers(self.max_entity_speed - 2, self.max_entity_speed + 1)
+        speed = self.np_random.integers(
+            self.max_entity_speed - 2, self.max_entity_speed + 1
+        )
         if self.np_random.random() < 0.5:
             col = 0
             dir = 1
@@ -268,9 +286,12 @@ class Seaquest(Game):
         # an entity and collision won't be detected.
         # No need to check for old direction (back of the player).
         return (
-            ([row, col] == [self.player_row, self.player_col]) or
-            ([row, col] == [self.player_row, self.player_col - self.player_dir]) or
-            (action in [LEFT, RIGHT] and ([row, col] == [self.player_row_old, self.player_col_old]))
+            ([row, col] == [self.player_row, self.player_col])
+            or ([row, col] == [self.player_row, self.player_col - self.player_dir])
+            or (
+                action in [LEFT, RIGHT]
+                and ([row, col] == [self.player_row_old, self.player_col_old])
+            )
         )
 
     def collision_with_entity(self, row, col):
@@ -382,7 +403,9 @@ class Seaquest(Game):
                     entity[5] -= 1
                     # Check if the player moved on an entity that is not moving
                     if self.collision_with_player(row, col, action):
-                        if id == DIVER:  # Divers are collected if the player has enough room
+                        if (
+                            id == DIVER
+                        ):  # Divers are collected if the player has enough room
                             if self.divers_carried < self.divers_carried_max:
                                 self.despawn(entity)
                                 self.divers_carried += 1
@@ -406,7 +429,9 @@ class Seaquest(Game):
                     self.despawn(entity)
                     break
                 if self.collision_with_player(row, col, action):
-                    if id == DIVER:  # Divers are collected if the player has enough room
+                    if (
+                        id == DIVER
+                    ):  # Divers are collected if the player has enough room
                         if self.divers_carried < self.divers_carried_max:
                             self.despawn(entity)
                             self.divers_carried += 1
@@ -417,7 +442,10 @@ class Seaquest(Game):
                         self._reset()
                         break
                 for i in range(len(self.player_bullets) - 1, -1, -1):
-                    if [self.player_bullets[i][0], self.player_bullets[i][1]] == [row, col] and id != DIVER:
+                    if [self.player_bullets[i][0], self.player_bullets[i][1]] == [
+                        row,
+                        col,
+                    ] and id != DIVER:
                         self.player_bullets.pop(i)
                         self.despawn(entity)
                         stop_moving = True
@@ -449,7 +477,10 @@ class Seaquest(Game):
         # Draw divers gauge
         percentage_full = self.divers_carried / self.divers_carried_max
         rect = pygame.Rect(
-            (self.window_size[0] // (1.0 + percentage_full), (self.n_rows - 1) * self.tile_size[1]),
+            (
+                self.window_size[0] // (1.0 + percentage_full),
+                (self.n_rows - 1) * self.tile_size[1],
+            ),
             (self.window_size[0], self.tile_size[1]),
         )
         pygame.draw.rect(self.window_surface, PALE_CYAN, rect)
@@ -474,7 +505,7 @@ class Seaquest(Game):
             if speed <= 0:
                 if timer != speed:
                     if 0 <= col < self.n_cols:
-                        col = (col - dir)  # Backward for trail
+                        col = col - dir  # Backward for trail
                         speed_scaling = (timer - 0.5) / speed
                         self.draw_tile(row, col, color_trail, scale=speed_scaling)
                     continue

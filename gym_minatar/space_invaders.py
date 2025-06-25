@@ -51,7 +51,9 @@ class SpaceInvaders(Game):
 
         self.aliens_rows = aliens_rows
 
-        assert self.aliens_rows > 0, f"aliens rows must be positive (received {self.n_rows})"
+        assert (
+            self.aliens_rows > 0
+        ), f"aliens rows must be positive (received {self.n_rows})"
         # First two and last two columns must be empty at the beginning
         assert self.n_cols > 4, f"board too small ({self.n_cols} columns, minimum is 5)"
         # One row for the player, one for the aliens, one for moving aliens down once
@@ -67,7 +69,7 @@ class SpaceInvaders(Game):
         # Fourh channel for aliens bullets (1, always moving down).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
-        )
+        )  # fmt: skip
         self.action_space = gym.spaces.Discrete(4)
         self.action_map = {
             "nop": 0,
@@ -76,9 +78,11 @@ class SpaceInvaders(Game):
             "shoot": 3,
         }
 
-        self.state = np.zeros(self.observation_space.shape, dtype=self.observation_space.dtype)
+        self.state = np.zeros(
+            self.observation_space.shape, dtype=self.observation_space.dtype
+        )
         self.aliens_dir = None
-        self.bottom_alien = None  # Keep track of how much the aliens moved down for faster rendering
+        self.bottom_alien = None  # Track lowest row for faster rendering
         self.aliens_move_down = None
         self.player_pos = None
         self.last_action = None
@@ -88,12 +92,11 @@ class SpaceInvaders(Game):
         self.alien_shoot_timer = 0
         self.starting_row = 0  # Denotes the current level of the game
 
-        # These two variable control the aliens speed: when aliens_timesteps == aliens_delay,
+        # These two variables control the aliens speed: when aliens_timesteps == aliens_delay,
         # the aliens move. A delay of 1 means that the player moves x2 times
         # faster than the aliens.
         # Speed increases as aliens move down (+1 for every aliens_rows down).
         # One speed level corresponds to a delay equal to the number of initial alien rows.
-        # For example...
         # Min delay is 0, that is aliens move as fast as the player.
         self.aliens_delay_levels = np.arange(self.n_rows // self.aliens_rows - 1, -1, -1)
         self.aliens_delay_levels *= self.aliens_rows
@@ -127,7 +130,9 @@ class SpaceInvaders(Game):
         self.aliens_timesteps = 0
 
         self.aliens_dir = 1 if self.np_random.random() < 0.5 else -1
-        self.state[self.starting_row : self.starting_row + self.aliens_rows, :, 1] = self.aliens_dir
+        self.state[
+            self.starting_row : self.starting_row + self.aliens_rows, :, 1
+        ] = self.aliens_dir
         self.state[:, 0, 1] = 0  # First two and last two columns are empty
         self.state[:, 1, 1] = 0
         self.state[:, -2, 1] = 0
@@ -151,7 +156,7 @@ class SpaceInvaders(Game):
         self.alien_shoot_timer = self.alien_shoot_cooldown
         where_aliens = np.argwhere(self.state[..., 1])
         who_shoots = where_aliens[self.np_random.choice(where_aliens.shape[0])]
-        # Row is the same as player's because the bullet will be moved up in the same turn
+        # Row is the same as alien's because the bullet will be moved down in the same turn
         self.state[who_shoots[0], who_shoots[1], 3] = 1
 
     def _step(self, action: int):
@@ -192,14 +197,17 @@ class SpaceInvaders(Game):
             aliens_steps = abs(self.aliens_delay) + 1
 
         bullets_moved = False
+
         def move_bullets():  # And check if player bullets hit aliens
             self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
             self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
-            self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Aliens bullets down
+            self.state[..., 3] = np.roll(
+                self.state[..., 3], 1, 0
+            )  # Aliens bullets down
             self.state[0, :, 3] = 0  # Remove if rolled back to top
             alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
-            self.state[..., 1] *= (1 - alien_hits)
-            self.state[..., 2] *= (1 - alien_hits)
+            self.state[..., 1] *= 1 - alien_hits
+            self.state[..., 2] *= 1 - alien_hits
 
         # Move aliens down/left/right
         for steps in range(aliens_steps):
@@ -213,16 +221,35 @@ class SpaceInvaders(Game):
                 self.bottom_alien += 1
 
                 # Make aliens faster, if they moved down enough
-                self.lowest_row_reached = max(self.bottom_alien, self.lowest_row_reached)
+                self.lowest_row_reached = max(
+                    self.bottom_alien, self.lowest_row_reached
+                )
                 self.aliens_move_down = False
-                delay_level = (self.lowest_row_reached + self.aliens_rows) // self.aliens_rows - 2
-                delay_level = min(delay_level, len(self.aliens_delay_levels) - 1)  # Otherwise, error at bottom line (game over)
+                delay_level = (
+                    self.lowest_row_reached + self.aliens_rows
+                ) // self.aliens_rows - 2
+                delay_level = min(
+                    delay_level, len(self.aliens_delay_levels) - 1
+                )  # Otherwise, error at bottom line (game over)
                 self.aliens_delay = self.aliens_delay_levels[delay_level]
             else:
                 self.state[..., 1] = np.roll(self.state[..., 1], self.aliens_dir, 1)
-                if (
-                    np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, 0, 1] != 0) or
-                    np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, -1, 1] != 0)
+                if np.any(
+                    self.state[
+                        self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien
+                        + 1,
+                        0,
+                        1,
+                    ]
+                    != 0
+                ) or np.any(
+                    self.state[
+                        self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien
+                        + 1,
+                        -1,
+                        1,
+                    ]
+                    != 0
                 ):
                     self.state[..., 1] *= -1
                     self.aliens_dir *= -1  # Change direction
