@@ -105,7 +105,9 @@ class Seaquest(Game):
         self.oxygen = self.oxygen_max
         self.oxygen_counter = 0
         self.divers_carried = 0
-        self.spawn_probs = [0.25, 0.5, 1.0]  # 50% fish, 25% submarines, 25% divers
+        # 50% fish, 25% submarines, 25% divers (first 0% is because ID start from 1)
+        self.spawn_probs = np.array([0.0, 0.5, 0.15, 0.35])
+        self.spawn_probs_cdf = self.spawn_probs.cumsum(0)
 
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 6),
@@ -194,8 +196,7 @@ class Seaquest(Game):
         speeds = self.np_random.integers(self.max_speed - 2, self.max_speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
-        ids = self.np_random.random(self.n_rows - 2)
-        ids = (ids[None] < np.array(self.spawn_probs)[..., None]).sum(0)
+        ids = self.np_random.choice(4, size=self.n_rows - 2, p=self.spawn_probs)
         cdowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
         self.entities = [
             [r, None, s, d, i, 0, cd, None]
@@ -251,10 +252,10 @@ class Seaquest(Game):
         else:
             col = self.n_cols - 1
             dir = -1
-        id = self.np_random.random()
-        if id < 0.5:
+        rnd = self.np_random.random()
+        if rnd < self.spawn_probs_cdf[FISH]:
             id = FISH
-        elif id < 0.75:
+        elif rnd < self.spawn_probs_cdf[SUBMARINE]:
             id = SUBMARINE
         else:
             id = DIVER
