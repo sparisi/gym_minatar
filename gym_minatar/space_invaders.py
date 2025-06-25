@@ -20,7 +20,7 @@ class SpaceInvaders(Game):
     """
     The player controls a spaceship at the bottom of the screen that must shoot
     down waves of aliens.
-    - The player moves left/right or not move at all, and can shoot.
+    - The player moves left/right or stays where it is, and can shoot.
     - Aliens move horizontally and descend when they hit the screen left/right
       edges.
         - Their speed increases as they descend: +1 level for every time they
@@ -32,7 +32,7 @@ class SpaceInvaders(Game):
         - At their fastest, the aliens move as fast as the player.
     - A random alien shoots whenever possible (there is a cooldown time
       shared by all aliens).
-      - Alien bullets move as fast as the player, regardless of the aliens' speed.
+        - Alien bullets move as fast as the player, regardless of the aliens' speed.
     - The player also must wait before it can shoot again.
     - The player receives a reward for destroying aliens with bullets.
     - The game ends if an alien reaches the bottom or the player is hit.
