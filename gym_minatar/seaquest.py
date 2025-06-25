@@ -318,7 +318,6 @@ class Seaquest(gym.Env):
     def step(self, action: int):
         reward = 0.0
         terminated = False
-        self.last_action = action
 
         # Cooldown
         if self.shoot_timer > 0:
@@ -461,6 +460,7 @@ class Seaquest(gym.Env):
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
+        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
     def render(self):

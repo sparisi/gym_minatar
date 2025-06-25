@@ -193,7 +193,6 @@ class SpaceInvaders(gym.Env):
         self.state[who_shoots[0], who_shoots[1], 3] = 1
 
     def _step(self, action: int):
-        self.last_action = action
         terminated = False
         reward = 0.0
 
@@ -286,6 +285,7 @@ class SpaceInvaders(gym.Env):
             terminated = True
             self.level_one()
 
+        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
     def render(self):

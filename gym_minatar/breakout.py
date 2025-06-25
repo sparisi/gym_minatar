@@ -155,7 +155,6 @@ class Breakout(gym.Env):
 
     def step(self, action: int):
         obs, reward, terminated, truncated, info = self._step(action)
-        self.last_action = action
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
         return obs, reward, terminated, truncated, info
@@ -282,6 +281,7 @@ class Breakout(gym.Env):
                     self.level_up()
                     self.reset()
 
+        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
     def render(self):

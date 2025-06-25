@@ -194,7 +194,6 @@ class Asterix(gym.Env):
     def step(self, action: int):
         reward = 0.0
         terminated = False
-        self.last_action = action
 
         self.difficulty_timer += 1
         if self.difficulty_timer == self.difficulty_increase_steps:
@@ -258,6 +257,7 @@ class Asterix(gym.Env):
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
+        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
     def render(self):

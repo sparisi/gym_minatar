@@ -147,7 +147,6 @@ class Freeway(gym.Env):
     def step(self, action: int):
         reward = 0.0
         terminated = False
-        self.last_action = action
 
         # Move player
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
@@ -183,6 +182,7 @@ class Freeway(gym.Env):
 
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
+        self.last_action = action
         return self.get_state(), reward, terminated, False, {}
 
     def render(self):
