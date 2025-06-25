@@ -23,26 +23,27 @@ class SpaceInvaders(Game):
     - The player moves left/right or not move at all, and can shoot.
     - Aliens move horizontally and descend when they hit the screen left/right
       edges.
-        - Their speed increases as they descend: + 1 level for every time they
-          move down for as many times as the initial number of aliens rows.
-          For example, if at the beginning there are 3 aliens rows, the speed
+        - Their speed increases as they descend: +1 level for every time they
+          move down for as many times as the initial number of alien rows.
+          For example, if at the beginning there are 3 alien rows, the speed
           increases by 1 after they reach row 6, then 9, ... and so on.
         - Every level increases the speed by as many frames as the number of
           initial alien rows.
         - At their fastest, the aliens move as fast as the player.
     - A random alien shoots whenever possible (there is a cooldown time
       shared by all aliens).
-      - Aliens bullet move as fast as the player, regardless of the aliens speed.
+      - Alien bullets move as fast as the player, regardless of the aliens' speed.
     - The player also must wait before it can shoot again.
     - The player receives a reward for destroying aliens with bullets.
     - The game ends if an alien reaches the bottom or the player is hit.
     - If the player destroys all aliens, the next level starts.
-    - Difficulty increases with levels, making aliens starting closer to the player.
-    - The observation space is a 3-channel grid with 0s for empty tiles, and 1 or -1
+    - Difficulty increases with levels, making aliens start closer to the player.
+    - The observation space is a 4-channel grid with 0s for empty tiles, and 1 or -1
       for information about the game entities:
         - Channel 0: player position (1).
         - Channel 1: aliens (-1 moving left, 1 moving right).
-        - Channel 2: bullets (-1 moving up, 1 moving down).
+        - Channel 2: player bullets (-1 moving up).
+        - Channel 3: alien bullets (1 moving down).
     """
 
     def __init__(self, aliens_rows: int = 3, **kwargs):

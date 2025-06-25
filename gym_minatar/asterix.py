@@ -22,7 +22,7 @@ class Asterix(Game):
     - The player can move left/right/up/down or not move at all.
     - Enemies and treasures move horizontally with variable speed and direction.
     - When enemies and treasures leave the screen, some time must pass before a
-      new random entity (enemy or treasure spawns) in the same row.
+      new random entity (enemy or treasure) spawns in the same row.
     - The player receives a reward for collecting treasures.
     - The game ends if the player is hit by an enemy.
     - The environment increases in difficulty over time (entities move faster
