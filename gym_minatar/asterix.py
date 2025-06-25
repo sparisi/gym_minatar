@@ -177,7 +177,7 @@ class Asterix(Game):
             row, col, speed, dir, is_tres, timer, cooldown = entity
 
             # Check if the entity is out of bounds, and if so check if it's time to respawn
-            if col == None:
+            if col is None:
                 cooldown -= 1
                 entity[6] = cooldown
                 if cooldown > 0:
@@ -236,7 +236,7 @@ class Asterix(Game):
         # Draw entities and their trail
         for entity in self.entities:
             row, col, speed, dir, is_tres, timer, cooldown = entity
-            if col == None:
+            if col is None:
                 continue
             self.draw_tile(row, col, BLUE if is_tres else RED)
             if speed <= 0:

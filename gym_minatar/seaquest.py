@@ -342,7 +342,7 @@ class Seaquest(Game):
             row, col, speed, dir, id, timer, cooldown, b_col = entity
 
             # Check if out of bounds, and if so check if it's time to respawn
-            if col == None:
+            if col is None:
                 cooldown -= 1
                 entity[6] = cooldown
                 if cooldown > 0:
@@ -430,8 +430,6 @@ class Seaquest(Game):
     def _render_board(self):
         import pygame
 
-        state = self.get_state()
-
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)
         pygame.draw.rect(self.window_surface, BLACK, rect)
@@ -461,7 +459,7 @@ class Seaquest(Game):
             row, col, speed, dir, id, timer, cooldown, b_col = entity
             if b_col is not None:
                 self.draw_tile(row, b_col, YELLOW)
-            if col == None:
+            if col is None:
                 continue
             if id == DIVER:
                 color = BLUE

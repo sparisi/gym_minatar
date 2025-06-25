@@ -244,7 +244,6 @@ class Breakout(Game):
 
     def _render_board(self):
         import pygame
-        state = self.get_state()
 
         # Draw background
         rect = pygame.Rect((0, 0), self.window_size)

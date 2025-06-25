@@ -84,7 +84,6 @@ def level_one():
 def on_press(key):
     last_keypress_time[0] = time.time()  # Update on any key press
     try:
-        action = None
         if key == keyboard.Key.space:
             step("shoot")
         elif key == keyboard.Key.up:
