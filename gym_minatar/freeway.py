@@ -20,9 +20,11 @@ class Freeway(Game):
     - The player can move up/down, or stand still.
     - Cars move horizontally at different speeds and directions, wrapping around
       the screen.
+      - Each car's speed is randomly selected at the beginning in
+        [self.speed - self.speed_range, self.speed].
     - The game ends when the player is hit by a car.
     - When the player reaches the top, it receives +1. The board is then reset and
-      car speed increase.
+      speed increases by 1.
     - The observation space is a 2-channel grid with 0s for empty tiles, and
       values in [-1, 1] for cars:
         - Channel 0: player position (1).
@@ -36,7 +38,31 @@ class Freeway(Game):
 
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
-        self.max_speed = -1
+
+        self.init_speed = -1
+        self.speed = self.init_speed
+        self.speed_range = 2  # Car speed will be in [self.speed - self.speed_range, self.speed]
+        n_partial_speeds = self.init_speed - self.speed_range - 1
+        self.speed_chunks = np.arange(n_partial_speeds, 0) / n_partial_speeds
+
+        # The above variables control car speed, and (together with a timer
+        # associated to each car) are used to represent by how many tiles the
+        # car will move (if faster than 1 tile per timestep) or when it is going
+        # to move (if slower than 1 tile per timestep).
+        # For the latter, self.speed_chunks stores "progression steps" denoting
+        # the car timer.
+        # Note that speed 0 means "no delay", i.e., the car moves by 1 tile per
+        # timestep.
+
+        # For example, if init_speed = -1 and speed_range = 2, then the slowest
+        # speed is -3 (delay of 3 timesteps). This means that every step will progress
+        # the car timer by 0.25 (0.25 -> 0.5 -> 0.75, before finally moving).
+        # In this case, self.speed_chunks = [-1., -0.75, -0.5, -0.25], and to retrieve
+        # the progress of each car we use their timer: self.speed_chunks[timer - speed].
+        # Note that the values in self.speed_chunks are used both in the matrix
+        # (default) observation and the pixel observation (in the latter, to scale
+        # down trail tiles).
+
         self.cars = None
         self.player_row = None
         self.player_col = None
@@ -61,7 +87,7 @@ class Freeway(Game):
         # A car is denoted by (row, col, speed, direction, timer).
         # No car in the first and last row of the board.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        speeds = self.np_random.integers(self.max_speed - 2, self.max_speed + 1, self.n_rows - 2)
+        speeds = self.np_random.integers(self.speed - self.speed_range, self.speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
         self.cars = [[r, c, s, d, 0] for r, c, s, d in zip(rows, cols, speeds, dirs)]
@@ -79,11 +105,11 @@ class Freeway(Game):
             raise ValueError("illegal action")
 
     def level_one(self):
-        self.max_speed = -1
+        self.speed = self.init_speed
         self._reset()
 
     def level_up(self):
-        self.max_speed = min(self.max_speed + 1, self.n_rows - 1)
+        self.speed = min(self.speed + 1, self.n_rows - 1)
         self._reset()
 
     def get_state(self):
@@ -95,9 +121,9 @@ class Freeway(Game):
             row, col, speed, dir, timer = car
             if speed <= 0:
                 if timer != speed:
-                    speed_scaling = (timer - 0.5) / speed
+                    speed_scaling = self.speed_chunks[timer - speed]
                     state[row, (col - dir) % self.n_cols, 1] = dir * speed_scaling
-                    state[row, (col) % self.n_cols, 1] = dir
+                    state[row, col % self.n_cols, 1] = dir
                     continue
                 else:
                     speed = 1
@@ -163,7 +189,7 @@ class Freeway(Game):
             if speed <= 0:
                 if timer != speed:
                     col = (col - dir) % self.n_cols  # Backward for trail
-                    speed_scaling = (timer - 0.5) / speed
+                    speed_scaling = self.speed_chunks[timer - speed]
                     self.draw_tile(row, col, PALE_RED, scale=speed_scaling)
                     continue
                 else:

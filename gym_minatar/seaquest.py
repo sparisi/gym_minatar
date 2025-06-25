@@ -49,6 +49,8 @@ class Seaquest(Game):
         - Player bullets destroy enemies on collision, giving +1 to the player.
     - Enemies and divers move at different speeds and leave a trail behind them
       to infer their direction.
+      - Each entity's speed is randomly selected at the beginning in
+        [self.speed - self.speed_range, self.speed].
     - Enemies can be fish or submarine.
         - Submarines shoot, fishes don't.
         - As soon as their bullet leaves the screen, they shoot a new one.
@@ -68,7 +70,7 @@ class Seaquest(Game):
       - The player can stay at the surface as long as it wants without depleting
         oxygen.
     - When the player submerges again, the difficulty level increases
-      (enemies and divers move faster, respawn time decreases).
+      (speed increases by 1, respawn time decreases by 1).
     - The observation space is a 6-channel grid with 0s for empty tiles, and
       values in [-1, 1] for moving entities:
         - Channel 0: player position and bullets (-1 moving left, 1 moving right).
@@ -94,8 +96,16 @@ class Seaquest(Game):
         # Bullet column is None except for submarines.
         self.entities = None
 
-        self.spawn_cooldown = 10
-        self.max_speed = -2
+        # Please see freeway.py for more details about these variables
+        self.init_speed = -2
+        self.speed = self.init_speed
+        self.speed_range = 2  # Entity speed will be in [self.speed - self.speed_range, self.speed]
+        n_partial_speeds = self.init_speed - self.speed_range - 1
+        self.speed_chunks = np.arange(n_partial_speeds, 0) / n_partial_speeds
+
+        self.init_spawn_cooldown = 3
+        self.spawn_cooldown = self.init_spawn_cooldown
+
         self.player_row = None
         self.player_col = None
         self.player_dir = None
@@ -144,7 +154,7 @@ class Seaquest(Game):
                 state[row, b_col, id] = dir
             if speed <= 0:
                 if timer != speed:
-                    speed_scaling = (timer - 0.5) / speed
+                    speed_scaling = self.speed_chunks[timer - speed]
                     state[row, col, id] = dir
                     if 0 <= col - dir < self.n_cols:
                         state[row, (col - dir), id] = dir * speed_scaling
@@ -173,11 +183,11 @@ class Seaquest(Game):
         return state
 
     def level_one(self):
-        self.max_speed = -2
-        self.spawn_cooldown = 10
+        self.speed = self.init_speed
+        self.spawn_cooldown = self.init_spawn_cooldown
 
     def level_up(self):
-        self.max_speed = min(self.max_speed + 1, self.n_rows - 1)
+        self.speed = min(self.speed + 1, self.n_rows - 1)
         self.spawn_cooldown = max(self.spawn_cooldown - 1, 0)
 
     def _reset(self, seed: int = None, **kwargs):
@@ -243,7 +253,7 @@ class Seaquest(Game):
             entity[7] = None
 
     def respawn(self, entity):
-        speed = self.np_random.integers(self.max_speed - 2, self.max_speed + 1)
+        speed = self.np_random.integers(self.speed - self.speed_range, self.speed + 1)
         if self.np_random.random() < 0.5:
             col = 0
             dir = 1
@@ -466,10 +476,13 @@ class Seaquest(Game):
         # Draw entities and their trail
         for entity in self.entities:
             row, col, speed, dir, id, timer, cooldown, b_col = entity
+
             if b_col is not None:
                 self.draw_tile(row, b_col, YELLOW)
+
             if col is None:
                 continue
+
             if id == DIVER:
                 color = BLUE
                 color_trail = CYAN
@@ -479,12 +492,13 @@ class Seaquest(Game):
             else:
                 color = PURPLE
                 color_trail = PALE_PURPLE
+
             self.draw_tile(row, col, color)
             if speed <= 0:
                 if timer != speed:
                     if 0 <= col < self.n_cols:
                         col = col - dir  # Backward for trail
-                        speed_scaling = (timer - 0.5) / speed
+                        speed_scaling = self.speed_chunks[timer - speed]
                         self.draw_tile(row, col, color_trail, scale=speed_scaling)
                     continue
                 else:

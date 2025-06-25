@@ -115,7 +115,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The game ends if the player misses the ball.</li>
         <li>The player has 3 actions (LEFT, RIGHT, NO-OP) and the observation space
         has 3 channels for (in order): player, bricks, ball.</li>
-        <li>This game is <b>fully observable.</li>
       <ul>
     </td>
   </tr>
@@ -141,9 +140,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 4 channels for (in order): player, aliens,
         player bullets, aliens bullets</li>
-        <li>This game is <b>partially observable</b>, because observations
-        don't encode shooting cooldown time. However, most of the time this
-        can be inferred by how far the player bullet has traveled.
       </ul>
     </td>
   </tr>
@@ -167,7 +163,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The game ends when the player is hit by a car.</li>
         <li>The player has 3 actions (UP, DOWN, NO-OP) and the observation space
         has 2 channels for (in order): player and cars.</li>
-        <li>This game is <b>fully observable</b>.</li>
       </ul>
     </td>
   </tr>
@@ -193,9 +188,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The game ends when the player is hit by an enemy.</li>
         <li>The player has 5 actions (LEFT, DOWN, RIGHT, UP, NO-OP) and the observation space
         has 3 channels for (in order): player, enemies, and treasures.</li>
-        <li>This game is <b>partially observable</b>, because 1) observations don't encode
-        respawn time, and 2) when treasures and enemies spawn, their direction cannot
-        be determined immediately (they have no trail yet).</li>
     </td>
   </tr>
 </table>
@@ -229,11 +221,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 6 channels for (in order): player and bullets,
         fishes, submarines and bullets, divers, oxygen gauge, and divers carried gauge.</li>
-        <li>This game is <b>partially observable</b>. First, observations
-        don't encode shooting cooldown time (although this can be inferred
-        from how far the player bullet has traveled). Second, oxygen reserve is
-        not accurately represented (although the player does not need to know it
-        exactly to act optimally).</li>
       <ul>
     </td>
   </tr>
@@ -242,7 +229,17 @@ For full details, please refer to the docs in the source code (click on the game
 ## Observations
 Below are some example of both default and pixels observations to better
 understand how speed and trail are encoded.  
-To see all observation channels, run the following code with the game you want.
+To see all observation channels, run code below with the game you want.
+
+Note that all games are **partially observable**.
+- In Breakout, Freeway, Asterix, and Seaquest, trails tell "how soon" slow-moving
+  entities (ball, cars, enemies, ...) will move, but not their exact speed.
+- In Asterix and Seaquest, observations do not encode respawn times.
+- In Seaquest and Space Invaders, observations do not encode shooting cooldowns.
+- In Seaquest, gauges do not represent exactly how much oxygen the agent has
+  left, and how many divers it is carrying.
+Nonetheless, single observations (without stacking) should be sufficient for acting
+near-optimally in all games.
 
 ```python
 import gymnasium

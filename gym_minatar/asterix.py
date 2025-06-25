@@ -26,12 +26,14 @@ class Asterix(Game):
     The player moves on a grid and must collect treasures while avoiding enemies.
     - The player can move left/right/up/down, or stand still.
     - Enemies and treasures move horizontally with variable speed and direction.
+      - Each entity's speed is randomly selected at the beginning in
+        [self.speed - self.speed_range, self.speed].
     - When enemies and treasures leave the screen, some time must pass before a
       new one (randomly either an enemy or a treasure) spawns in the same row.
     - The player receives +1 for collecting treasures.
     - The game ends if the player is hit by an enemy.
-    - The environment increases in difficulty over time (enemies and treasures
-      move faster and respawn sooner).
+    - The environment increases in difficulty over time (speed increases
+      by 1, respawn time decreases by 1).
     - The observation space is a 3-channel grid with 0s for empty tiles, and
       values in [-1, 1] for game entities:
         - Channel 0: player position (1).
@@ -49,8 +51,17 @@ class Asterix(Game):
 
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
-        self.cooldown = 3
-        self.max_speed = 0
+
+        # Please see freeway.py for more details about these variables
+        self.init_speed = 0
+        self.speed = self.init_speed
+        self.speed_range = 2  # Entity speed will be in [self.speed - self.speed_range, self.speed]
+        n_partial_speeds = self.init_speed - self.speed_range - 1
+        self.speed_chunks = np.arange(n_partial_speeds, 0) / n_partial_speeds
+
+        self.init_cooldown = 3
+        self.cooldown = self.init_cooldown
+
         self.entities = None
         self.player_row = None
         self.player_col = None
@@ -81,7 +92,7 @@ class Asterix(Game):
                 break
             if speed <= 0:
                 if timer != speed:
-                    speed_scaling = (timer - 0.5) / speed
+                    speed_scaling = self.speed_chunks[timer - speed]
                     state[row, col, id] = dir
                     if 0 <= col - dir < self.n_cols:
                         state[row, (col - dir), id] = dir * speed_scaling
@@ -105,7 +116,7 @@ class Asterix(Game):
         # Cooldown is for respawing.
         # First and last row of the board are empty.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
-        speeds = self.np_random.integers(self.max_speed - 2, self.max_speed + 1, self.n_rows - 2)
+        speeds = self.np_random.integers(self.speed - self.speed_range, self.speed + 1, self.n_rows - 2)
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
         id = np.full((self.n_rows - 2,), ENEMY)
@@ -133,12 +144,12 @@ class Asterix(Game):
 
     def level_one(self):
         self.difficulty_timer = 0
-        self.max_speed = 0
-        self.cooldown = 3
+        self.speed = self.init_speed
+        self.cooldown = self.init_cooldown
 
     def level_up(self):
         self.difficulty_timer = 0
-        self.max_speed = min(self.max_speed + 1, self.n_rows - 1)
+        self.speed = min(self.speed + 1, self.n_rows - 1)
         self.cooldown = max(self.cooldown - 1, 0)
 
     def despawn(self, entity):
@@ -146,7 +157,7 @@ class Asterix(Game):
         entity[6] = self.cooldown
 
     def respawn(self, entity):
-        speed = self.np_random.integers(self.max_speed - 2, self.max_speed + 1)
+        speed = self.np_random.integers(self.speed - self.speed_range, self.speed + 1)
         if self.np_random.random() < 0.5:
             col = 0
             dir = 1
@@ -256,18 +267,18 @@ class Asterix(Game):
                 color_main = RED
                 color_trail = PALE_RED
 
+            self.draw_tile(row, col, color_main)
             if speed <= 0:
                 if timer != speed:
                     if 0 <= col < self.n_cols:
                         col -= dir  # Backward for trail
-                        speed_scaling = (timer - 0.5) / speed
+                        speed_scaling = self.speed_chunks[timer - speed]
                         self.draw_tile(row, col, color_trail, scale=speed_scaling)
                     continue
                 else:
                     speed = 1
 
             for step in range(max(0, speed)):
-                speed_scaling = (timer - 0.5) / speed
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     break
