@@ -30,12 +30,13 @@ class SpaceInvaders(Game):
         - Every level increases the speed by as many frames as the number of
           initial alien rows.
         - At their fastest, the aliens move as fast as the player.
-    - A random alien shoots whenever possible (there is a cooldown time
-      shared by all aliens).
+    - Aliens shoot whenever possible and act as one entity: once their cooldown is
+      over, a random alien shoots.
         - Alien bullets move as fast as the player, regardless of the aliens' speed.
-    - The player also must wait before it can shoot again.
-    - The player receives a reward for destroying aliens with bullets.
-    - The game ends if an alien reaches the bottom or the player is hit.
+    - The player also has to wait to cooldown before shooting again.
+    - The player receives +1 for hitting an alien with its bullets.
+    - The game ends if the aliens reach the bottom, or if the player is hit by
+      their bullets.
     - If the player destroys all aliens, the next level starts.
     - Difficulty increases with levels, making aliens start closer to the player.
     - The observation space is a 4-channel grid with 0s for empty tiles, and 1 or -1
@@ -56,17 +57,13 @@ class SpaceInvaders(Game):
         ), f"aliens rows must be positive (received {self.n_rows})"
         # First two and last two columns must be empty at the beginning
         assert self.n_cols > 4, f"board too small ({self.n_cols} columns, minimum is 5)"
-        # One row for the player, one for the aliens, one for moving aliens down once
+        # One row for the player, one for the aliens, one to allow aliens to move down once
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows, minimum is 3)"
         # One empty row below the aliens, one row for the player
         assert (
             self.n_rows >= self.aliens_rows + 2
         ), f"cannot fit {aliens_rows} alien rows in a board with {self.n_rows} rows"
 
-        # First channel for player position.
-        # Second channel for aliens (-1 moving left, 1 moving right).
-        # Third channel for player bullets (-1, always moving up).
-        # Fourh channel for aliens bullets (1, always moving down).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
         )  # fmt: skip
@@ -93,11 +90,10 @@ class SpaceInvaders(Game):
         self.starting_row = 0  # Denotes the current level of the game
 
         # These two variables control the aliens speed: when aliens_timesteps == aliens_delay,
-        # the aliens move. A delay of 1 means that the player moves x2 times
-        # faster than the aliens.
-        # Speed increases as aliens move down (+1 for every aliens_rows down).
-        # One speed level corresponds to a delay equal to the number of initial alien rows.
-        # Min delay is 0, that is aliens move as fast as the player.
+        # the aliens move. A delay of 1 means that aliens need 1 extra timestep
+        # to move. A delay of 0 means that they move as fast as the player (1 tile
+        # per timestep).
+        # Check the class docs for more info about how speed increases.
         self.aliens_delay_levels = np.arange(self.n_rows // self.aliens_rows - 1, -1, -1)
         self.aliens_delay_levels *= self.aliens_rows
         self.aliens_delay = self.aliens_delay_levels[0]
@@ -198,12 +194,10 @@ class SpaceInvaders(Game):
 
         bullets_moved = False
 
-        def move_bullets():  # And check if player bullets hit aliens
+        def move_bullets():  # Also check if player bullets hit aliens
             self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
             self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
-            self.state[..., 3] = np.roll(
-                self.state[..., 3], 1, 0
-            )  # Aliens bullets down
+            self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Alien bullets down
             self.state[0, :, 3] = 0  # Remove if rolled back to top
             alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
             self.state[..., 1] *= 1 - alien_hits
@@ -225,31 +219,14 @@ class SpaceInvaders(Game):
                     self.bottom_alien, self.lowest_row_reached
                 )
                 self.aliens_move_down = False
-                delay_level = (
-                    self.lowest_row_reached + self.aliens_rows
-                ) // self.aliens_rows - 2
-                delay_level = min(
-                    delay_level, len(self.aliens_delay_levels) - 1
-                )  # Otherwise, error at bottom line (game over)
+                delay_level = (self.lowest_row_reached + self.aliens_rows) // self.aliens_rows - 2
+                delay_level = min(delay_level, len(self.aliens_delay_levels) - 1)  # To prevent an error when aliens reach the bottom row
                 self.aliens_delay = self.aliens_delay_levels[delay_level]
             else:
                 self.state[..., 1] = np.roll(self.state[..., 1], self.aliens_dir, 1)
-                if np.any(
-                    self.state[
-                        self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien
-                        + 1,
-                        0,
-                        1,
-                    ]
-                    != 0
-                ) or np.any(
-                    self.state[
-                        self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien
-                        + 1,
-                        -1,
-                        1,
-                    ]
-                    != 0
+                if (  # Aliens hit the edge of the screen
+                    np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, 0, 1] != 0) or
+                    np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, -1, 1] != 0)
                 ):
                     self.state[..., 1] *= -1
                     self.aliens_dir *= -1  # Change direction

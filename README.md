@@ -212,9 +212,6 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player (green) must collect divers (blue) and bring them to the
         surface (gray) while hitting enemies shooting bullets (white) from its front (bright green).</li>
         <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot bullets (yellow).</li>
-        <li>The player must wait some time before shooting again. Submarines
-        shoot as soon as they enter the board, and then again as soon as
-        their bullet leaves the board.</li>
         <li>The player has limited oxygen (gauge at the bottom left of the board)
         that depletes over time.</li>
         <li>Hitting an enemy gives the player 1 point.</li>

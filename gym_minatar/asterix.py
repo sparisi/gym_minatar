@@ -24,16 +24,16 @@ CYAN = (0, 255, 255)  # treasure trail
 class Asterix(Game):
     """
     The player moves on a grid and must collect treasures while avoiding enemies.
-    - The player can move left/right/up/down or not move at all.
+    - The player can move left/right/up/down, or stand still.
     - Enemies and treasures move horizontally with variable speed and direction.
     - When enemies and treasures leave the screen, some time must pass before a
-      new random entity (enemy or treasure) spawns in the same row.
-    - The player receives a reward for collecting treasures.
+      new one (randomly either an enemy or a treasure) spawns in the same row.
+    - The player receives +1 for collecting treasures.
     - The game ends if the player is hit by an enemy.
-    - The environment increases in difficulty over time (entities move faster
-      and respawn sooner).
+    - The environment increases in difficulty over time (enemies and treasures
+      move faster and respawn sooner).
     - The observation space is a 3-channel grid with 0s for empty tiles, and
-      values in [-1, 1] for moving entities:
+      values in [-1, 1] for game entities:
         - Channel 0: player position (1).
         - Channel 1: enemies and their trails (-1 moving left, 1 moving right).
         - Channel 2: treasures and their trails (-1 moving left, 1 moving right).
@@ -50,16 +50,14 @@ class Asterix(Game):
         self.difficulty_timer = 0
         self.difficulty_increase_steps = 100
         self.cooldown = 3
-        self.max_speed = -1
+        self.max_speed = 0
         self.entities = None
         self.player_row = None
         self.player_col = None
         self.player_row_old = None
         self.player_col_old = None
+        self.treasure_prob = 1.0 / 3.0
 
-        # First channel for player position.
-        # Second channel for enemies position and their trail (-1 moving left, 1 moving right).
-        # Third channel for treasures position and their trail (-1 moving left, 1 moving right).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3),
         )  # fmt: skip
@@ -102,8 +100,8 @@ class Asterix(Game):
         self.player_col = self.n_cols // 2
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
-        # Entries are denoted by (row, col, speed, direction, is_treasure, timer, cooldown).
-        # Timer is for entries with negative speed (they move slower than the player).
+        # Entities are denoted by (row, col, speed, direction, is_treasure, timer, cooldown).
+        # Timer is for entities with negative speed (they move slower than the player).
         # Cooldown is for respawing.
         # First and last row of the board are empty.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
@@ -111,7 +109,7 @@ class Asterix(Game):
         dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
         id = np.full((self.n_rows - 2,), ENEMY)
-        id[self.np_random.random(self.n_rows - 2) < 1.0 / 3.0] = TREASURE
+        id[self.np_random.random(self.n_rows - 2) < self.treasure_prob] = TREASURE
         self.entities = [
             [r, c, s, d, i, 0, -1]
             for r, c, s, d, i in zip(rows, cols, speeds, dirs, id)
@@ -155,7 +153,7 @@ class Asterix(Game):
         else:
             col = self.n_cols - 1
             dir = -1
-        id = TREASURE if self.np_random.random() < 1.0 / 3.0 else ENEMY
+        id = TREASURE if self.np_random.random() < self.treasure_prob else ENEMY
         entity[1] = col
         entity[2] = speed
         entity[3] = dir
@@ -166,7 +164,10 @@ class Asterix(Game):
     def collision(self, row, col, action):
         static_collision = [row, col] == [self.player_row, self.player_col]
         # Without this check, the player may "step over" an entity and collision won't be detected
-        movement_collision = action in [LEFT, RIGHT] and [row, col] == [self.player_row_old, self.player_col_old]
+        movement_collision = (
+            action in [LEFT, RIGHT] and
+            [row, col] == [self.player_row_old, self.player_col_old]
+        )
         return static_collision or movement_collision
 
     def _step(self, action: int):

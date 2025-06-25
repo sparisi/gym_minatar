@@ -17,16 +17,16 @@ GRAY = (100, 100, 100)  # bricks
 class Breakout(Game):
     """
     The player controls a paddle to bounce a ball and break bricks.
-    - The paddle moves left/right at the bottom of the grid, or may not move at all.
-    - The ball moves diagonally and bounces off walls, paddle, and bricks.
-    - The player receives a reward for breaking bricks.
+    - The paddle moves left/right at the bottom of the grid, or stand still.
+    - The ball moves diagonally and bounces off the paddle, walls, and bricks.
+    - The player receives +1 for breaking bricks.
     - When all bricks are destroyed, a new game starts at increased difficulty.
       - Difficulty increases ball speed.
     - The game ends if the ball falls below the paddle.
     - The observation space is a 3-channel grid with 0s for empty tiles, and
-      values in [-1, 1] for moving entities:
-        - Channel 0: bricks (1s).
-        - Channel 1: paddle position (1).
+      values in [-1, 1] for game entities:
+        - Channel 0: paddle position (1).
+        - Channel 1: bricks (1s).
         - Channel 2: ball and its trail (-1 moving up, 1 moving down).
         - Intermediate values in (-1, 1) denote the ball speed when it moves slower
           than 1 tile per timestep.
@@ -43,9 +43,6 @@ class Breakout(Game):
             self.brick_rows + 3 < self.n_rows
         ), f"cannot fit {brick_rows} brick rows in a board with {self.n_rows} rows"
 
-        # First channel for paddle position.
-        # Second channel for bricks.
-        # Third channel for ball and its trail (-1 moving up, 1 moving down).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 3),
         )  # fmt: skip
@@ -65,10 +62,12 @@ class Breakout(Game):
         self.contact_pos = None  # To store ball contact with brick or paddle
 
         # These two variables control the ball speed: when ball_timesteps == ball_delay,
-        # the ball moves. A delay of 1 means that the paddle moves x2 times
-        # faster than the ball.
+        # the ball moves. A delay of 1 means that the ball needs 1 extra timestep
+        # to move. A delay of 0 means that it moves as fast as the player (1 tile
+        # per timestep).
         # When difficulty increases, ball_delay decreases and can become negative.
-        # Negative delay means that the ball is faster than the paddle.
+        # Negative delay means that the ball is faster than the player (e.g.,
+        # a delay of -1 means that the ball moves 2 tiles per timestep).
         self.ball_delay_levels = np.arange(levels - 1, -1, -1) - levels // 2
         self.level = 0
         self.ball_delay = self.ball_delay_levels[self.level]

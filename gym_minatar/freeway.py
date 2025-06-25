@@ -17,17 +17,17 @@ class Freeway(Game):
     """
     The player (chicken) starts at the bottom of the screen and must reach the top,
     crossing lanes of moving cars.
-    - The player can move up/down or may not move at all.
-    - Cars move horizontally at different (random) speeds and directions,
-      wrapping around the screen.
+    - The player can move up/down, or stand still.
+    - Cars move horizontally at different speeds and directions, wrapping around
+      the screen.
     - The game ends when the player is hit by a car.
-    - Each time the player reaches the top, a reward of +1 is given and the car
-      speeds increase (still random, though).
+    - When the player reaches the top, it receives +1. The board is then reset and
+      car speed increase.
     - The observation space is a 2-channel grid with 0s for empty tiles, and
-      values in [-1, 1] for moving entities:
+      values in [-1, 1] for cars:
         - Channel 0: player position (1).
         - Channel 1: car positions and their trails (-1 moving left, 1 moving right).
-        - Intermediate values in (-1, 1) denote the speed of entities moving slower
+        - Intermediate values in (-1, 1) denote the speed of cars moving slower
           than 1 tile per timestep.
     """
 
@@ -43,8 +43,6 @@ class Freeway(Game):
         self.player_row_old = None
         self.player_col_old = None
 
-        # First channel for player position.
-        # Second channel for cars position and trail (-1 moving left, 1 moving right).
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 2),
         )  # fmt: skip
