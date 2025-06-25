@@ -96,7 +96,6 @@ class Seaquest(gym.Env):
         self.n_rows, self.n_cols = size
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
-        self.n_rows += 2
 
         self.n_rows, self.n_cols = size
         self.spawn_cooldown = 10
