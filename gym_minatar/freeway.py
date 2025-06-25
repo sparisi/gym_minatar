@@ -119,16 +119,10 @@ class Freeway(Game):
         state[self.player_row, self.player_col, 0] = 1
         for car in self.cars:
             row, col, speed, dir, timer = car
-            if speed <= 0:
-                if timer != speed:
-                    speed_scaling = self.speed_chunks[timer - speed]
-                    state[row, (col - dir) % self.n_cols, 1] = dir * speed_scaling
-                    state[row, col % self.n_cols, 1] = dir
-                    continue
-                else:
-                    speed = 1
-            for step in range(speed + 1):
-                state[row, (col - step * dir) % self.n_cols, 1] = dir
+            state[row, col, 1] = dir  # Car
+            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            for step in range(1, max(1, speed) + 1):  # Speed trail
+                state[row, (col - step * dir) % self.n_cols, 1] = dir * speed_scaling
         return state
 
     def collision(self, row, col, action):
@@ -186,17 +180,10 @@ class Freeway(Game):
         for car in self.cars:
             row, col, speed, dir, timer = car
             self.draw_tile(row, col, RED)
-            if speed <= 0:
-                if timer != speed:
-                    col = (col - dir) % self.n_cols  # Backward for trail
-                    speed_scaling = self.speed_chunks[timer - speed]
-                    self.draw_tile(row, col, PALE_RED, scale=speed_scaling)
-                    continue
-                else:
-                    speed = 1
-            for step in range(max(0, speed)):
+            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            for step in range(max(1, speed)):
                 col = (col - dir) % self.n_cols
-                self.draw_tile(row, col, PALE_RED)
+                self.draw_tile(row, col, PALE_RED, speed_scaling)
 
         # Draw player
         self.draw_tile(self.player_row, self.player_col, GREEN)

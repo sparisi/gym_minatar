@@ -150,21 +150,14 @@ class Seaquest(Game):
             row, col, speed, dir, id, timer, cooldown, b_col = entity
             if col is None:
                 continue
-            if b_col is not None and 0 <= b_col < self.n_cols:
+            if b_col is not None and 0 <= b_col < self.n_cols:  # Bullet
                 state[row, b_col, id] = dir
-            if speed <= 0:
-                if timer != speed:
-                    speed_scaling = self.speed_chunks[timer - speed]
-                    state[row, col, id] = dir
-                    if 0 <= col - dir < self.n_cols:
-                        state[row, (col - dir), id] = dir * speed_scaling
-                    continue
-                else:
-                    speed = 1
-            for step in range(speed + 1):
+            state[row, col, id] = dir  # Entity
+            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            for step in range(1, max(1, speed) + 1):  # Speed trail
                 if not 0 <= col - step * dir < self.n_cols:
                     break
-                state[row, col - step * dir, id] = dir
+                state[row, (col - step * dir), id] = dir * speed_scaling
 
         percentage_full = self.divers_carried / self.divers_carried_max
         n_fill = int(self.n_cols * percentage_full)
@@ -484,30 +477,22 @@ class Seaquest(Game):
                 continue
 
             if id == DIVER:
-                color = BLUE
+                color_main = BLUE
                 color_trail = CYAN
             elif id == SUBMARINE:
-                color = RED
+                color_main = RED
                 color_trail = PALE_RED
             else:
-                color = PURPLE
+                color_main = PURPLE
                 color_trail = PALE_PURPLE
 
-            self.draw_tile(row, col, color)
-            if speed <= 0:
-                if timer != speed:
-                    if 0 <= col < self.n_cols:
-                        col = col - dir  # Backward for trail
-                        speed_scaling = self.speed_chunks[timer - speed]
-                        self.draw_tile(row, col, color_trail, scale=speed_scaling)
-                    continue
-                else:
-                    speed = 1
-            for step in range(max(0, speed)):
+            self.draw_tile(row, col, color_main)
+            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            for step in range(max(1, speed)):
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     break
-                self.draw_tile(row, col, color_trail)
+                self.draw_tile(row, col, color_trail, speed_scaling)
 
         # Draw player bullet
         for i in range(len(self.player_bullets)):

@@ -295,16 +295,16 @@ slower than 1 tile per timestep</i>. In the example, the ball takes 2 timesteps 
     </td>
     <td>
       <pre>
-[[ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]
- [-1. -0.25 0.  0.  0.   0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  0.5  1.  0.  0.  0.  0.]
- [ 0.  1.   1.  0.  0.   0.  0.  0.  0.  0.]
- [ 0.  0.   0. -1. -0.25 0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  0.5  1.  0.  0.  0.  0.]
- [-1. -0.5  0.  0.  0.   0.  0.  0.  0.  0.]
- [ 1.  1.   0.  0.  0.   0.  0.  0.  0.  0.]
- [ 0.  0.25 1.  0.  0.   0.  0.  0.  0.  0.]
- [ 0.  0.   0.  0.  0.   0.  0.  0.  0.  0.]]
+[[ 0.  0.  0.   0.  0.   0.  0.  0.   0.  0.  ]
+ [ 0.  0.  0.   0.  0.   0.  0.  0.75 1.  0.  ]
+ [ 1.  0.  0.   0.  0.   0.  0.  0.   0.  0.75]
+ [ 0.  0.  0.   0.  0.   0.  0.5 1.   0.  0.  ]
+ [ 0.  0.  0.   0.  0.75 1.  0.  0.   0.  0.  ]
+ [ 0.  0.  0.5  1.  0.   0.  0.  0.   0.  0.  ]
+ [ 0.  0. -1.  -1.  0.   0.  0.  0.   0.  0.  ]
+ [-0.5 0.  0.   0.  0.   0.  0.  0.   0. -1.  ]
+ [ 0.  0.  0.   0.5 1.   0.  0.  0.   0.  0.  ]
+ [ 0.  0.  0.   0.  0.   0.  0.  0.   0.  0.  ]]
       </pre>
     </td>
   </tr>
@@ -323,23 +323,27 @@ It also shows cars moving slower than 1 tile every 2 timesteps (first, fourth, a
     </td>
     <td>
       <pre>
-[[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
- [ 0.  0.  0.  0.  0.  0. -1. -0.5 0.  0.]
- [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
- [-1. -0.5 0.  0.  0.  0.  0.  0.  0.  0.]
- [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
- [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
- [ 0.  0.  0.  0.  1.  1.  0.  0.  0.  0.]
- [ 0.  0.  1.  1.  0.  0.  0.  0.  0.  0.]
- [ 0.  0.  0.  0. -1. -1.  0.  0.  0.  0.]
- [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]]
+[[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0. -1. -0.33 0. 0.  0.]
+ [ 0. 0. 0.   0. 0. -1. -0.67 0. 0.  0.]
+ [ 0. 0. 0.   0. 1.  1.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0. -1.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0. -1.]
+ [ 0. 0. 0.67 1. 0.  0.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0. -1. -1.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]]
       </pre>
     </td>
   </tr>
 </table>
 
 <p>
-Second channel of <b>Asterix</b> observation. It’s like Freeway’s, but it only encodes enemies (treasures are encoded in the third channel).
+Second channel of <b>Asterix</b> observation. It's like Freeway's, but it only
+encodes enemies (treasures are encoded in the third channel).
+In this case, the initial lowest speed is -2 (entities take two timesteps to move once),
+so intermediate trail values are 1/3 and 2/3 (3/3 is for when the entity is about to move).
+Also, note that entities that just spawned don't have a trail yet (fifth and sixth enemy).
 </p>
 
 <table>
@@ -349,21 +353,21 @@ Second channel of <b>Asterix</b> observation. It’s like Freeway’s, but it on
     </td>
     <td>
       <pre>
-[[ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.   0. 0. -1. 0. 0. 0. 0. -1. -0.12]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]
- [ 0.75 1. 0.  0. 0. 1. 0. 0.  0.  0.  ]
- [ 0.   0. 0.  0. 0. 0. 0. 0.  0.  0.  ]]
+[[ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.8 1.  1.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.6 1.  0.  0.  1. 0. 0.]
+ [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
+ [ 0. 0. 0. 0.  0. -1. -0.8 0. 0. 0.]
+ [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]]
       </pre>
     </td>
   </tr>
 </table>
 
 <p>
-Third channel of <b>Seaquest</b> observation. It’s like Asterix’s but for submarines, and with the addition of bullets.
+Third channel of <b>Seaquest</b> observation. It's like Asterix's but for submarines, and with the addition of bullets.
 </p>

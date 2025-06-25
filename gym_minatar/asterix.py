@@ -89,20 +89,13 @@ class Asterix(Game):
         for entity in self.entities:
             row, col, speed, dir, id, timer, cooldown = entity
             if col is None:
-                break
-            if speed <= 0:
-                if timer != speed:
-                    speed_scaling = self.speed_chunks[timer - speed]
-                    state[row, col, id] = dir
-                    if 0 <= col - dir < self.n_cols:
-                        state[row, (col - dir), id] = dir * speed_scaling
-                    continue
-                else:
-                    speed = 1
-            for step in range(speed + 1):
+                continue
+            state[row, col, id] = dir  # Entity
+            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            for step in range(1, max(1, speed) + 1):  # Speed trail
                 if not 0 <= col - step * dir < self.n_cols:
                     break
-                state[row, col - step * dir, id] = dir
+                state[row, (col - step * dir), id] = dir * speed_scaling
         return state
 
     def _reset(self, seed: int = None, **kwargs):
@@ -268,21 +261,12 @@ class Asterix(Game):
                 color_trail = PALE_RED
 
             self.draw_tile(row, col, color_main)
-            if speed <= 0:
-                if timer != speed:
-                    if 0 <= col < self.n_cols:
-                        col -= dir  # Backward for trail
-                        speed_scaling = self.speed_chunks[timer - speed]
-                        self.draw_tile(row, col, color_trail, scale=speed_scaling)
-                    continue
-                else:
-                    speed = 1
-
-            for step in range(max(0, speed)):
+            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            for step in range(max(1, speed)):
                 col -= dir
                 if not 0 <= col < self.n_cols:
                     break
-                self.draw_tile(row, col, color_trail)
+                self.draw_tile(row, col, color_trail, speed_scaling)
 
         # Draw player
         self.draw_tile(self.player_row, self.player_col, GREEN)
