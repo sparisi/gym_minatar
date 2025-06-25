@@ -88,9 +88,14 @@ class Seaquest(Game):
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
 
+        # Entities are denoted by (row, col, speed, direction, id, timer, cooldown, bullet_col).
+        # Timer is for entities with negative speed (they move slower than the player).
+        # Cooldown is for respawing.
+        # Bullet column is None except for submarines.
+        self.entities = None
+
         self.spawn_cooldown = 10
         self.max_speed = -2
-        self.entities = None
         self.player_row = None
         self.player_col = None
         self.player_dir = None
@@ -186,21 +191,14 @@ class Seaquest(Game):
             self.player_col = self.np_random.integers(0, self.n_cols - 1)
         self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
-        # Entities are denoted by (row, col, speed, direction, id, timer, cooldown, bullet_col).
-        # Timer is for entities with negative speed (they move slower than the player).
-        # Cooldown is for respawing.
-        # Bullet column is None except for submarines.
         # First and last row of the board are empty.
-        # Board is empty at the beginning (col is None for all entities) with
+        # Board is empty at the beginning (all values are None) with
         # random cooldowns, so entities will spawn little by little.
-        speeds = self.np_random.integers(self.max_speed - 2, self.max_speed + 1, self.n_rows - 2)
-        dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
         rows = np.arange(1, self.n_rows - 1)
-        ids = self.np_random.choice(4, size=self.n_rows - 2, p=self.spawn_probs)
         cdowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
         self.entities = [
-            [r, None, s, d, i, 0, cd, None]
-            for r, s, d, i, cd in zip(rows, speeds, dirs, ids, cdowns)
+            [r, None, None, None, None, 0, cd, None]
+            for r, cd in zip(rows, cdowns)
         ]
 
         self.oxygen = self.oxygen_max
