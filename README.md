@@ -184,10 +184,10 @@ For full details, please refer to the docs in the source code (click on the game
       <ul style="list-style-type:circle">
         <li>The player (green) has to collect treasures (blue) to get points (1 per treasure)
         while avoiding enemies (red).</li>
-        <li>Treasures and enemies move at different speed, denoted by the trail behind them
+        <li>Treasures and enemies move at different speeds, denoted by the trail behind them
         (the longer, the faster).
-        If they moves slower than 1 tile per timestep, theyr trail is smaller.</li>
-        <li>When treasures and enemies leaves the screen (or are collected, if treasure)
+        If they move slower than 1 tile per timestep, their trail is smaller.</li>
+        <li>When treasures and enemies leave the screen (or are collected, if treasure)
         some time must pass before a new one randomly appears in the same row.</li>
         <li>Over time, enemies and treasures speed increases and respawn wait time decreases.</li>
         <li>The game ends when the player is hit by an enemy.</li>
