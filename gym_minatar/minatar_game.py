@@ -46,6 +46,7 @@ class Game(gym.Env):
         super().reset(seed=seed, **kwargs)
         obs, info = self._reset(seed, **kwargs)
         # with np.printoptions(precision=2):
+        #     print()
         #     for i in range(obs.shape[-1]):
         #         print(obs[..., i])
         self.last_action = None
@@ -59,6 +60,7 @@ class Game(gym.Env):
     def step(self, action: int):
         obs, reward, terminated, truncated, info = self._step(action)
         # with np.printoptions(precision=2):
+        #     print()
         #     for i in range(obs.shape[-1]):
         #         print(obs[..., i])
         self.last_action = action
