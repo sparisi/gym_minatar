@@ -24,12 +24,13 @@ class Breakout(Game):
       - Difficulty increases ball speed.
     - The game ends if the ball falls below the paddle.
     - The observation space is a 3-channel grid with 0s for empty tiles, and
-      values in [-1, 1] for game entities:
+      values in [-1, 1] for game entities.
         - Channel 0: paddle position (1).
         - Channel 1: bricks (1s).
         - Channel 2: ball and its trail (-1 moving up, 1 moving down).
-        - Intermediate values in (-1, 1) denote the ball speed when it moves slower
-          than 1 tile per timestep.
+        - The sign of the ball trail denotes its direction (-1 moving up, 1 moving
+          down), while its absolute value denotes when it will move (depending on
+          its speed). If it moves by more than 1 tile per timestep, it has longer trail.
     """
 
     def __init__(self, brick_rows: int = 3, **kwargs):

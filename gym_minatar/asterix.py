@@ -35,12 +35,14 @@ class Asterix(Game):
     - The environment increases in difficulty over time (speed increases
       by 1, respawn time decreases by 1).
     - The observation space is a 3-channel grid with 0s for empty tiles, and
-      values in [-1, 1] for game entities:
+      values in [-1, 1] for game entities.
         - Channel 0: player position (1).
-        - Channel 1: enemies and their trails (-1 moving left, 1 moving right).
-        - Channel 2: treasures and their trails (-1 moving left, 1 moving right).
-        - Intermediate values in (-1, 1) denote the speed of entities moving slower
-          than 1 tile per timestep.
+        - Channel 1: enemies and their trails.
+        - Channel 2: treasures and their trails.
+        - The sign of enemies and treasures denotes their direction (-1 moving
+          left, 1 moving right), while their absolute value denotes when they
+          will move (depending on their speed). If they move by more than 1
+          tile per timestep, they have longer trails.
     """
 
     def __init__(self, **kwargs):
