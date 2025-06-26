@@ -39,7 +39,7 @@ class Freeway(Game):
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
 
-        self.init_speed = -1
+        self.init_speed = -2
         self.max_speed = self.n_cols - 3
         self.speed = self.init_speed
         self.speed_range = 2  # Car speed will be in [self.speed - self.speed_range, self.speed]
@@ -122,7 +122,7 @@ class Freeway(Game):
             row, col, speed, dir, timer = car
             state[row, col, 1] = dir  # Car
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
-            for step in range(1, max(1, speed) + 1):  # Speed trail
+            for step in range(1, max(speed, 0) + 2):  # Speed trail
                 state[row, (col - step * dir) % self.n_cols, 1] = dir * speed_scaling
         return state
 
@@ -182,7 +182,7 @@ class Freeway(Game):
             row, col, speed, dir, timer = car
             self.draw_tile(row, col, RED)
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
-            for step in range(max(1, speed)):
+            for step in range(max(0, speed) + 1):
                 col = (col - dir) % self.n_cols
                 self.draw_tile(row, col, PALE_RED, speed_scaling)
 
