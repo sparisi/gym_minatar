@@ -201,8 +201,7 @@ class Seaquest(Game):
         rows = np.arange(1, self.n_rows - 1)
         cdowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
         self.entities = [
-            [r, None, None, None, None, 0, cd, None]
-            for r, cd in zip(rows, cdowns)
+            [r, None, None, None, None, 0, cd, None] for r, cd in zip(rows, cdowns)
         ]
 
         self.oxygen = self.oxygen_max
@@ -273,13 +272,13 @@ class Seaquest(Game):
         static_collision = (
             [row, col] == [self.player_row, self.player_col] or
             [row, col] == [self.player_row, self.player_col - self.player_dir]
-        )
+        )  # fmt: skip
         # Without this check, the player may "step over" an entity and collision won't be detected.
         # No need to check for old direction (back of the player).
         movement_collision = (
             action in [LEFT, RIGHT] and
             [row, col] == [self.player_row_old, self.player_col_old]
-        )
+        )  # fmt: skip
         return static_collision or movement_collision
 
     def collision_with_entity(self, row, col):
@@ -430,7 +429,7 @@ class Seaquest(Game):
                     if (
                         id != DIVER and
                         [self.player_bullets[i][0], self.player_bullets[i][1]] == [row, col]
-                    ):
+                    ):  # fmt: skip
                         self.player_bullets.pop(i)
                         self.despawn(entity)
                         stop_moving = True

@@ -172,7 +172,7 @@ class Asterix(Game):
         movement_collision = (
             action in [LEFT, RIGHT] and
             [row, col] == [self.player_row_old, self.player_col_old]
-        )
+        )  # fmt: skip
         return static_collision or movement_collision
 
     def _step(self, action: int):
