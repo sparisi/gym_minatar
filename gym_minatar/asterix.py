@@ -54,10 +54,11 @@ class Asterix(Game):
 
         # Please see freeway.py for more details about these variables
         self.init_speed = 0
+        self.max_speed = self.n_cols - 3
         self.speed = self.init_speed
         self.speed_range = 2  # Entity speed will be in [self.speed - self.speed_range, self.speed]
-        n_partial_speeds = self.init_speed - self.speed_range - 1
-        self.speed_chunks = np.arange(n_partial_speeds, 0) / n_partial_speeds
+        n_slow_speeds = self.init_speed - self.speed_range - 1
+        self.slow_speed_bins = np.arange(n_slow_speeds, 0) / n_slow_speeds
 
         self.init_cooldown = 3
         self.cooldown = self.init_cooldown
@@ -91,7 +92,7 @@ class Asterix(Game):
             if col is None:
                 continue
             state[row, col, id] = dir  # Entity
-            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(1, max(1, speed) + 1):  # Speed trail
                 if not 0 <= col - step * dir < self.n_cols:
                     break
@@ -142,7 +143,7 @@ class Asterix(Game):
 
     def level_up(self):
         self.difficulty_timer = 0
-        self.speed = min(self.speed + 1, self.n_rows - 1)
+        self.speed = min(self.speed + 1, self.max_speed)
         self.cooldown = max(self.cooldown - 1, 0)
 
     def despawn(self, entity):
@@ -202,7 +203,7 @@ class Asterix(Game):
 
             # If the speed is negative, check if the entity has waited enough before moving it
             if speed <= 0:
-                if timer != speed:
+                if timer > speed:
                     entity[5] -= 1
                     # Check if the player moved on an entity that is not moving
                     if self.collision(row, col, action):
@@ -261,7 +262,7 @@ class Asterix(Game):
                 color_trail = PALE_RED
 
             self.draw_tile(row, col, color_main)
-            speed_scaling = self.speed_chunks[max(timer - speed, 0)]
+            speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(max(1, speed)):
                 col -= dir
                 if not 0 <= col < self.n_cols:
