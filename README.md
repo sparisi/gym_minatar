@@ -312,8 +312,13 @@ slower than 1 tile per timestep</i>. In the example, the ball takes 2 timesteps 
 
 <p>
 Second channel of <b>Freeway</b> observation. The encoding of speed and trail follows the same rules of Breakout.
-The example shows that cars moving at 1 tile per timestep (third and seventh car) encode trails with absolute value 1.
-It also shows cars moving slower than 1 tile every 2 timesteps (first, fourth, and eighth car).
+The example shows that cars moving at 1 tile per timestep (sixth car) encode trails with absolute value 1.
+Cars moving slower (all other cars) encode speed with absolute value smaller than 1 (the smaller,
+the more timesteps will pass before it moves).
+In example, the slowest car moves at -3 speed (3-timestep delay) and their trail
+value can be either 0.25 (moving in 4 timesteps), 0.5 (moving in 3 timesteps), 0.75
+(moving in 2 timesteps), and 1.0 (moving next timestep). Note that these values
+encode __when__ the car will move but not their __speed__.
 </p>
 
 <table>
