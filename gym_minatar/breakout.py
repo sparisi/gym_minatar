@@ -105,6 +105,7 @@ class Breakout(Game):
         self.timer = 0
         self.bricks[:] = 0
         self.bricks[1 : self.brick_rows + 1, :] = 1
+
         self.last_ball_pos = []
         self.contact_pos = None
         return self.get_state(), {}
@@ -228,11 +229,8 @@ class Breakout(Game):
             self.ball_pos = new_ball_pos
 
             if self.bricks.sum() == 0:
-                if self.level == len(self.ball_delay_levels) - 1:
-                    terminated = True
-                else:
-                    self.level_up()
-                    self._reset()
+                self.level_up()
+                self._reset()
 
         return self.get_state(), reward, terminated, False, {}
 
