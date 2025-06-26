@@ -321,7 +321,8 @@ the more timesteps will pass before it moves).
 In example, the slowest speed a car can have is -3 (delay of 3 timesteps), and their trail
 value can be either 0.25 (moving in 4 timesteps), 0.5 (moving in 3 timesteps), 0.75
 (moving in 3 timesteps), or 1.0 (moving next timestep). Note that these values
-encode <i>when</i> the car will move but not their actual <i>speed</i>.  
+encode <i>when</i> the car will move but not their actual <i>speed</i>.
+<br>
 Also, note that car wrap around the screen (e.g., second car moving to the left).
 </p>
 
@@ -350,7 +351,8 @@ Also, note that car wrap around the screen (e.g., second car moving to the left)
 <p>
 Second channel of <b>Asterix</b> observation. It's like Freeway's, but it only
 encodes enemies (treasures are encoded in the third channel).
-In this case, the slowest speed is -2 (entities take two timesteps to move once).  
+In this case, the slowest speed is -2.
+<br>
 Also, note that entities that just spawned don't have a trail yet (fourth and fifth enemy).
 </p>
 
@@ -361,16 +363,16 @@ Also, note that entities that just spawned don't have a trail yet (fourth and fi
     </td>
     <td>
       <pre>
-[[ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.8 1.  1.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.6 1.  0.  0.  1. 0. 0.]
- [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]
- [ 0. 0. 0. 0.  0. -1. -0.8 0. 0. 0.]
- [ 0. 0. 0. 0.  0.  0.  0.  0. 0. 0.]]
+  [[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+   [ 0.  0.  0.  0. -1.  0. -1. -1. -1.  0.]
+   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+   [-1. -1. -1.  0.  0.  0.  0.  0.  0.  0.]
+   [ 0.  0.  0.  1.  1.  0.  0.  1.  0.  0.]
+   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+   [ 0.  0.  0.  0.  1.  1.  1.  0.  0.  0.]
+   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]]
       </pre>
     </td>
   </tr>
@@ -378,4 +380,9 @@ Also, note that entities that just spawned don't have a trail yet (fourth and fi
 
 <p>
 Third channel of <b>Seaquest</b> observation. It's like Asterix's but for submarines, and with the addition of bullets.
+In this example, the third submarine is moving at speed 1 (2 tiles per timestep),
+while the other at speed 2 (3 tiles per timestep). This is denoted by the longer
+full trail in both the matrix and pixel encoding.
+The first and third submarine also have shot a bullet, denoted by an additional 1
+(or -1) in the matrix encoding, and by the yellow tile in the pixel encoding.
 </p>

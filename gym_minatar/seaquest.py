@@ -373,7 +373,7 @@ class Seaquest(Game):
 
             # Move bullets (one tile faster than its submarine, and never at negative speed)
             if b_col is not None:
-                for step in range(max(speed, 0) + 1):
+                for step in range(max(speed, 0) + 2):
                     b_col += dir
                     if not 0 <= b_col < self.n_cols:
                         entity[7] = None
