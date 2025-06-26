@@ -202,7 +202,7 @@ class Asterix(Game):
                     continue
 
             # If the speed is negative, check if the entity has waited enough before moving it
-            if speed <= 0:
+            if speed < 0:
                 if timer > speed:
                     entity[5] -= 1
                     # Check if the player moved on an entity that is not moving
@@ -219,10 +219,10 @@ class Asterix(Game):
                     continue
                 else:
                     entity[5] = 0
-                    speed = 1
+                    speed = 0
 
             # Finally move the entity
-            for step in range(speed):
+            for step in range(speed + 1):
                 col += dir
                 entity[1] = col
                 if not 0 <= col < self.n_cols:

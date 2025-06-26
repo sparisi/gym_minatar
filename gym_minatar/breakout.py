@@ -32,7 +32,7 @@ class Breakout(Game):
           than 1 tile per timestep.
     """
 
-    def __init__(self, brick_rows: int = 3, levels: int = 3, **kwargs):
+    def __init__(self, brick_rows: int = 3, **kwargs):
         Game.__init__(self, **kwargs)
 
         self.brick_rows = brick_rows
@@ -56,22 +56,18 @@ class Breakout(Game):
         self.bricks = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
         self.paddle_pos = None
         self.ball_pos = None
-        self.last_ball_pos = []
         self.ball_dir = None
         self.last_action = None
         self.contact_pos = None  # To store ball contact with brick or paddle
+        self.last_ball_pos = []  # To store trails
 
-        # These two variables control the ball speed: when ball_timesteps == ball_delay,
-        # the ball moves. A delay of 1 means that the ball needs 1 extra timestep
-        # to move. A delay of 0 means that it moves as fast as the player (1 tile
-        # per timestep).
-        # When difficulty increases, ball_delay decreases and can become negative.
-        # Negative delay means that the ball is faster than the player (e.g.,
-        # a delay of -1 means that the ball moves 2 tiles per timestep).
-        self.ball_delay_levels = np.arange(levels - 1, -1, -1) - levels // 2
-        self.level = 0
-        self.ball_delay = self.ball_delay_levels[self.level]
-        self.ball_timesteps = self.ball_delay
+        # Please see freeway.py for more details about these variables
+        self.timer = 0
+        self.init_speed = -1
+        self.max_speed = 1
+        self.speed = self.init_speed
+        n_slow_speeds = self.init_speed - 1
+        self.slow_speed_bins = np.arange(n_slow_speeds, 0) / n_slow_speeds
 
     def get_state(self):
         state = np.zeros(
@@ -82,21 +78,16 @@ class Breakout(Game):
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
         if self.contact_pos is not None:
             state[self.contact_pos[0], self.contact_pos[1], 2] = self.ball_dir[0]
+        speed_scaling = self.slow_speed_bins[max(self.timer - self.speed, 0)]
         for ball_pos in self.last_ball_pos:
-            if self.ball_timesteps < self.ball_delay:
-                speed_scaling = (self.ball_timesteps + 0.5) / self.ball_delay
-            else:
-                speed_scaling = 1.0
             state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0] * speed_scaling
         return state
 
     def level_one(self):
-        self.level = 0
-        self.ball_delay = self.ball_delay_levels[self.level]
+        self.speed = self.init_speed
 
     def level_up(self):
-        self.level = min(self.level + 1, len(self.ball_delay_levels) - 1)
-        self.ball_delay = self.ball_delay_levels[self.level]
+        self.speed = min(self.speed + 1, self.max_speed)
 
     def _reset(self, seed: int = None, **kwargs):
         self.paddle_pos = [
@@ -111,8 +102,7 @@ class Breakout(Game):
             -1,
             self.np_random.choice((-1, 1)),
         ]  # Always spawn going up
-        self.ball_delay = self.ball_delay_levels[self.level]
-        self.ball_timesteps = self.ball_delay
+        self.timer = 0
         self.bricks[:] = 0
         self.bricks[1 : self.brick_rows + 1, :] = 1
         self.last_ball_pos = []
@@ -135,15 +125,14 @@ class Breakout(Game):
             raise ValueError("illegal action")
 
         # Check if it's time to move the ball
-        if self.ball_delay > 0:
-            if self.ball_timesteps < self.ball_delay:
-                self.ball_timesteps += 1
+        speed = self.speed
+        if self.speed < 0:
+            if self.timer > self.speed:
+                self.timer -= 1
                 return self.get_state(), reward, terminated, False, {}
             else:
-                self.ball_timesteps = 0
-                ball_steps = 1
-        else:
-            ball_steps = abs(self.ball_delay) + 1
+                self.timer = 0
+                speed = 0
 
         def where_ball_is_going(position, direction):
             front_pos = [  # Vertical
@@ -161,7 +150,7 @@ class Breakout(Game):
             return front_pos, diag_pos, side_pos
 
         self.last_ball_pos = []
-        for steps in range(ball_steps):
+        for steps in range(speed + 1):
             self.last_ball_pos.append(self.ball_pos)
             new_ball_pos = [
                 self.ball_pos[0] + self.ball_dir[0],
@@ -261,11 +250,8 @@ class Breakout(Game):
                     self.draw_tile(x, y, GRAY)
 
         # Draw trail
+        speed_scaling = self.slow_speed_bins[max(self.timer - self.speed, 0)]
         for trail in self.last_ball_pos:
-            if self.ball_timesteps < self.ball_delay:
-                speed_scaling = (self.ball_timesteps + 0.5) / self.ball_delay
-            else:
-                speed_scaling = 1.0
             self.draw_tile(trail[0], trail[1], CYAN, speed_scaling)
 
         # Draw ball

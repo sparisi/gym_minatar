@@ -45,6 +45,9 @@ class Game(gym.Env):
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
         obs, info = self._reset(seed, **kwargs)
+        # with np.printoptions(precision=2):
+        #     for i in range(obs.shape[-1]):
+        #         print(obs[..., i])
         self.last_action = None
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -55,6 +58,9 @@ class Game(gym.Env):
 
     def step(self, action: int):
         obs, reward, terminated, truncated, info = self._step(action)
+        # with np.printoptions(precision=2):
+        #     for i in range(obs.shape[-1]):
+        #         print(obs[..., i])
         self.last_action = action
         if self.render_mode is not None and self.render_mode == "human":
             self.render()

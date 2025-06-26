@@ -56,8 +56,8 @@ class Freeway(Game):
         # timestep.
 
         # For example, if init_speed = -1 and speed_range = 2, then the slowest
-        # speed is -3 (delay of 3 timesteps). This means that every step will progress
-        # the car timer by 0.25 (0.25 -> 0.5 -> 0.75, before finally moving).
+        # speed is -3 (delay of 3 timesteps). This means that every timestep will
+        # progress the car timer by 0.25 (0.25 -> 0.5 -> 0.75, then will finally move).
         # In this case, self.slow_speed_bins = [-1., -0.75, -0.5, -0.25], and to retrieve
         # the progress of each car we use their timer: self.slow_speed_bins[timer - speed].
         # Note that the values in self.slow_speed_bins are used both in the matrix
@@ -141,7 +141,7 @@ class Freeway(Game):
         for car in self.cars:
             row, col, speed, dir, timer = car
 
-            if speed <= 0:
+            if speed < 0:
                 if timer > speed:
                     car[4] -= 1
                     # Check if player moved on car that is not moving
@@ -152,9 +152,9 @@ class Freeway(Game):
                     continue
                 else:
                     car[4] = 0
-                    speed = 1
+                    speed = 0
 
-            for step in range(speed):
+            for step in range(speed + 1):
                 col = (col + dir) % self.n_cols
                 if self.collision(row, col, action):
                     terminated = True

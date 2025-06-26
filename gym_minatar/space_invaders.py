@@ -23,7 +23,7 @@ class SpaceInvaders(Game):
     - The player moves left/right or stays where it is, and can shoot.
     - Aliens move horizontally and descend when they hit the screen left/right
       edges.
-        - Their speed increases as they descend: +1 level for every time they
+        - Their speed increases as they descend: +1 for every time they
           move down for as many times as the initial number of alien rows.
           For example, if at the beginning there are 3 alien rows, the speed
           increases by 1 after they reach row 6, then 9, ... and so on.
@@ -90,10 +90,12 @@ class SpaceInvaders(Game):
         self.starting_row = 0  # Denotes the current level of the game
 
         # These two variables control the aliens speed: when aliens_timesteps == aliens_delay,
-        # the aliens move. A delay of 1 means that aliens need 1 extra timestep
-        # to move. A delay of 0 means that they move as fast as the player (1 tile
+        # the aliens move. A delay of 1 means that aliens need 2 timestep to
+        # move. A delay of 0 means that they move as fast as the player (1 tile
         # per timestep).
-        # Check the class docs for more info about how speed increases.
+        # This is very similar to what other games do, with the difference that
+        # we don't need traces to encode speed in observations, because speed
+        # depends only on how far the aliens have descended.
         self.aliens_delay_levels = np.arange(self.n_rows // self.aliens_rows - 1, -1, -1)
         self.aliens_delay_levels *= self.aliens_rows
         self.aliens_delay = self.aliens_delay_levels[0]
