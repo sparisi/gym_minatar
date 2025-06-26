@@ -229,7 +229,7 @@ For full details, please refer to the docs in the source code (click on the game
 ## Observations
 Below are some example of both default and pixels observations to better
 understand how speed and trail are encoded (Space Invaders is not shown because
-speed is determined by how far the aliens have descended, and aliens leave no trail).  
+aliens leave no trail -- their speed is determined by how far they have descended).  
 To see all observation channels, run code below with the game you want.
 
 Note that all games are **partially observable**.
@@ -318,10 +318,10 @@ Second channel of <b>Freeway</b> observation. The encoding of speed and trail fo
 The example shows that cars moving at 1 tile per timestep (sixth car) encode trails with absolute value 1.
 Cars moving slower (all other cars) encode speed with absolute value smaller than 1 (the smaller,
 the more timesteps will pass before it moves).
-In example, the slowest speed a car can have is -3 (three-timestep delay), and their trail
-value can be either 0.25 (moving in four timesteps), 0.5 (moving in three timesteps), 0.75
-(moving in two timesteps), or 1.0 (moving next timestep). Note that these values
-encode *when* the car will move but not their actual *speed*.  
+In example, the slowest speed a car can have is -3 (delay of 3 timesteps), and their trail
+value can be either 0.25 (moving in 4 timesteps), 0.5 (moving in 3 timesteps), 0.75
+(moving in 3 timesteps), or 1.0 (moving next timestep). Note that these values
+encode <i>when</i> the car will move but not their actual <i>speed</i>.  
 Also, note that car wrap around the screen (e.g., second car moving to the left).
 </p>
 
