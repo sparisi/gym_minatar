@@ -228,7 +228,8 @@ For full details, please refer to the docs in the source code (click on the game
 
 ## Observations
 Below are some example of both default and pixels observations to better
-understand how speed and trail are encoded.  
+understand how speed and trail are encoded (Space Invaders is not shown because
+speed is determined by how far the aliens have descended, and aliens leave no trail).  
 To see all observation channels, run code below with the game you want.
 
 Note that all games are **partially observable**.
@@ -236,6 +237,8 @@ Note that all games are **partially observable**.
   entities (ball, cars, enemies, ...) will move, but not their exact speed.
 - In Asterix and Seaquest, observations do not encode respawn times.
 - In Seaquest and Space Invaders, observations do not encode shooting cooldowns.
+- In Seaquest and Space Invaders, observations do not encode when just-spawned
+  entities will move (they have no trail yet).
 - In Seaquest, gauges do not represent exactly how much oxygen the agent has
   left, and how many divers it is carrying.
 Nonetheless, single observations (without stacking) should be sufficient for acting
@@ -315,10 +318,11 @@ Second channel of <b>Freeway</b> observation. The encoding of speed and trail fo
 The example shows that cars moving at 1 tile per timestep (sixth car) encode trails with absolute value 1.
 Cars moving slower (all other cars) encode speed with absolute value smaller than 1 (the smaller,
 the more timesteps will pass before it moves).
-In example, the slowest car moves at -3 speed (3-timestep delay) and their trail
-value can be either 0.25 (moving in 4 timesteps), 0.5 (moving in 3 timesteps), 0.75
-(moving in 2 timesteps), and 1.0 (moving next timestep). Note that these values
-encode __when__ the car will move but not their __speed__.
+In example, the slowest speed a car can have is -3 (three-timestep delay), and their trail
+value can be either 0.25 (moving in four timesteps), 0.5 (moving in three timesteps), 0.75
+(moving in two timesteps), or 1.0 (moving next timestep). Note that these values
+encode *when* the car will move but not their actual *speed*.  
+Also, note that car wrap around the screen (e.g., second car moving to the left).
 </p>
 
 <table>
@@ -346,9 +350,8 @@ encode __when__ the car will move but not their __speed__.
 <p>
 Second channel of <b>Asterix</b> observation. It's like Freeway's, but it only
 encodes enemies (treasures are encoded in the third channel).
-In this case, the initial lowest speed is -2 (entities take two timesteps to move once),
-so intermediate trail values are 1/3 and 2/3 (3/3 is for when the entity is about to move).
-Also, note that entities that just spawned don't have a trail yet (fifth and sixth enemy).
+In this case, the slowest speed is -2 (entities take two timesteps to move once).  
+Also, note that entities that just spawned don't have a trail yet (fourth and fifth enemy).
 </p>
 
 <table>
