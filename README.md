@@ -380,9 +380,11 @@ Also, note that entities that just spawned don't have a trail yet (fourth and fi
 
 <p>
 Third channel of <b>Seaquest</b> observation. It's like Asterix's but for submarines, and with the addition of bullets.
-In this example, the third submarine is moving at speed 1 (2 tiles per timestep),
-while the other at speed 2 (3 tiles per timestep). This is denoted by the longer
-full trail in both the matrix and pixel encoding.
-The first and third submarine also have shot a bullet, denoted by an additional 1
-(or -1) in the matrix encoding, and by the yellow tile in the pixel encoding.
+In this example, the first submarine is moving at speed 2 (2 tiles per timestep),
+while the other at speed 1 (1 tiles per timestep). This is denoted by the length
+of their trail in both the matrix and pixel encoding.
+<br>
+All submarines have shot bullets, denoted by an additional 1 (or -1) in the matrix
+encoding, and by the yellow tile in the pixel encoding. Note that the matrix encoding
+is ambiguous, and the bullet can be interpreted as a longer trail.
 </p>
