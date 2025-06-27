@@ -40,7 +40,7 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 - All games are rendered with [PyGame](https://www.pygame.org/news) rather than
   [Matplotlib](https://matplotlib.org/), as in classic
   [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) environments.
-- <u>Different observation spaces</u>. In MinAtar, the observation space has separate
+- <ins>Different observation spaces</ins>. In MinAtar, the observation space has separate
   channels for every entity in the game. Gym-MinAtar uses lower dimensional
   observation spaces with continuous values in [-1, 1].
   - For example, in MinAtar's Space Invaders, aliens moving left and aliens moving
@@ -48,12 +48,12 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
   channel with -1 for aliens moving left, and 1 for aliens moving right.
   - Similarly, in Freeway MinAtar uses one channel for each car,
     while Gym-MinAtar uses one channel for all cars.
-- <u>Different rendering scheme</u>. MinAtar uses one pixel for trails (e.g.,
+- <ins>Different rendering scheme</ins>. MinAtar uses one pixel for trails (e.g.,
   car trails), with different colors for different speeds. Gym-MinAtar uses the
   same color for all trails, but trails are longer for faster cars.
-- <u>Optional flag to disable trails</u> and make the games partially observable (agents
+- <ins>Optional flag to disable trails</ins> and make the games partially observable (agents
   would need frame stacking or architectures with memory to learn).
-- Game-specific <u>dynamics are different</u> (like cooldown times and speeds).
+- Game-specific <ins>dynamics are different</ins> (like cooldown times and speeds).
 
 ### Install and Make an Environment
 ```
