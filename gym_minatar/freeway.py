@@ -1,4 +1,4 @@
-import numpy as np
+boardimport numpy as np
 import gymnasium as gym
 from gym_minatar.minatar_game import Game
 
@@ -15,11 +15,11 @@ BLACK = (0, 0, 0)
 
 class Freeway(Game):
     """
-    The player (chicken) starts at the bottom of the screen and must reach the top,
+    The player (chicken) starts at the bottom of the board and must reach the top,
     crossing lanes of moving cars.
     - The player can move up/down, or stand still.
     - Cars move horizontally at different speeds and directions, wrapping around
-      the screen.
+      the board.
       - Each car's speed is randomly selected at the beginning in
         [self.speed - self.speed_range, self.speed].
     - The game ends when the player is hit by a car.

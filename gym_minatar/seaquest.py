@@ -58,7 +58,7 @@ class Seaquest(Game):
         [self.speed - self.speed_range, self.speed].
     - Enemies can be fish or submarine.
         - Submarines shoot one bullet, fishes don't.
-        - Submarines shoot once as they enter the screen.
+        - Submarines shoot once as they enter the board.
         - Bullets move at the speed of the submarine that shot them + 1, or at speed 0
           (no delay = 1 tile per timestep) if the submarine is slower thant that.
         - Player and enemies bullets don't collide.

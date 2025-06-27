@@ -75,15 +75,15 @@ pip install -e .[playground]
 python playground.py breakout
 ```
 This will start a Breakout game (commands are displayed on the terminal).
-The flag `--record` allows you to record the game and save it to a GIF.
-The flag `--practice` makes the game wait until the user sends an action (otherwise,
+You can pass the flag `--record` to record the game and save it to a GIF.
+The flag `--practice` makes the game wait until you send an action (otherwise,
 every 0.5 seconds the game receives NO-OP).
 
 ## Games
 Actions are discrete, while observations have shape `(rows, cols, channels)`
 with values in [-1, 1].
 The number of actions and channels depends on the game.
-All boards have size (10, 10) by default. To change it:
+All screens have size (10, 10) by default. To change it:
 ```python
 gymnasium.make(..., size=(rows, cols))
 ```
@@ -94,8 +94,11 @@ import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84))
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
 ```
+By default, rendering size is (512, 512). The optional argument `window_size`
+allows you to resize it.
 
-Below are some details about the games.
+
+Below are some info about the games.
 For full details, please refer to the docs in the source code (click on the game name).
 
 ### [`Gym-MinAtar/Breakout-v1`](gym_minatar/breakout.py)
@@ -128,12 +131,13 @@ For full details, please refer to the docs in the source code (click on the game
     <td>
       <ul style="list-style-type:circle">
         <li>The player (green) has to shoot down waves of aliens (red) with bullets
-        (white), and receives 1 point every time it hits one alien.</li>
+        (white).
+        <li>For every alien hit, the player receives 1 point.</li>
         <li>Aliens shoot the player as well (yellow), move left (pale red) or
-        right (bright red), and change direction when they hit the sides of the board.</li>
+        right (bright red), and change direction when they hit the sides of the screen.</li>
         <li>Before changing direction, they move one tile down.
         As they move down, their speed increases.</li>
-        <li>If the player destroys all aliens, a new round starts, with the aliens
+        <li>If the player destroys all aliens, a new round starts with the aliens
         starting closer to the player.</li>
         <li>The game ends when the player is hit by a bullet or an alien.</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
@@ -156,7 +160,7 @@ For full details, please refer to the docs in the source code (click on the game
         <li>Cars move at different speed, denoted by the trail behind them
         (longer trails means faster car).
         If a car moves slower than 1 tile per timestep, its trail is smaller.</li>
-        <li>When a car leaves the board, it spawns in the same row from the opposite side.</li>
+        <li>When a car leaves the screen, it spawns in the same row from the opposite side.</li>
         <li>When the player crosses the road (reaches the top), it receives 1 point
         and a new round starts with faster cars.</li>
         <li>The game ends when the player is hit by a car.</li>
@@ -216,13 +220,13 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The game ends if the player is hit by an enemy or a bullet, its oxygen
         depletes, or if it emerges without carrying any diver.</li>
         <li>Enemies and divers move at different speeds and leave a trail. When one
-        leaves the board, some time must pass before a new one respawns (like Asterix).</li>
+        leaves the screen, some time must pass before a new one respawns (like Asterix).</li>
         <li>Every time the player emerges and submerges again, difficulty increases
         (enemies and divers move faster, respawn time decreases).</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 8 channels for (in order): player, player bullets,
         fishes, submarines, submarines bullets, divers, oxygen gauge, and divers
-        carried gauge.</li>
+        gauge.</li>
       <ul>
     </td>
   </tr>
@@ -238,18 +242,9 @@ All games are **partially observable**.
   entities will move (they have no trail yet).
 - In Seaquest, gauges do not represent exactly how much oxygen the agent has
   left, and how many divers it is carrying.
+
 Nonetheless, single observations (without stacking) should be sufficient for acting
 near-optimally in all games.
-
-It is also possible to disable trails and direction information completely
-(both in matrix and pixel observations):
-```python
-import gymnasium
-import gym_minatar
-env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
-```
-To learn in this setting, one must either stack frames or use training
-architectures with memory.
 
 ### Examples
 Below are some example of both default and pixels observations to better
@@ -380,3 +375,35 @@ that shot them.
 <b>Space Invaders</b> has no trail. Instead, aliens are colored differently
 when they move left or right (in the matrix encoding, their sign changes).
 </p>
+
+### Disable Trails
+You can disable trails and direction information completely
+(both in matrix and pixel observations) with the `no_trail` flag:
+```python
+import gymnasium
+import gym_minatar
+env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
+```
+Rendering will have no trail at all, and matrix encoding will have no trail and no sign.
+For example, the matrix of the last example would be
+<table>
+  <tr>
+    <td>
+      <pre>
+[[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  1.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  1.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 1.  1.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  1.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  1.]
+ [ 0. 0. 0.   1. 0.  0.  0.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  1.  1.   0. 0.  0.]
+ [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]]
+      </pre>
+    </td>
+  </tr>
+</table>
+
+To learn in this setting, one must either stack frames or use training
+architectures with memory.

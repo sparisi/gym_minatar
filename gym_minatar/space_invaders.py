@@ -18,10 +18,10 @@ YELLOW = (255, 255, 0)  # alien bullet
 
 class SpaceInvaders(Game):
     """
-    The player controls a spaceship at the bottom of the screen that must shoot
+    The player controls a spaceship at the bottom of the board that must shoot
     down waves of aliens.
     - The player moves left/right or stays where it is, and can shoot.
-    - Aliens move horizontally and descend when they hit the screen left/right
+    - Aliens move horizontally and descend when they hit the board left/right
       edges.
         - Their speed increases as they descend: +1 for every time they
           move down for as many times as the initial number of alien rows.
@@ -226,7 +226,7 @@ class SpaceInvaders(Game):
                 self.aliens_delay = self.aliens_delay_levels[delay_level]
             else:
                 self.state[..., 1] = np.roll(self.state[..., 1], self.aliens_dir, 1)
-                if (  # Aliens hit the edge of the screen
+                if (  # Aliens hit the edge of the board
                     np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, 0, 1] != 0) or
                     np.any(self.state[self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, -1, 1] != 0)
                 ):

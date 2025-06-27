@@ -28,7 +28,7 @@ class Asterix(Game):
     - Enemies and treasures move horizontally with variable speed and direction.
       - Each entity's speed is randomly selected at the beginning in
         [self.speed - self.speed_range, self.speed].
-    - When enemies and treasures leave the screen, some time must pass before a
+    - When enemies and treasures leave the board, some time must pass before a
       new one (randomly either an enemy or a treasure) spawns in the same row.
     - The player receives +1 for collecting treasures.
     - The game ends if the player is hit by an enemy.
