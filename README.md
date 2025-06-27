@@ -2,6 +2,8 @@
     <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
+            <br>
+            <img src="figures/breakout_no_trail.gif" height=150 width=150 />
             <figcaption>Breakout</figcaption>
         </figure>
     </a>
@@ -54,6 +56,8 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
   car trails), with different colors for different speeds. Gym-MinAtar uses the
   same color for all trails, but trails are longer for faster cars.
   - Please refer to the examples below for more details about the observation spaces.
+  - Optional flag to disable trails and make the games partially observable (agents
+    would need frame stacking or architectures with memory to learn).
 - Game-specific dynamics are different (like cooldown times and speeds).
 
 ### Install and Make an Environment
@@ -95,6 +99,17 @@ import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84))
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
 ```
+To disable trails (both in matrix and pixel observations):
+```python
+import gymnasium
+import gym_minatar
+env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84), no_trail=True)
+env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
+```
+This will disable any kind of trail in Breakout, Freeway, Asterix, and Seaquest.
+In Space Invaders, aliens color won't change with their direction.
+In order to learn in this setting, one must either stack frames or use training
+architectures with memory.
 
 Below are some details about the games.
 For full details, please refer to the docs in the source code (click on the game name).
