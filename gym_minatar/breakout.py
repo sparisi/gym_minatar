@@ -79,6 +79,8 @@ class Breakout(Game):
         state[self.ball_pos[0], self.ball_pos[1], 2] = self.ball_dir[0]
         if self.contact_pos is not None:
             state[self.contact_pos[0], self.contact_pos[1], 2] = self.ball_dir[0]
+        if self.no_trail:
+            return state
         speed_scaling = self.slow_speed_bins[max(self.timer - self.speed, 0)]
         for ball_pos in self.last_ball_pos:
             state[ball_pos[0], ball_pos[1], 2] = self.ball_dir[0] * speed_scaling
@@ -248,17 +250,16 @@ class Breakout(Game):
                 if self.bricks[x, y]:
                     self.draw_tile(x, y, GRAY)
 
-        # Draw trail
-        speed_scaling = self.slow_speed_bins[max(self.timer - self.speed, 0)]
-        for trail in self.last_ball_pos:
-            self.draw_tile(trail[0], trail[1], CYAN, speed_scaling)
-
         # Draw ball
         self.draw_tile(self.ball_pos[0], self.ball_pos[1], BLUE)
 
-        # Draw trail if there was a collision
-        if self.contact_pos is not None:
-            self.draw_tile(self.contact_pos[0], self.contact_pos[1], CYAN)
+        # Draw trail
+        if not self.no_trail:
+            speed_scaling = self.slow_speed_bins[max(self.timer - self.speed, 0)]
+            for trail in self.last_ball_pos:
+                self.draw_tile(trail[0], trail[1], CYAN, speed_scaling)
+            if self.contact_pos is not None:
+                self.draw_tile(self.contact_pos[0], self.contact_pos[1], CYAN)
 
         # Draw paddle
         self.draw_tile(self.paddle_pos[0], self.paddle_pos[1], GREEN)

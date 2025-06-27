@@ -263,10 +263,11 @@ class SpaceInvaders(Game):
         pygame.draw.rect(self.window_surface, BLACK, rect)
 
         # Draw aliens
+        color = RED if self.aliens_dir == 1 or self.no_trail else PALE_RED
         for x in range(self.bottom_alien - self.aliens_rows + 1, self.bottom_alien + 1):
             for y in range(self.n_cols):
                 if self.state[x, y, 1]:
-                    self.draw_tile(x, y, RED if self.aliens_dir == 1 else PALE_RED)
+                    self.draw_tile(x, y, color)
 
         # for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
         for x in range(self.n_rows):

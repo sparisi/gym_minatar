@@ -94,6 +94,8 @@ class Asterix(Game):
             if col is None:
                 continue
             state[row, col, id] = dir  # Entity
+            if self.no_trail:
+                continue
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(1, max(speed, 0) + 2):  # Speed trail
                 if not 0 <= col - step * dir < self.n_cols:
@@ -264,6 +266,8 @@ class Asterix(Game):
                 color_trail = PALE_RED
 
             self.draw_tile(row, col, color_main)
+            if self.no_trail:
+                continue
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(max(0, speed) + 1):
                 col -= dir

@@ -55,6 +55,8 @@ class Game(gym.Env):
         self.last_action = None
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
+        if self.no_trail:
+            obs = np.abs(obs)
         return obs, info
 
     def _reset(self, seed: int = None, **kwargs):
@@ -70,6 +72,8 @@ class Game(gym.Env):
         self.last_action = action
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
+        if self.no_trail:
+            obs = np.abs(obs)
         return obs, reward, terminated, truncated, info
 
     def _step(self, action: int):

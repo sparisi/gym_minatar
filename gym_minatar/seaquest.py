@@ -168,21 +168,24 @@ class Seaquest(Game):
                 continue
 
             state[row, col, id] = dir  # Entity
-            speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
-            for step in range(1, max(speed, 0) + 2):  # Speed trail
-                if not 0 <= col - step * dir < self.n_cols:
-                    break
-                state[row, (col - step * dir), id] = dir * speed_scaling
+
+            if not self.no_trail:
+                speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
+                for step in range(1, max(speed, 0) + 2):  # Speed trail
+                    if not 0 <= col - step * dir < self.n_cols:
+                        break
+                    state[row, (col - step * dir), id] = dir * speed_scaling
 
             if b_col is not None and 0 <= b_col < self.n_cols:  # Bullet
                 state[row, b_col, SUBMARINE_BULLET] = dir
-                # Bullets moves 1 timestep faster than the submarine that shot them,
-                # but never slower than speed 0
-                speed_scaling = self.slow_speed_bins[max(timer - max(speed + 1, 0), 0)]
-                for step in range(1, max(speed + 1, 0) + 2):  # Speed trail
-                    if not 0 <= b_col - step * dir < self.n_cols:
-                        break
-                    state[row, (b_col - step * dir), SUBMARINE_BULLET] = dir * speed_scaling
+                if not self.no_trail:
+                    # Bullets moves 1 timestep faster than the submarine that shot them,
+                    # but never slower than speed 0
+                    speed_scaling = self.slow_speed_bins[max(timer - max(speed + 1, 0), 0)]
+                    for step in range(1, max(speed + 1, 0) + 2):  # Speed trail
+                        if not 0 <= b_col - step * dir < self.n_cols:
+                            break
+                        state[row, (b_col - step * dir), SUBMARINE_BULLET] = dir * speed_scaling
 
         # Divers gauge
         percentage_full = self.divers_carried / self.divers_carried_max
@@ -513,6 +516,8 @@ class Seaquest(Game):
                 color_trail = PALE_PURPLE
 
             self.draw_tile(row, col, color_main)
+            if self.no_trail:
+                continue
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(max(0, speed) + 1):
                 col -= dir

@@ -123,6 +123,8 @@ class Freeway(Game):
         for car in self.cars:
             row, col, speed, dir, timer = car
             state[row, col, 1] = dir  # Car
+            if self.no_trail:
+                continue
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(1, max(speed, 0) + 2):  # Speed trail
                 state[row, (col - step * dir) % self.n_cols, 1] = dir * speed_scaling
@@ -183,6 +185,8 @@ class Freeway(Game):
         for car in self.cars:
             row, col, speed, dir, timer = car
             self.draw_tile(row, col, RED)
+            if self.no_trail:
+                continue
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(max(0, speed) + 1):
                 col = (col - dir) % self.n_cols
