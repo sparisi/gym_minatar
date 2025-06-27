@@ -147,3 +147,5 @@ finally:
         imageio.mimsave(args.env + ".gif", frames, fps=5, loop=0)
     listener.stop()
     env.close()
+    if args.record:
+        env_record.close()
