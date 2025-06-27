@@ -331,7 +331,8 @@ value can be either 0.25 (moving in 4 timesteps), 0.5 (moving in 3 timesteps), 0
 (moving in 3 timesteps), or 1.0 (moving next timestep). Note that these values
 encode <i>when</i> the car will move but not their actual <i>speed</i>.
 <br>
-Also, note that car wrap around the screen (e.g., second car moving to the left).
+Also, note that car wrap around the screen. For example, the second car is moving
+to the right but its trail is still in the rightmost tile (its previous position).
 </p>
 
 <table>
@@ -361,13 +362,14 @@ Second channel of <b>Asterix</b> observation. It's like Freeway's, but it only
 encodes enemies (treasures are encoded in the third channel).
 In this case, the slowest speed is -2.
 <br>
-Also, note that entities that just spawned don't have a trail yet (fourth and fifth enemy).
+Also, note that entities that just spawned don't have a trail yet (fourth and fifth enemy),
+as they don't wrap around the screen.
 </p>
 
 <p>
 <b>Seaquest</b> is encoded like Asterix, with one channel for every entity type
 (fish, submarine, submarine bullet, player bullet, diver). The main difference is
-that bullets don't have any trail in the rendering (but they do in the matrix), since
+that bullets don't leave a trail in the rendering (but they do in the matrix), since
 their speed can be inferred from the position and speed of the submarine
 that shot them.
 <br>
