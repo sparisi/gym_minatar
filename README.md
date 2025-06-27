@@ -377,15 +377,14 @@ when they move left or right (in the matrix encoding, their sign changes).
 </p>
 
 ### Disable Trails
-You can disable trails and direction information completely
-(both in matrix and pixel observations) with the `no_trail` flag:
+You can disable trails and direction information completely with the `no_trail` flag:
 ```python
 import gymnasium
 import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
 ```
 Rendering will have no trail at all, and matrix encoding will have no trail and no sign.
-For example, the matrix of the last example (left) would be
+For example, the matrix of the last example (left) would be (right)
 
 <table>
   <tr>
@@ -404,6 +403,8 @@ For example, the matrix of the last example (left) would be
       </pre>
     </td>
     <td>
+    With <code>no_trail</code>
+    <br>
     <p style="font-size:100px">&rArr;</p>
     </td>
     <td>
