@@ -18,11 +18,13 @@ class Game(gym.Env):
     def __init__(
         self,
         render_mode: Optional[str] = None,
+        no_trail: bool = False,
         size: tuple = (10, 10),
         window_size: tuple = None,
         **kwargs,
     ):
         self.n_rows, self.n_cols = size
+        self.no_trail = no_trail
 
         self.render_mode = render_mode
         self.window_surface = None
@@ -48,6 +50,7 @@ class Game(gym.Env):
         # with np.printoptions(precision=2):
         #     print()
         #     for i in range(obs.shape[-1]):
+        #         print(f"--- channel {i}")
         #         print(obs[..., i])
         self.last_action = None
         if self.render_mode is not None and self.render_mode == "human":
@@ -62,6 +65,7 @@ class Game(gym.Env):
         # with np.printoptions(precision=2):
         #     print()
         #     for i in range(obs.shape[-1]):
+        #         print(f"--- channel {i}")
         #         print(obs[..., i])
         self.last_action = action
         if self.render_mode is not None and self.render_mode == "human":
