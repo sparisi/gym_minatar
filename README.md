@@ -232,12 +232,7 @@ For full details, please refer to the docs in the source code (click on the game
 </table>
 
 ## Observations
-Below are some example of both default and pixels observations to better
-understand how speed and trail are encoded (Space Invaders is not shown because
-aliens leave no trail -- their speed is determined by how far they have descended).  
-To see all observation channels, run code below with the game you want.
-
-Note that all games are **partially observable**.
+All games are **partially observable**.
 - In Breakout, Freeway, Asterix, and Seaquest, trails tell "how soon" slow-moving
   entities (ball, cars, enemies, ...) will move, but not their exact speed.
 - In Asterix and Seaquest, observations do not encode respawn times.
@@ -259,6 +254,11 @@ env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
 To learn in this setting, one must either stack frames or use training
 architectures with memory.
 
+### Examples
+Below are some example of both default and pixels observations to better
+understand how speed and trail are encoded (Space Invaders is not shown because
+aliens leave no trail -- their speed is determined by how far they have descended).  
+To see all observation channels, run code below with the game you want.
 
 ```python
 import gymnasium
