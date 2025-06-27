@@ -381,10 +381,9 @@ You can disable trails and direction information completely with the `no_trail` 
 ```python
 import gymnasium
 import gym_minatar
-env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
+env = gymnasium.make("Gym-MinAtar/Freeway-v1", no_trail=True)
 ```
 Rendering will have no trail at all, and matrix encoding will have no trail and no sign.
-For example, the matrix of the last example (left) would be (right)
 
 <table>
   <tr>
@@ -410,20 +409,20 @@ For example, the matrix of the last example (left) would be (right)
     </td>
     <td>
       <pre>
-[[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
- [ 0. 0. 0.   0. 0.  1.  0.   0. 0.  0.]
- [ 0. 0. 0.   0. 0.  1.  0.   0. 0.  0.]
- [ 0. 0. 0.   0. 1.  1.  0.   0. 0.  0.]
- [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
- [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  1.]
- [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  1.]
- [ 0. 0. 0.   1. 0.  0.  0.   0. 0.  0.]
- [ 0. 0. 0.   0. 0.  1.  1.   0. 0.  0.]
- [ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]]
+[[ 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 1. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 1. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 1. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 0. 0. 0. 0. 1.]
+ [ 0. 0. 0. 0. 0. 0. 0. 0. 0. 1.]
+ [ 0. 0. 0. 1. 0. 0. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 1. 0. 0. 0. 0.]
+ [ 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]]
       </pre>
     </td>
   </tr>
 </table>
 
-To learn in this setting, one must either stack frames or use training
+To learn in this setting, you must either stack frames or use training
 architectures with memory.
