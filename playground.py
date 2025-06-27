@@ -47,7 +47,6 @@ elif "space_invaders" in env_id:
 else:
     raise ValueError("game not found")
 
-env = gymnasium.make(env_id, render_mode="human")
 env = gymnasium.make(env_id, render_mode="human", no_trail=args.no_trail)
 if args.record:
     # Gymnasium human rendering does not return RGB array, so we must make a copy
