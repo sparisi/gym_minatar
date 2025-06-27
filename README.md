@@ -219,8 +219,9 @@ For full details, please refer to the docs in the source code (click on the game
         <li>Every time the player emerges and submerges again, difficulty increases
         (enemies and divers move faster, respawn time decreases).</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
-        the observation space has 6 channels for (in order): player and bullets,
-        fishes, submarines and bullets, divers, oxygen gauge, and divers carried gauge.</li>
+        the observation space has 8 channels for (in order): player, player bullets,
+        fishes, submarines, submarines bullets, divers, oxygen gauge, and divers
+        carried gauge.</li>
       <ul>
     </td>
   </tr>

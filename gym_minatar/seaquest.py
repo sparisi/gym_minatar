@@ -11,9 +11,14 @@ DOWN = 4
 SHOOT = 5
 
 # Entity IDs
-FISH = 1
-SUBMARINE = 2
-DIVER = 3
+PLAYER = 0
+PLAYER_BULLET = 1
+FISH = 2
+SUBMARINE = 3
+SUBMARINE_BULLET = 4
+DIVER = 5
+OXYGEN_GAUGE = 6
+DIVER_GAUGE = 7
 
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)  # surface
@@ -30,9 +35,9 @@ PALE_GREEN = (200, 255, 200)  # player back
 WHITE = (255, 255, 255)  # player bullet
 PALE_YELLOW = (255, 255, 200)  # player oxygen
 
-# Bullets don't have a trail because their direction can be inferred from the
-# submarine / player position. Bullets travel faster than the entity that shot them,
-# so a bullet to the left of the player can only be going left.
+# Bullets don't leave a trail (when rendered) because their direction can be
+# inferred from the submarine / player position. Bullets travel faster than the
+# entity that shot them, so a bullet to the left of the player can only be going left.
 
 
 class Seaquest(Game):
@@ -52,17 +57,17 @@ class Seaquest(Game):
       - Each entity's speed is randomly selected at the beginning in
         [self.speed - self.speed_range, self.speed].
     - Enemies can be fish or submarine.
-        - Submarines shoot, fishes don't.
-        - As soon as their bullet leaves the screen, they shoot a new one.
-        - Their bullet moves 1 frames faster than them.
+        - Submarines shoot one bullet, fishes don't.
+        - Submarines shoot once as they enter the screen.
+        - Bullets move at the speed of the submarine that shot them + 1, or at speed 0
+          (no delay = 1 tile per timestep) if the submarine is slower thant that.
         - Player and enemies bullets don't collide.
         - If the player is hit by the enemies bullets, it dies.
-        - If a submarine is hit by the player bullets, its bullet disappears as well.
     - The player can collect divers (up to 6) on collision.
     - The player has an oxygen reserve (gauge at the bottom left) that depletes
       over time. When it's empty, the game ends.
     - The player can emerge by moving to the top.
-      - If the player is carrying 6 divers, it gets a as many points as the
+      - If the player is carrying 6 divers, it gets as many points as the
         amount of oxygen left in the gauge.
       - If the player is carrying at least 1 divers, its oxygen is fully restored
         but it doesn't get any point.
@@ -71,16 +76,21 @@ class Seaquest(Game):
         oxygen.
     - When the player submerges again, the difficulty level increases
       (speed increases by 1, respawn time decreases by 1).
-    - The observation space is a 6-channel grid with 0s for empty tiles, and
-      values in [-1, 1] for moving entities:
-        - Channel 0: player position and bullets (-1 moving left, 1 moving right).
-        - Channel 1: fishes and their trails (-1 moving left, 1 moving right).
-        - Channel 2: submarines, bullets, and their trails (-1 moving left, 1 moving right).
-        - Channel 3: divers and their trails (-1 moving left, 1 moving right).
-        - Channel 4: oxygen gauge (1s at the bottom row).
-        - Channel 5: divers carried gauge (1s at the bottom row).
-        - Intermediate values in (-1, 1) denote enemies and divers speed
-          when they move slower than 1 tile per timestep.
+    - The observation space is an 8-channel grid with 0s for empty tiles, and
+      values in [-1, 1] for moving entities.
+        - Channel 0: player position (-1 facing left, 1 facing right).
+        - Channel 1: player bullets (-1 moving left, 1 moving right; no trail
+          because their speed is constant).
+        - Channel 2: fishes and their trails.
+        - Channel 3: submarines and their trails.
+        - Channel 4: submarines bullets and their trails.
+        - Channel 5: divers and their trails.
+        - Channel 6: oxygen gauge (1s at the bottom row).
+        - Channel 7: divers carried gauge (1s at the bottom row).
+        - The sign of fishes, submarines, and divers denotes their direction
+          (-1 moving left, 1 moving right), while their absolute value denotes
+          when they will move (depending on their speed). If they move by more
+          than 1 tile per timestep, they have longer trails.
     """
 
     def __init__(self, **kwargs):
@@ -121,12 +131,11 @@ class Seaquest(Game):
         self.oxygen = self.oxygen_max
         self.oxygen_counter = 0
         self.divers_carried = 0
-        # 50% fish, 25% submarines, 25% divers (first 0% is because ID start from 1)
-        self.spawn_probs = np.array([0.0, 0.5, 0.15, 0.35])
-        self.spawn_probs_cdf = self.spawn_probs.cumsum(0)
+        self.spawn_probs = np.array([0.55, 0.15, 0.3])  # (fish, submarine, diver)
+        self.spawn_probs_cdf = dict(zip((FISH, SUBMARINE, DIVER), self.spawn_probs.cumsum(0)))
 
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 6),
+            -1, 1, (self.n_rows, self.n_cols, 8),
         )  # fmt: skip
         self.action_space = gym.spaces.Discrete(6)
         self.action_map = {
@@ -142,17 +151,22 @@ class Seaquest(Game):
         state = np.zeros(
             self.observation_space.shape, dtype=self.observation_space.dtype
         )
-        state[self.player_row, self.player_col, 0] = self.player_dir
-        state[self.player_row, self.player_col - self.player_dir, 0] = self.player_dir
+
+        # Player
+        state[self.player_row, self.player_col, PLAYER] = self.player_dir
+        state[self.player_row, self.player_col - self.player_dir, PLAYER] = self.player_dir
+
+        # Player bullet
         for bullet in self.player_bullets:
             row, col, dir = bullet
-            state[row, col, 0] = dir
+            state[row, col, PLAYER_BULLET] = dir
+
+        # Fishes, submarines and their bullets, divers
         for entity in self.entities:
             row, col, speed, dir, id, timer, cooldown, b_col = entity
             if col is None:
                 continue
-            if b_col is not None and 0 <= b_col < self.n_cols:  # Bullet
-                state[row, b_col, id] = dir
+
             state[row, col, id] = dir  # Entity
             speed_scaling = self.slow_speed_bins[max(timer - speed, 0)]
             for step in range(1, max(speed, 0) + 2):  # Speed trail
@@ -160,19 +174,31 @@ class Seaquest(Game):
                     break
                 state[row, (col - step * dir), id] = dir * speed_scaling
 
+            if b_col is not None and 0 <= b_col < self.n_cols:  # Bullet
+                state[row, b_col, SUBMARINE_BULLET] = dir
+                # Bullets moves 1 timestep faster than the submarine that shot them,
+                # but never slower than speed 0
+                speed_scaling = self.slow_speed_bins[max(timer - max(speed + 1, 0), 0)]
+                for step in range(1, max(speed + 1, 0) + 2):  # Speed trail
+                    if not 0 <= b_col - step * dir < self.n_cols:
+                        break
+                    state[row, (b_col - step * dir), SUBMARINE_BULLET] = dir * speed_scaling
+
+        # Divers gauge
         percentage_full = self.divers_carried / self.divers_carried_max
         n_fill = int(self.n_cols * percentage_full)
         if percentage_full > 0:
             n_fill = max(1, n_fill)  # At least one 1 when the player is carrying 1 diver
         for i in range(n_fill):
-            state[-1, i, 4] = 1
+            state[-1, i, DIVER_GAUGE] = 1
 
+        # Oxygen gauge
         percentage_full = self.oxygen / self.oxygen_max
         n_fill = int(self.n_cols * percentage_full)
         if percentage_full > 0:
             n_fill = max(1, n_fill)  # At least one 1 when the player has oxygen left
         for i in range(n_fill):
-            state[-1, i, 5] = 1
+            state[-1, i, OXYGEN_GAUGE] = 1
 
         return state
 
@@ -372,7 +398,7 @@ class Seaquest(Game):
 
             # Move bullets (one tile faster than its submarine, and never at negative speed)
             if b_col is not None:
-                for step in range(max(speed, 0) + 2):
+                for step in range(max(speed + 1, 0) + 1):
                     b_col += dir
                     if not 0 <= b_col < self.n_cols:
                         entity[7] = None
