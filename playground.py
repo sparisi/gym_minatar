@@ -7,10 +7,11 @@ Level Up:       RIGHT SHIFT
 Reset Level:    BACKSPACE
 Quit:           Q
 
-python playground.py GAME --record --practice
+python playground.py GAME --record --practice  --no_trail
 --record to save a gif of the game
 --practice to freeze the game until you pass an action (otherwise, NO-OP is sent
 every 0.5 second)
+--no_trail to disable trails (of cars, ball, enemies, ...)
 """
 
 import imageio
@@ -29,6 +30,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("env")
 parser.add_argument("--record", action="store_true")
 parser.add_argument("--practice", action="store_true")
+parser.add_argument("--no_trail", action="store_true")
 args = parser.parse_args()
 
 env_id = args.env.lower()
@@ -46,9 +48,10 @@ else:
     raise ValueError("game not found")
 
 env = gymnasium.make(env_id, render_mode="human")
+env = gymnasium.make(env_id, render_mode="human", no_trail=args.no_trail)
 if args.record:
     # Gymnasium human rendering does not return RGB array, so we must make a copy
-    env_record = gymnasium.make(env_id, render_mode="rgb_array")
+    env_record = gymnasium.make(env_id, render_mode="rgb_array", no_trail=True)
     frames = []
 
 

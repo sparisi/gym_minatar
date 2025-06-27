@@ -97,17 +97,6 @@ import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84))
 env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
 ```
-To disable trails (both in matrix and pixel observations):
-```python
-import gymnasium
-import gym_minatar
-env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", render_mode="rgb_array", window_size=(84, 84), no_trail=True)
-env = gymnasium.wrappers.AddRenderObservation(env, render_only=True)
-```
-This will disable any kind of trail in Breakout, Freeway, Asterix, and Seaquest.
-In Space Invaders, aliens color won't change with their direction.
-In order to learn in this setting, one must either stack frames or use training
-architectures with memory.
 
 Below are some details about the games.
 For full details, please refer to the docs in the source code (click on the game name).
@@ -215,14 +204,16 @@ For full details, please refer to the docs in the source code (click on the game
     <td>
       <ul style="list-style-type:circle">
         <li>The player (green) must collect divers (blue) and bring them to the
-        surface (gray) while hitting enemies shooting bullets (white) from its front (bright green).</li>
+        surface (gray) while shooting enemies with bullets (white).</li>
+        <li>The player has a front (bright green) and a back (pale green), and shoots
+        from its front.</li>
         <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot bullets (yellow).</li>
-        <li>The player has limited oxygen (gauge at the bottom left of the board)
-        that depletes over time.</li>
         <li>Hitting an enemy gives the player 1 point.</li>
+        <li>The player has limited oxygen (gauge at the bottom left)
+        that depletes over time.</li>
         <li>Carrying 6 divers to the surface gives as many points as the amount of
         oxygen left, and the oxygen is replenished. The number of divers carried by
-        the player is denoted by gauge at the bottom right of the board.
+        the player is denoted by gauge at the bottom right.
         If the player is carrying less than 6 divers but at least 1, it doesn't
         receive any point but its oxygen is still replenished.</li>
         <li>The game ends if the player is hit by an enemy or a bullet, its oxygen
@@ -257,6 +248,17 @@ Note that all games are **partially observable**.
   left, and how many divers it is carrying.
 Nonetheless, single observations (without stacking) should be sufficient for acting
 near-optimally in all games.
+
+It is also possible to disable trails and direction information completely
+(both in matrix and pixel observations):
+```python
+import gymnasium
+import gym_minatar
+env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
+```
+To learn in this setting, one must either stack frames or use training
+architectures with memory.
+
 
 ```python
 import gymnasium
