@@ -403,9 +403,11 @@ For example, the matrix of the last example (left) would be (right)
       </pre>
     </td>
     <td>
-    With <code>no_trail</code>
+    <center>
+    <code>no_trail=True</code>
     <br>
-    <p style="font-size:100px">&rArr;</p>
+    &rArr;
+    </center>
     </td>
     <td>
       <pre>
