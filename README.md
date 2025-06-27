@@ -369,35 +369,13 @@ In this case, the slowest speed is -2.
 Also, note that entities that just spawned don't have a trail yet (fourth and fifth enemy).
 </p>
 
-<table>
-  <tr>
-    <td>
-      <img src="figures/seaquest_obs.png" width="250" height="250">
-    </td>
-    <td>
-      <pre>
-  [[ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-   [ 0.  0.  0.  0. -1.  0. -1. -1. -1.  0.]
-   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-   [-1. -1. -1.  0.  0.  0.  0.  0.  0.  0.]
-   [ 0.  0.  0.  1.  1.  0.  0.  1.  0.  0.]
-   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
-   [ 0.  0.  0.  0.  1.  1.  1.  0.  0.  0.]
-   [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]]
-      </pre>
-    </td>
-  </tr>
-</table>
-
 <p>
-Third channel of <b>Seaquest</b> observation. It's like Asterix's but for submarines, and with the addition of bullets.
-In this example, the first submarine is moving at speed 2 (2 tiles per timestep),
-while the other at speed 1 (1 tiles per timestep). This is denoted by the length
-of their trail in both the matrix and pixel encoding.
+<b>Seaquest</b> is encoded like Asterix, with one channel for every entity type
+(fish, submarine, submarine bullet, player bullet, diver). The main difference is
+that bullets don't have any trail in the rendering (but they do in the matrix), since
+their speed can be inferred from the position and speed of the submarine
+that shot them.
 <br>
-All submarines have shot bullets, denoted by an additional 1 (or -1) in the matrix
-encoding, and by the yellow tile in the pixel encoding. Note that the matrix encoding
-is ambiguous, and the bullet can be interpreted as a longer trail.
+<b>Space Invaders</b> has no trail. Instead, aliens are colored differently
+when they move left or right (in the matrix encoding, their sign changes).
 </p>

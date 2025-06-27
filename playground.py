@@ -50,7 +50,7 @@ else:
 env = gymnasium.make(env_id, render_mode="human", no_trail=args.no_trail)
 if args.record:
     # Gymnasium human rendering does not return RGB array, so we must make a copy
-    env_record = gymnasium.make(env_id, render_mode="rgb_array", no_trail=True)
+    env_record = gymnasium.make(env_id, render_mode="rgb_array", no_trail=args.no_trail)
     frames = []
 
 
