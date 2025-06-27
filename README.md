@@ -403,11 +403,10 @@ For example, the matrix of the last example (left) would be (right)
       </pre>
     </td>
     <td>
-    <center>
+    <p align="center">
     <code>no_trail=True</code>
     <br>
     &rArr;
-    </center>
     </td>
     <td>
       <pre>
