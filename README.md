@@ -2,7 +2,31 @@
     <a href=gym_minatar/breakout.py>
         <figure>
             <img src="figures/breakout.gif" height=150 width=150 />
-            <br>
+        </figure>
+    </a>
+    <a href=gym_minatar/space_invaders.py>
+        <figure>
+            <img src="figures/space_invaders.gif" height=150 width=150 />
+        </figure>
+    </a>
+    <a href=gym_minatar/freeway.py>
+        <figure>
+            <img src="figures/freeway.gif" height=150 width=150 />
+        </figure>
+    </a>
+    <a href=gym_minatar/asterix.py>
+        <figure>
+            <img src="figures/asterix.gif" height=150 width=150 />
+        </figure>
+    </a>
+    <a href=gym_minatar/seaquest.py>
+        <figure>
+            <img src="figures/seaquest.gif" height=150 width=150 />
+        </figure>
+    </a>
+    <br>
+    <a href=gym_minatar/breakout.py>
+        <figure>
             <img src="figures/breakout_no_trail.gif" height=150 width=150 />
             <figcaption>Breakout</figcaption>
         </figure>
