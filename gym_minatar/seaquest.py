@@ -246,7 +246,7 @@ class Seaquest(Game):
         col = self.player_col + self.player_dir
         if not 0 <= col < self.n_cols:
             return
-        if self.collision_with_entity(self.player_row_old, col):
+        if self.collision_with_entity(self.player_row, col):
             return
         self.player_bullets.append([self.player_row, col, self.player_dir])
 
