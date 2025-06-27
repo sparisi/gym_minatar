@@ -385,9 +385,27 @@ import gym_minatar
 env = gymnasium.make("Gym-MinAtar/SpaceInvaders-v1", no_trail=True)
 ```
 Rendering will have no trail at all, and matrix encoding will have no trail and no sign.
-For example, the matrix of the last example would be
+For example, the matrix of the last example (left) would be
+
 <table>
   <tr>
+    <td>
+      <pre>
+[[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
+[ 0. 0. 0.   0. 0. -1. -0.33 0. 0.  0.]
+[ 0. 0. 0.   0. 0. -1. -0.67 0. 0.  0.]
+[ 0. 0. 0.   0. 1.  1.  0.   0. 0.  0.]
+[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
+[ 0. 0. 0.   0. 0.  0.  0.   0. 0. -1.]
+[ 0. 0. 0.   0. 0.  0.  0.   0. 0. -1.]
+[ 0. 0. 0.67 1. 0.  0.  0.   0. 0.  0.]
+[ 0. 0. 0.   0. 0. -1. -1.   0. 0.  0.]
+[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]]
+      </pre>
+    </td>
+    <td>
+    &rArr;
+    </td>
     <td>
       <pre>
 [[ 0. 0. 0.   0. 0.  0.  0.   0. 0.  0.]
