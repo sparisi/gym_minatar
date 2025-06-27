@@ -376,6 +376,7 @@ that bullets don't have any trail in the rendering (but they do in the matrix), 
 their speed can be inferred from the position and speed of the submarine
 that shot them.
 <br>
+<br>
 <b>Space Invaders</b> has no trail. Instead, aliens are colored differently
 when they move left or right (in the matrix encoding, their sign changes).
 </p>
