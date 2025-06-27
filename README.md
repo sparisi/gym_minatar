@@ -43,11 +43,11 @@ Inspired by [MinAtar](https://github.com/kenjyoung/MinAtar).
 - Different observation spaces. In MinAtar, the observation space has separate
   channels for every entity in the game. Gym-MinAtar uses lower dimensional
   observation spaces with continuous values in [-1, 1].
-  For example, in MinAtar's Space Invaders, aliens moving left and aliens moving
+  - For example, in MinAtar's Space Invaders, aliens moving left and aliens moving
   right are encoded in two separate channels. Instead, Gym-MinAtar uses one
-  channel with -1 for aliens moving left, and 1 for aliens moving right. Similarly,
-  in Freeway MinAtar uses one channel for each car, while Gym-MinAtar uses one
-  channel for all cars.
+  channel with -1 for aliens moving left, and 1 for aliens moving right.
+  - Similarly, in Freeway MinAtar uses one channel for each car,
+    while Gym-MinAtar uses one channel for all cars.
 - Different rendering scheme. MinAtar uses one pixel for trails (e.g.,
   car trails), with different colors for different speeds. Gym-MinAtar uses the
   same color for all trails, but trails are longer for faster cars.
