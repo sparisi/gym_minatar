@@ -142,7 +142,7 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The game ends when the player is hit by a bullet or an alien.</li>
         <li>The player has 6 actions (LEFT, DOWN, RIGHT, UP, SHOOT, NO-OP) and
         the observation space has 4 channels for (in order): player, aliens,
-        player bullets, aliens bullets</li>
+        player bullets, aliens bullets.</li>
       </ul>
     </td>
   </tr>
@@ -183,7 +183,7 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player (green) has to collect treasures (blue) to get points (1 per treasure)
         while avoiding enemies (red).</li>
         <li>Treasures and enemies move at different speeds, denoted by the trail behind them
-        (the longer, the faster).
+        (the longer the trail, the faster the treasure or the enemy).
         If they move slower than 1 tile per timestep, their trail is smaller.</li>
         <li>When treasures and enemies leave the screen (or are collected, if treasure)
         some time must pass before a new one randomly appears in the same row.</li>
@@ -207,9 +207,8 @@ For full details, please refer to the docs in the source code (click on the game
         <li>The player (green) must collect divers (blue) and bring them to the
         surface (gray) while shooting enemies with bullets (white).</li>
         <li>The player has a front (bright green) and a back (pale green), and shoots
-        from its front.</li>
-        <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot bullets (yellow).</li>
-        <li>Hitting an enemy gives the player 1 point.</li>
+        from the front.</li>
+        <li>Enemies are fishes (purple) and submarines (red). Submarines can shoot bullets (yellow). Hitting an enemy gives the player 1 point.</li>
         <li>The player has limited oxygen (gauge at the bottom left)
         that depletes over time.</li>
         <li>Carrying 6 divers to the surface gives as many points as the amount of
@@ -240,8 +239,8 @@ All games are **partially observable**.
 - In Seaquest and Space Invaders, observations do not encode shooting cooldowns.
 - In Seaquest and Space Invaders, observations do not encode when just-spawned
   entities will move (they have no trail yet).
-- In Seaquest, gauges do not represent exactly how much oxygen the agent has
-  left, and how many divers it is carrying.
+- In Seaquest, gauges do not represent the exact amount of oxygen left or the
+  exact number of divers carried.
 
 Nonetheless, single observations (without stacking) should be sufficient for acting
 near-optimally in all games.
@@ -325,13 +324,13 @@ slower than 1 tile per timestep</i>. In the example, the ball takes 2 timesteps 
 Second channel of <b>Freeway</b> observation. The encoding of speed and trail follows the same rules of Breakout.
 The example shows that cars moving at 1 tile per timestep (sixth car) encode trails with absolute value 1.
 Cars moving slower (all other cars) encode speed with absolute value smaller than 1 (the smaller,
-the more timesteps will pass before it moves).
-In example, the slowest speed a car can have is -3 (delay of 3 timesteps), and their trail
+the more timesteps will pass before the car moves).
+In the example, the slowest speed a car can have is -3 (delay of 3 timesteps), and their trail
 value can be either 0.25 (moving in 4 timesteps), 0.5 (moving in 3 timesteps), 0.75
-(moving in 3 timesteps), or 1.0 (moving next timestep). Note that these values
+(moving in 2 timesteps), or 1.0 (moving in 1 timestep = next timestep). Note that these values
 encode <i>when</i> the car will move but not their actual <i>speed</i>.
 <br>
-Also, note that car wrap around the screen. For example, the second car is moving
+Also, note that cars wrap around the screen. For example, the second car is moving
 to the right but its trail is still in the rightmost tile (its previous position).
 </p>
 
@@ -358,7 +357,7 @@ to the right but its trail is still in the rightmost tile (its previous position
 </table>
 
 <p>
-Second channel of <b>Asterix</b> observation. It's like Freeway's, but it only
+Second channel of <b>Asterix</b> observation. It's like Freeway, but it only
 encodes enemies (treasures are encoded in the third channel).
 In this case, the slowest speed is -2.
 <br>
