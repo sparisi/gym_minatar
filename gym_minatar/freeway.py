@@ -1,4 +1,4 @@
-boardimport numpy as np
+import numpy as np
 import gymnasium as gym
 from gym_minatar.minatar_game import Game
 
