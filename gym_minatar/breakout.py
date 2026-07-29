@@ -92,7 +92,7 @@ class Breakout(Game):
     def level_up(self):
         self.speed = min(self.speed + 1, self.max_speed)
 
-    def _reset(self, seed: int = None, **kwargs):
+    def _reset(self, **kwargs):
         self.paddle_pos = [
             self.n_rows - 1,
             self.np_random.integers((self.n_cols)),
@@ -200,8 +200,6 @@ class Breakout(Game):
                     self.contact_pos = side_pos
                 if game_over:
                     terminated = True
-                    self.level_one()
-                    self._reset()
                     return self.get_state(), reward, terminated, False, {}
 
             # Collision with brick (must check after wall collision)

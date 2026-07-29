@@ -69,8 +69,6 @@ class Freeway(Game):
         self.cars = None
         self.player_row = None
         self.player_col = None
-        self.player_row_old = None
-        self.player_col_old = None
 
         self.observation_space = gym.spaces.Box(
             -1, 1, (self.n_rows, self.n_cols, 2),
@@ -82,10 +80,9 @@ class Freeway(Game):
             "down": 2,
         }
 
-    def _reset(self, seed: int = None, **kwargs):
+    def _reset(self, **kwargs):
         self.player_row = self.n_rows - 1
         self.player_col = self.n_cols // 2
-        self.player_row_old, self.player_col_old = self.player_row, self.player_col
 
         # A car is denoted by (row, col, speed, direction, timer).
         # No car in the first and last row of the board.
@@ -109,7 +106,6 @@ class Freeway(Game):
 
     def level_one(self):
         self.speed = self.init_speed
-        self._reset()
 
     def level_up(self):
         self.speed = min(self.speed + 1, self.max_speed)
@@ -138,7 +134,6 @@ class Freeway(Game):
         terminated = False
 
         # Move player
-        self.player_row_old, self.player_col_old = self.player_row, self.player_col
         self.move(action)
 
         # Move cars
@@ -151,8 +146,7 @@ class Freeway(Game):
                     # Check if player moved on car that is not moving
                     if self.collision(row, col, action):
                         terminated = True
-                        self.level_one()
-                        break
+                        return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
                     car[4] = 0
@@ -161,9 +155,9 @@ class Freeway(Game):
             for step in range(speed + 1):
                 col = (col + dir) % self.n_cols
                 if self.collision(row, col, action):
+                    car[1] = col
                     terminated = True
-                    self.level_one()
-                    break
+                    return self.get_state(), reward, terminated, False, {}
 
             car[1] = col
 

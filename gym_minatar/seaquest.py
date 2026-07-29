@@ -100,10 +100,10 @@ class Seaquest(Game):
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
 
-        # Entities are denoted by (row, col, speed, direction, id, timer, cooldown, bullet_col).
+        # Entities are denoted by (row, col, speed, direction, id, timer, cooldown, bullet_col, has_shot).
         # Timer is for entities with negative speed (they move slower than the player).
         # Cooldown is for respawing.
-        # Bullet column is None except for submarines.
+        # Bullet column and has_shot only apply to submarines (which shoot once per lifetime).
         self.entities = None
 
         # Please see freeway.py for more details about these variables
@@ -163,7 +163,7 @@ class Seaquest(Game):
 
         # Fishes, submarines and their bullets, divers
         for entity in self.entities:
-            row, col, speed, dir, id, timer, cooldown, b_col = entity
+            row, col, speed, dir, id, timer, cooldown, b_col, has_shot = entity
             if col is None:
                 continue
 
@@ -213,7 +213,7 @@ class Seaquest(Game):
         self.speed = min(self.speed + 1, self.max_speed)
         self.spawn_cooldown = max(self.spawn_cooldown - 1, 0)
 
-    def _reset(self, seed: int = None, **kwargs):
+    def _reset(self, **kwargs):
         self.shoot_timer = 0
         self.player_bullets = []  # Dynamic list because there can be many bullets on the board
         self.player_row = self.n_rows - 2
@@ -230,7 +230,7 @@ class Seaquest(Game):
         rows = np.arange(1, self.n_rows - 1)
         cdowns = self.np_random.integers(0, self.spawn_cooldown, self.n_rows - 2)
         self.entities = [
-            [r, None, None, None, None, 0, cd, None] for r, cd in zip(rows, cdowns)
+            [r, None, None, None, None, 0, cd, None, False] for r, cd in zip(rows, cdowns)
         ]
 
         self.oxygen = self.oxygen_max
@@ -241,14 +241,16 @@ class Seaquest(Game):
 
     def shoot(self):
         if self.shoot_timer > 0:
-            return
+            return 0.0
         self.shoot_timer = self.shoot_cooldown
         col = self.player_col + self.player_dir
         if not 0 <= col < self.n_cols:
-            return
-        if self.collision_with_entity(self.player_row, col):
-            return
+            return 0.0
+        hit_reward = self.collision_with_entity(self.player_row, col)
+        if hit_reward > 0:
+            return hit_reward
         self.player_bullets.append([self.player_row, col, self.player_dir])
+        return 0.0
 
     def move(self, a):
         if a == LEFT:
@@ -273,6 +275,7 @@ class Seaquest(Game):
         entity[6] = self.spawn_cooldown
         if entity[4] == SUBMARINE:
             entity[7] = None
+            entity[8] = False
 
     def respawn(self, entity):
         speed = self.np_random.integers(self.speed - self.speed_range, self.speed + 1)
@@ -296,6 +299,7 @@ class Seaquest(Game):
         entity[5] = 0
         entity[6] = self.spawn_cooldown
         entity[7] = None
+        entity[8] = False
 
     def collision_with_player(self, row, col, action):
         static_collision = (
@@ -311,13 +315,13 @@ class Seaquest(Game):
         return static_collision or movement_collision
 
     def collision_with_entity(self, row, col):
-        # Used for player bullets
+        # Used for player bullets. Returns 1.0 if an enemy was destroyed, else 0.0.
         for entity in self.entities:
             # Divers are not hit by bullets
             if [row, col] == [entity[0], entity[1]] and entity[4] != DIVER:
                 self.despawn(entity)
-                return True
-        return False
+                return 1.0
+        return 0.0
 
     def _step(self, action: int):
         reward = 0.0
@@ -334,22 +338,26 @@ class Seaquest(Game):
             self.oxygen -= 1
         if self.oxygen <= 0:
             terminated = True
-            self.level_one()
-            self._reset()
+            return self.get_state(), reward, terminated, False, {}
 
         # Move player bullet
         for i in range(len(self.player_bullets) - 1, -1, -1):
             row, col, dir = self.player_bullets[i]
             for step in range(2):  # Player bullet moves by 2 tiles per timestep
                 col += dir
-                if not 0 <= col < self.n_cols or self.collision_with_entity(row, col):
+                if not 0 <= col < self.n_cols:
                     self.player_bullets.pop(i)
+                    break
+                hit_reward = self.collision_with_entity(row, col)
+                if hit_reward > 0:
+                    self.player_bullets.pop(i)
+                    reward += hit_reward
                     break
                 self.player_bullets[i][1] = col
 
         # Shoot or move
         if action == SHOOT:
-            self.shoot()
+            reward += self.shoot()
         else:
             self.player_row_old, self.player_col_old = self.player_row, self.player_col
             self.move(action)
@@ -364,8 +372,7 @@ class Seaquest(Game):
             if self.player_row_old != 0:
                 if self.divers_carried == 0:  # Game over
                     terminated = True
-                    self.level_one()
-                    self._reset()
+                    return self.get_state(), reward, terminated, False, {}
                 else:  # Level up
                     self.level_up()
                     if self.divers_carried == self.divers_carried_max:  # Big reward
@@ -376,7 +383,7 @@ class Seaquest(Game):
 
         # Move entities
         for entity in self.entities:
-            row, col, speed, dir, id, timer, cooldown, b_col = entity
+            row, col, speed, dir, id, timer, cooldown, b_col, has_shot = entity
 
             # Check if out of bounds, and if so check if it's time to respawn
             if col is None:
@@ -388,15 +395,14 @@ class Seaquest(Game):
                     self.respawn(entity)
                     continue
 
-            # Submarines always shoot if they haven't (no cooldown).
-            # When they shoot, they don't move.
-            if b_col is None and id == SUBMARINE and 0 <= col + dir < self.n_cols:
-                entity[7] = col + dir
-                if self.collision_with_player(row, b_col, action):
+            # Submarines shoot once, when they enter the board. When they shoot, they don't move.
+            if not has_shot and id == SUBMARINE and 0 <= col + dir < self.n_cols:
+                new_b_col = col + dir
+                entity[7] = new_b_col
+                entity[8] = True
+                if self.collision_with_player(row, new_b_col, action):
                     terminated = True
-                    self.level_one()
-                    self._reset()
-                    break
+                    return self.get_state(), reward, terminated, False, {}
                 continue
 
             # Move bullets (one tile faster than its submarine, and never at negative speed)
@@ -409,9 +415,7 @@ class Seaquest(Game):
                     entity[7] = b_col
                     if self.collision_with_player(row, b_col, action):
                         terminated = True
-                        self.level_one()
-                        self._reset()
-                        break
+                        return self.get_state(), reward, terminated, False, {}
 
             # If the speed is negative, check if the entity has waited enough before moving it
             if speed < 0:
@@ -427,9 +431,7 @@ class Seaquest(Game):
                                 break
                         else:
                             terminated = True
-                            self.level_one()
-                            self._reset()
-                            break
+                            return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
                     entity[5] = 0
@@ -451,9 +453,7 @@ class Seaquest(Game):
                             break
                     else:
                         terminated = True
-                        self.level_one()
-                        self._reset()
-                        break
+                        return self.get_state(), reward, terminated, False, {}
                 for i in range(len(self.player_bullets) - 1, -1, -1):
                     if (
                         id != DIVER and
@@ -461,6 +461,7 @@ class Seaquest(Game):
                     ):  # fmt: skip
                         self.player_bullets.pop(i)
                         self.despawn(entity)
+                        reward += 1.0
                         stop_moving = True
                         break
                 if stop_moving:
@@ -497,7 +498,7 @@ class Seaquest(Game):
 
         # Draw entities and their trail
         for entity in self.entities:
-            row, col, speed, dir, id, timer, cooldown, b_col = entity
+            row, col, speed, dir, id, timer, cooldown, b_col, has_shot = entity
 
             if b_col is not None:
                 self.draw_tile(row, b_col, YELLOW)

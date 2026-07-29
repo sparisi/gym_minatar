@@ -65,7 +65,7 @@ class SpaceInvaders(Game):
         ), f"cannot fit {aliens_rows} alien rows in a board with {self.n_rows} rows"
 
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int64,
+            -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int8,
         )  # fmt: skip
         self.action_space = gym.spaces.Discrete(4)
         self.action_map = {
@@ -107,13 +107,12 @@ class SpaceInvaders(Game):
 
     def level_one(self):
         self.starting_row = 0
-        self._reset()
 
     def level_up(self):
         self.starting_row = min(self.starting_row + 1, self.n_rows - self.aliens_rows - 1)
         self._reset()
 
-    def _reset(self, seed: int = None, **kwargs):
+    def _reset(self, **kwargs):
         self.player_shoot_timer = 0
         self.alien_shoot_timer = 0
         self.state[:] = 0
@@ -248,10 +247,8 @@ class SpaceInvaders(Game):
         # Win or game over conditions
         if self.state[self.player_pos[0], self.player_pos[1], 3] != 0:  # Player hit
             terminated = True
-            self.level_one()
         elif self.bottom_alien == self.player_pos[0]:  # Aliens reached the bottom
             terminated = True
-            self.level_one()
 
         return self.get_state(), reward, terminated, False, {}
 

@@ -103,7 +103,7 @@ class Asterix(Game):
                 state[row, (col - step * dir), id] = dir * speed_scaling
         return state
 
-    def _reset(self, seed: int = None, **kwargs):
+    def _reset(self, **kwargs):
         self.difficulty_timer = 0
         self.player_row = self.n_rows - 1
         self.player_col = self.n_cols // 2
@@ -217,9 +217,7 @@ class Asterix(Game):
                             break
                         else:
                             terminated = True
-                            self.level_one()
-                            self._reset()
-                            break
+                            return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
                     entity[5] = 0
@@ -239,9 +237,7 @@ class Asterix(Game):
                         break
                     else:
                         terminated = True
-                        self.level_one()
-                        self._reset()
-                        break
+                        return self.get_state(), reward, terminated, False, {}
 
         return self.get_state(), reward, terminated, False, {}
 

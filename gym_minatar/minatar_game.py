@@ -30,9 +30,10 @@ class Game(gym.Env):
         self.window_surface = None
         self.clock = None
         if window_size is not None:
-            assert np.all(
-                np.array(window_size) >= np.array(size)
-            ), f"window size too small {window_size} for the board size {size}"
+            # window_size is in pixels; require at least 1 pixel per tile in each dimension
+            assert (
+                window_size[0] >= self.n_cols and window_size[1] >= self.n_rows
+            ), f"window size {window_size} (pixels) too small for board {size} (tiles)"
             self.window_size = window_size
         else:
             self.window_size = (
@@ -46,12 +47,8 @@ class Game(gym.Env):
 
     def reset(self, seed: int = None, **kwargs):
         super().reset(seed=seed, **kwargs)
-        obs, info = self._reset(seed, **kwargs)
-        # with np.printoptions(precision=2):
-        #     print()
-        #     for i in range(obs.shape[-1]):
-        #         print(f"--- channel {i}")
-        #         print(obs[..., i])
+        self.level_one()
+        obs, info = self._reset(**kwargs)
         self.last_action = None
         if self.render_mode is not None and self.render_mode == "human":
             self.render()
@@ -59,7 +56,13 @@ class Game(gym.Env):
             obs = np.abs(obs)
         return obs, info
 
-    def _reset(self, seed: int = None, **kwargs):
+    def _reset(self, **kwargs):
+        pass
+
+    def level_one(self):
+        pass
+
+    def level_up(self):
         pass
 
     def step(self, action: int):
