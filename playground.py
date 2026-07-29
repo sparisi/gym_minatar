@@ -25,6 +25,8 @@ import time
 # Mutable object (list) to signal when the program should exit
 program_running = [True]
 last_keypress_time = [time.time()]  # Mutable so we can update it in `on_press`
+episode_reward = [0.0]
+episode_num = [1]
 
 parser = argparse.ArgumentParser()
 parser.add_argument("env")
@@ -58,7 +60,14 @@ def step(action):
     action = env.unwrapped.action_map.get(action, None)
     if action is None or not env.action_space.contains(action):
         return
-    env.step(action)
+    _, reward, terminated, truncated, _ = env.step(action)
+    if reward != 0:
+        episode_reward[0] += reward
+        print(f"ep {episode_num[0]:>3}  +{reward:g}  total={episode_reward[0]:g}")
+    if terminated or truncated:
+        print(f"ep {episode_num[0]:>3}  DONE  total={episode_reward[0]:g}")
+        episode_reward[0] = 0.0
+        episode_num[0] += 1
     if args.record:
         env_record.step(action)
         frame = env_record.render()
@@ -67,6 +76,10 @@ def step(action):
 
 
 def reset():
+    if episode_reward[0] != 0.0:
+        print(f"ep {episode_num[0]:>3}  RESET  total={episode_reward[0]:g}")
+        episode_num[0] += 1
+    episode_reward[0] = 0.0
     seed = np.random.randint(999)
     env.reset(seed=seed)
     if args.record:

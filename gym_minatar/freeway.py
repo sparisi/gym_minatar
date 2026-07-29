@@ -88,7 +88,7 @@ class Freeway(Game):
         # No car in the first and last row of the board.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
         speeds = self.np_random.integers(self.speed - self.speed_range, self.speed + 1, self.n_rows - 2)
-        dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
+        dirs = self.np_random.choice([-1, 1], size=self.n_rows - 2)
         rows = np.arange(1, self.n_rows - 1)
         self.cars = [[r, c, s, d, 0] for r, c, s, d in zip(rows, cols, speeds, dirs)]
 
@@ -127,7 +127,7 @@ class Freeway(Game):
         return state
 
     def collision(self, row, col, action):
-        return [row, col] == [self.player_row, self.player_col]
+        return row == self.player_row and col == self.player_col
 
     def _step(self, action: int):
         reward = 0.0
@@ -146,6 +146,8 @@ class Freeway(Game):
                     # Check if player moved on car that is not moving
                     if self.collision(row, col, action):
                         terminated = True
+                        self.level_one()
+                        self._reset()
                         return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
@@ -157,6 +159,8 @@ class Freeway(Game):
                 if self.collision(row, col, action):
                     car[1] = col
                     terminated = True
+                    self.level_one()
+                    self._reset()
                     return self.get_state(), reward, terminated, False, {}
 
             car[1] = col

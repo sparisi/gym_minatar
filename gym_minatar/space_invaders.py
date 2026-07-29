@@ -195,21 +195,12 @@ class SpaceInvaders(Game):
 
         bullets_moved = False
 
-        def move_bullets():  # Also check if player bullets hit aliens
-            self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
-            self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
-            self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Alien bullets down
-            self.state[0, :, 3] = 0  # Remove if rolled back to top
-            alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
-            self.state[..., 1] *= 1 - alien_hits
-            self.state[..., 2] *= 1 - alien_hits
-
         # Move aliens down/left/right
         for steps in range(aliens_steps):
             if self.aliens_move_down:
                 # Move bullets before moving aliens down, or hits may not be detected
                 if not bullets_moved:
-                    move_bullets()
+                    reward += self._move_bullets()
                     bullets_moved = True
 
                 self.state[..., 1] = np.roll(self.state[..., 1], 1, 0)
@@ -235,13 +226,12 @@ class SpaceInvaders(Game):
 
         # Move bullets only once per step
         if not bullets_moved:
-            move_bullets()
+            reward += self._move_bullets()
 
         alien_left_rows = np.nonzero(np.any(self.state[..., 1], axis=1))[0]
         if len(alien_left_rows) > 0:
             self.bottom_alien = alien_left_rows.max()
-        else:  # All aliens destroyed
-            self.bottom_alien = None
+        else:  # All aliens destroyed - level_up resets state and bottom_alien
             self.level_up()
 
         # Win or game over conditions
@@ -250,7 +240,23 @@ class SpaceInvaders(Game):
         elif self.bottom_alien == self.player_pos[0]:  # Aliens reached the bottom
             terminated = True
 
+        if terminated:
+            self.level_one()
+            self._reset()
+
         return self.get_state(), reward, terminated, False, {}
+
+    def _move_bullets(self):
+        # Move bullets and detect player-bullet vs alien collisions.
+        # Returns the reward earned this call (+1 per alien destroyed).
+        self.state[..., 2] = np.roll(self.state[..., 2], -1, 0)  # Player bullets up
+        self.state[-1, :, 2] = 0  # Remove if rolled back to bottom
+        self.state[..., 3] = np.roll(self.state[..., 3], 1, 0)  # Alien bullets down
+        self.state[0, :, 3] = 0  # Remove if rolled back to top
+        alien_hits = self.state[..., 2] * self.state[..., 1] * self.aliens_dir * -1
+        self.state[..., 1] *= 1 - alien_hits
+        self.state[..., 2] *= 1 - alien_hits
+        return float(alien_hits.sum())
 
     def _render_board(self):
         import pygame
@@ -261,18 +267,17 @@ class SpaceInvaders(Game):
 
         # Draw aliens
         color = RED if self.aliens_dir == 1 or self.no_trail else PALE_RED
-        for x in range(self.bottom_alien - self.aliens_rows + 1, self.bottom_alien + 1):
-            for y in range(self.n_cols):
-                if self.state[x, y, 1]:
-                    self.draw_tile(x, y, color)
+        alien_slice = self.state[
+            self.bottom_alien - self.aliens_rows + 1 : self.bottom_alien + 1, :, 1
+        ]
+        for dr, c in np.argwhere(alien_slice != 0):
+            self.draw_tile(self.bottom_alien - self.aliens_rows + 1 + dr, c, color)
 
-        # for x in range(self.bottom_alien - self.aliens_rows + 1, self.n_rows):
-        for x in range(self.n_rows):
-            for y in range(self.n_cols):
-                if self.state[x, y, 3] == 1:
-                    self.draw_tile(x, y, YELLOW)
-                elif self.state[x, y, 2] == -1:
-                    self.draw_tile(x, y, WHITE)
+        # Draw bullets
+        for r, c in np.argwhere(self.state[..., 3] == 1):
+            self.draw_tile(r, c, YELLOW)
+        for r, c in np.argwhere(self.state[..., 2] == -1):
+            self.draw_tile(r, c, WHITE)
 
         # Draw player
         self.draw_tile(self.player_pos[0], self.player_pos[1], GREEN)

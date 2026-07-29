@@ -115,7 +115,7 @@ class Asterix(Game):
         # First and last row of the board are empty.
         cols = self.np_random.integers(0, self.n_cols, self.n_rows - 2)
         speeds = self.np_random.integers(self.speed - self.speed_range, self.speed + 1, self.n_rows - 2)
-        dirs = np.sign(self.np_random.uniform(-1, 1, self.n_rows - 2)).astype(np.int64)
+        dirs = self.np_random.choice([-1, 1], size=self.n_rows - 2)
         rows = np.arange(1, self.n_rows - 1)
         id = np.full((self.n_rows - 2,), ENEMY)
         id[self.np_random.random(self.n_rows - 2) < self.treasure_prob] = TREASURE
@@ -171,13 +171,14 @@ class Asterix(Game):
         entity[6] = self.cooldown
 
     def collision(self, row, col, action):
-        static_collision = [row, col] == [self.player_row, self.player_col]
+        if row != self.player_row:
+            return False
+        if col == self.player_col:
+            return True
         # Without this check, the player may "step over" an entity and collision won't be detected
-        movement_collision = (
-            action in [LEFT, RIGHT] and
-            [row, col] == [self.player_row_old, self.player_col_old]
-        )  # fmt: skip
-        return static_collision or movement_collision
+        return (
+            (action == LEFT or action == RIGHT) and col == self.player_col_old
+        )
 
     def _step(self, action: int):
         reward = 0.0
@@ -213,10 +214,12 @@ class Asterix(Game):
                     if self.collision(row, col, action):
                         if id == TREASURE:
                             self.despawn(entity)
-                            reward = 1.0
-                            break
+                            reward += 1.0
+                            continue
                         else:
                             terminated = True
+                            self.level_one()
+                            self._reset()
                             return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
@@ -233,10 +236,12 @@ class Asterix(Game):
                 if self.collision(row, col, action):
                     if id == TREASURE:
                         self.despawn(entity)
-                        reward = 1.0
-                        break
+                        reward += 1.0
+                        break  # break inner step loop; outer loop continues to next entity
                     else:
                         terminated = True
+                        self.level_one()
+                        self._reset()
                         return self.get_state(), reward, terminated, False, {}
 
         return self.get_state(), reward, terminated, False, {}

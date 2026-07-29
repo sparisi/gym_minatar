@@ -14,6 +14,13 @@ BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)  # bricks
 
 
+def _where_ball_is_going(position, direction):
+    front_pos = [position[0] + direction[0], position[1]]  # Vertical
+    diag_pos = [position[0] + direction[0], position[1] + direction[1]]
+    side_pos = [position[0], position[1] + direction[1]]  # Horizontal
+    return front_pos, diag_pos, side_pos
+
+
 class Breakout(Game):
     """
     The player controls a paddle to bounce a ball and break bricks.
@@ -55,6 +62,7 @@ class Breakout(Game):
         }
 
         self.bricks = np.zeros((self.n_rows, self.n_cols), dtype=np.int64)
+        self.brick_count = 0
         self.paddle_pos = None
         self.ball_pos = None
         self.ball_dir = None
@@ -108,6 +116,7 @@ class Breakout(Game):
         self.timer = 0
         self.bricks[:] = 0
         self.bricks[1 : self.brick_rows + 1, :] = 1
+        self.brick_count = self.brick_rows * self.n_cols
 
         self.last_ball_pos = []
         self.contact_pos = None
@@ -138,21 +147,6 @@ class Breakout(Game):
                 self.timer = 0
                 speed = 0
 
-        def where_ball_is_going(position, direction):
-            front_pos = [  # Vertical
-                position[0] + direction[0],
-                position[1],
-            ]
-            diag_pos = [
-                position[0] + direction[0],
-                position[1] + direction[1],
-            ]
-            side_pos = [  # Horizontal
-                position[0],
-                position[1] + direction[1],
-            ]
-            return front_pos, diag_pos, side_pos
-
         self.last_ball_pos = []
         for steps in range(speed + 1):
             self.last_ball_pos.append(self.ball_pos)
@@ -179,7 +173,7 @@ class Breakout(Game):
             elif new_ball_pos[0] == self.n_rows - 1:
                 check_for_bricks = False
                 game_over = True
-                front_pos, diag_pos, side_pos = where_ball_is_going(
+                front_pos, diag_pos, side_pos = _where_ball_is_going(
                     self.ball_pos, self.ball_dir
                 )
                 if front_pos == self.paddle_pos:  # Keep side direction and bounce up
@@ -200,22 +194,26 @@ class Breakout(Game):
                     self.contact_pos = side_pos
                 if game_over:
                     terminated = True
+                    self.level_one()
+                    self._reset()
                     return self.get_state(), reward, terminated, False, {}
 
             # Collision with brick (must check after wall collision)
             if check_for_bricks:
-                front_pos, diag_pos, side_pos = where_ball_is_going(
+                front_pos, diag_pos, side_pos = _where_ball_is_going(
                     self.ball_pos, self.ball_dir
                 )
                 if self.bricks[front_pos[0], front_pos[1]]:
                     reward = 1.0
                     self.bricks[front_pos[0], front_pos[1]] = 0
+                    self.brick_count -= 1
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     self.contact_pos = front_pos
                 elif self.bricks[diag_pos[0], diag_pos[1]]:
                     reward = 1.0
                     self.bricks[diag_pos[0], diag_pos[1]] = 0
+                    self.brick_count -= 1
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     self.ball_dir[1] *= -1
@@ -223,15 +221,17 @@ class Breakout(Game):
                 elif self.bricks[side_pos[0], side_pos[1]]:
                     reward = 1.0
                     self.bricks[side_pos[0], side_pos[1]] = 0
+                    self.brick_count -= 1
                     new_ball_pos = self.ball_pos
                     self.ball_dir[1] *= -1
                     self.contact_pos = side_pos
 
             self.ball_pos = new_ball_pos
 
-            if self.bricks.sum() == 0:
+            if self.brick_count == 0:
                 self.level_up()
                 self._reset()
+                break  # ball/paddle/timer were reset; don't continue this step
 
         return self.get_state(), reward, terminated, False, {}
 

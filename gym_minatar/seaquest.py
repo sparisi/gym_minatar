@@ -188,20 +188,14 @@ class Seaquest(Game):
                         state[row, (b_col - step * dir), SUBMARINE_BULLET] = dir * speed_scaling
 
         # Divers gauge
-        percentage_full = self.divers_carried / self.divers_carried_max
-        n_fill = int(self.n_cols * percentage_full)
-        if percentage_full > 0:
-            n_fill = max(1, n_fill)  # At least one 1 when the player is carrying 1 diver
-        for i in range(n_fill):
-            state[-1, i, DIVER_GAUGE] = 1
+        if self.divers_carried > 0:
+            n_fill = max(1, int(self.n_cols * self.divers_carried / self.divers_carried_max))
+            state[-1, :n_fill, DIVER_GAUGE] = 1
 
         # Oxygen gauge
-        percentage_full = self.oxygen / self.oxygen_max
-        n_fill = int(self.n_cols * percentage_full)
-        if percentage_full > 0:
-            n_fill = max(1, n_fill)  # At least one 1 when the player has oxygen left
-        for i in range(n_fill):
-            state[-1, i, OXYGEN_GAUGE] = 1
+        if self.oxygen > 0:
+            n_fill = max(1, int(self.n_cols * self.oxygen / self.oxygen_max))
+            state[-1, :n_fill, OXYGEN_GAUGE] = 1
 
         return state
 
@@ -302,23 +296,21 @@ class Seaquest(Game):
         entity[8] = False
 
     def collision_with_player(self, row, col, action):
-        static_collision = (
-            [row, col] == [self.player_row, self.player_col] or
-            [row, col] == [self.player_row, self.player_col - self.player_dir]
-        )  # fmt: skip
+        if row != self.player_row:
+            return False
+        if col == self.player_col or col == self.player_col - self.player_dir:
+            return True
         # Without this check, the player may "step over" an entity and collision won't be detected.
         # No need to check for old direction (back of the player).
-        movement_collision = (
-            action in [LEFT, RIGHT] and
-            [row, col] == [self.player_row_old, self.player_col_old]
-        )  # fmt: skip
-        return static_collision or movement_collision
+        return (
+            (action == LEFT or action == RIGHT) and col == self.player_col_old
+        )
 
     def collision_with_entity(self, row, col):
         # Used for player bullets. Returns 1.0 if an enemy was destroyed, else 0.0.
         for entity in self.entities:
             # Divers are not hit by bullets
-            if [row, col] == [entity[0], entity[1]] and entity[4] != DIVER:
+            if entity[0] == row and entity[1] == col and entity[4] != DIVER:
                 self.despawn(entity)
                 return 1.0
         return 0.0
@@ -338,6 +330,8 @@ class Seaquest(Game):
             self.oxygen -= 1
         if self.oxygen <= 0:
             terminated = True
+            self.level_one()
+            self._reset()
             return self.get_state(), reward, terminated, False, {}
 
         # Move player bullet
@@ -355,11 +349,13 @@ class Seaquest(Game):
                     break
                 self.player_bullets[i][1] = col
 
-        # Shoot or move
+        # Shoot or move. player_row_old / player_col_old must be updated regardless of
+        # the action: emerge detection (below) and movement_collision (in
+        # collision_with_player) both read them and need the pre-action position.
+        self.player_row_old, self.player_col_old = self.player_row, self.player_col
         if action == SHOOT:
             reward += self.shoot()
         else:
-            self.player_row_old, self.player_col_old = self.player_row, self.player_col
             self.move(action)
 
         # Difficulty increases every time the player emerges.
@@ -367,17 +363,20 @@ class Seaquest(Game):
         # But as soon as it submerges again, it must collect at least one diver
         # before emerging again, or it will be game over.
         if self.player_row == 0:
+            oxygen_left = self.oxygen  # capture before refill so the max-divers reward tracks efficient play
             self.oxygen = self.oxygen_max
             self.oxygen_counter = 0
             if self.player_row_old != 0:
                 if self.divers_carried == 0:  # Game over
                     terminated = True
+                    self.level_one()
+                    self._reset()
                     return self.get_state(), reward, terminated, False, {}
                 else:  # Level up
                     self.level_up()
                     if self.divers_carried == self.divers_carried_max:  # Big reward
                         self.divers_carried = 0
-                        reward += self.oxygen
+                        reward += oxygen_left
                     else:
                         self.divers_carried -= 1
 
@@ -402,6 +401,8 @@ class Seaquest(Game):
                 entity[8] = True
                 if self.collision_with_player(row, new_b_col, action):
                     terminated = True
+                    self.level_one()
+                    self._reset()
                     return self.get_state(), reward, terminated, False, {}
                 continue
 
@@ -415,6 +416,8 @@ class Seaquest(Game):
                     entity[7] = b_col
                     if self.collision_with_player(row, b_col, action):
                         terminated = True
+                        self.level_one()
+                        self._reset()
                         return self.get_state(), reward, terminated, False, {}
 
             # If the speed is negative, check if the entity has waited enough before moving it
@@ -428,9 +431,11 @@ class Seaquest(Game):
                             if self.divers_carried < self.divers_carried_max:
                                 self.despawn(entity)
                                 self.divers_carried += 1
-                                break
+                                continue
                         else:
                             terminated = True
+                            self.level_one()
+                            self._reset()
                             return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
@@ -438,7 +443,6 @@ class Seaquest(Game):
                     speed = 0
 
             # Finally move the entity
-            stop_moving = False
             for step in range(speed + 1):
                 col += dir
                 entity[1] = col
@@ -450,22 +454,23 @@ class Seaquest(Game):
                         if self.divers_carried < self.divers_carried_max:
                             self.despawn(entity)
                             self.divers_carried += 1
-                            break
+                            break  # stop moving this entity; outer loop continues
                     else:
                         terminated = True
+                        self.level_one()
+                        self._reset()
                         return self.get_state(), reward, terminated, False, {}
+                hit_bullet = False
                 for i in range(len(self.player_bullets) - 1, -1, -1):
-                    if (
-                        id != DIVER and
-                        [self.player_bullets[i][0], self.player_bullets[i][1]] == [row, col]
-                    ):  # fmt: skip
+                    b = self.player_bullets[i]
+                    if id != DIVER and b[0] == row and b[1] == col:
                         self.player_bullets.pop(i)
                         self.despawn(entity)
                         reward += 1.0
-                        stop_moving = True
+                        hit_bullet = True
                         break
-                if stop_moving:
-                    break
+                if hit_bullet:
+                    break  # stop moving this entity; outer loop continues
 
         return self.get_state(), reward, terminated, False, {}
 
