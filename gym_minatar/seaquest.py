@@ -70,7 +70,8 @@ class Seaquest(Game):
       - If the player is carrying 6 divers, it gets as many points as the
         amount of oxygen left in the gauge.
       - If the player is carrying at least 1 divers, its oxygen is fully restored
-        but it doesn't get any point.
+        but it doesn't get any point. When surfacing with less than six divers, one
+        diver is removed.
       - If the player is not carrying any diver, the game ends.
       - The player can stay at the surface as long as it wants without depleting
         oxygen.
@@ -394,6 +395,21 @@ class Seaquest(Game):
                     self.respawn(entity)
                     continue
 
+            # Pre-move collision: catches the case where the player just walked onto an
+            # entity in the exact step it's about to move (timer == speed transition).
+            if self.collision_with_player(row, col, action):
+                if id == DIVER:
+                    if self.divers_carried < self.divers_carried_max:
+                        self.despawn(entity)
+                        self.divers_carried += 1
+                        continue
+                    # else: full carry — fall through, diver stays put and gets processed normally
+                else:
+                    terminated = True
+                    self.level_one()
+                    self._reset()
+                    return self.get_state(), reward, terminated, False, {}
+
             # Submarines shoot once, when they enter the board. When they shoot, they don't move.
             if not has_shot and id == SUBMARINE and 0 <= col + dir < self.n_cols:
                 new_b_col = col + dir
@@ -424,19 +440,6 @@ class Seaquest(Game):
             if speed < 0:
                 if timer > speed:
                     entity[5] -= 1
-                    # Check if the player moved on an entity that is not moving
-                    if self.collision_with_player(row, col, action):
-                        if id == DIVER:
-                            # Divers are collected if the player has enough room
-                            if self.divers_carried < self.divers_carried_max:
-                                self.despawn(entity)
-                                self.divers_carried += 1
-                                continue
-                        else:
-                            terminated = True
-                            self.level_one()
-                            self._reset()
-                            return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
                     entity[5] = 0

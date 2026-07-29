@@ -206,21 +206,23 @@ class Asterix(Game):
                     self.respawn(entity)
                     continue
 
+            # Pre-move collision: catches the case where the player just walked onto an
+            # entity in the exact step it's about to move (timer == speed transition).
+            if self.collision(row, col, action):
+                if id == TREASURE:
+                    self.despawn(entity)
+                    reward += 1.0
+                    continue
+                else:
+                    terminated = True
+                    self.level_one()
+                    self._reset()
+                    return self.get_state(), reward, terminated, False, {}
+
             # If the speed is negative, check if the entity has waited enough before moving it
             if speed < 0:
                 if timer > speed:
                     entity[5] -= 1
-                    # Check if the player moved on an entity that is not moving
-                    if self.collision(row, col, action):
-                        if id == TREASURE:
-                            self.despawn(entity)
-                            reward += 1.0
-                            continue
-                        else:
-                            terminated = True
-                            self.level_one()
-                            self._reset()
-                            return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
                     entity[5] = 0

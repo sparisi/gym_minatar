@@ -149,3 +149,5 @@ class Game(gym.Env):
 
             pygame.display.quit()
             pygame.quit()
+            self.window_surface = None
+            self.clock = None

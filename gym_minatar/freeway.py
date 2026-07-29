@@ -140,15 +140,17 @@ class Freeway(Game):
         for car in self.cars:
             row, col, speed, dir, timer = car
 
+            # Pre-move collision: catches the case where the player just walked onto a
+            # slow car in the exact step it's about to move (timer == speed transition).
+            if self.collision(row, col, action):
+                terminated = True
+                self.level_one()
+                self._reset()
+                return self.get_state(), reward, terminated, False, {}
+
             if speed < 0:
                 if timer > speed:
                     car[4] -= 1
-                    # Check if player moved on car that is not moving
-                    if self.collision(row, col, action):
-                        terminated = True
-                        self.level_one()
-                        self._reset()
-                        return self.get_state(), reward, terminated, False, {}
                     continue
                 else:
                     car[4] = 0

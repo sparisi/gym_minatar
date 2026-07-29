@@ -237,8 +237,9 @@ All games are **partially observable**.
   entities (ball, cars, enemies, ...) will move, but not their exact speed.
 - In Asterix and Seaquest, observations do not encode respawn times.
 - In Seaquest and Space Invaders, observations do not encode shooting cooldowns.
-- In Seaquest and Space Invaders, observations do not encode when just-spawned
-  entities will move (they have no trail yet).
+- In Space Invaders, observations do not encode when just-spawned entities will
+  move (aliens have no trail at all — their speed is inferred from how far they
+  have descended).
 - In Seaquest, gauges do not represent the exact amount of oxygen left or the
   exact number of divers carried.
 

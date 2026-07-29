@@ -47,6 +47,7 @@ class Breakout(Game):
 
         assert self.n_cols > 2, f"board too small ({self.n_cols} columns)"
         assert self.n_rows > 2, f"board too small ({self.n_rows} rows)"
+        assert self.brick_rows > 0, f"brick_rows must be positive (received {brick_rows})"
         assert (  # One empty row before and after the bricks, one row for the paddle
             self.brick_rows + 3 < self.n_rows
         ), f"cannot fit {brick_rows} brick rows in a board with {self.n_rows} rows"
