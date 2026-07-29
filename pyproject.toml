@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Gym-MinAtar"
+version = "1.0.0"
+description = "Collection of simplified Atari games compatible with Gymnasium, inspired by MinAtar."
+authors = [{name = "Simone Parisi"}]
+license = "CC-BY-4.0"
+license-files = ["LICENSE"]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["gymnasium", "pygame", "numpy"]
+
+[project.optional-dependencies]
+playground = ["pynput", "imageio"]
+
+[tool.setuptools]
+packages = ["gym_minatar"]
