@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Gym-MinAtari"
+title: "Gym-MinAtar"
 abstract: "Simplified Atari games for Gymnasium."
 type: software
 authors:
