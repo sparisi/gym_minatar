@@ -316,8 +316,7 @@ print_obs(obs)
 </table>
 
 <p>
-Third channel of <b>Breakout</b> observation
-(<code>reset(seed=0)</code> followed by two NO-OP steps).
+Third channel of <b>Breakout</b> observation.
 Non-zero tiles are the ball and its trail, and their sign denotes the ball direction
 (negative going up, positive going down).
 The absolute value of the trail encodes <i>when</i> the ball will move:
@@ -351,8 +350,7 @@ tile is then also its trail, and shows the trail value instead of 1.
 </table>
 
 <p>
-Second channel of <b>Freeway</b> observation
-(<code>reset(seed=0)</code> followed by one NO-OP step).
+Second channel of <b>Freeway</b> observation.
 The encoding of speed and trail follows the same rules of Breakout: the car itself always
 has absolute value 1, and the tile behind it is its trail.
 The absolute value of the trail encodes <i>when</i> the car will move, not its actual <i>speed</i>:
@@ -390,8 +388,7 @@ rows are moving to the right, but their trail is still in the rightmost tile
 </table>
 
 <p>
-Second channel of <b>Asterix</b> observation
-(<code>reset(seed=0)</code> followed by 28 NO-OP steps).
+Second channel of <b>Asterix</b> observation.
 It's like Freeway, but it only encodes enemies (treasures are encoded in the third channel).
 Speeds and trail values follow the same rules (at the first level, speed between -2 and -4,
 and trail values multiples of 0.2).
