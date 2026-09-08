@@ -463,7 +463,7 @@ To learn in this setting, you must either stack frames or use training
 architectures with memory.
 
 ## License
-Gym-MinAtar is released under the [CC BY 4.0](LICENSE) license.
+This project is licensed under the [MIT License](LICENSE).
 
 ## Citation
 If you use this software, please cite it as below (see [CITATION.cff](CITATION.cff)).
@@ -475,6 +475,6 @@ If you use this software, please cite it as below (see [CITATION.cff](CITATION.c
   year    = {2026},
   url     = {https://github.com/sparisi/gym_minatar},
   version = {1.0},
-  license = {CC-BY-4.0},
+  license = {MIT},
 }
 ```
