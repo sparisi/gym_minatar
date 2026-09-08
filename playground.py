@@ -35,7 +35,7 @@ parser.add_argument("--practice", action="store_true")
 parser.add_argument("--no_trail", action="store_true")
 args = parser.parse_args()
 
-env_id = args.env.lower()
+env_id = "".join(c for c in args.env.lower() if c.isalnum())
 if "seaquest" in env_id:
     env_id = "Gym-MinAtar/Seaquest-v1"
 elif "breakout" in env_id:
@@ -44,7 +44,7 @@ elif "asterix" in env_id:
     env_id = "Gym-MinAtar/Asterix-v1"
 elif "freeway" in env_id:
     env_id = "Gym-MinAtar/Freeway-v1"
-elif "space_invaders" in env_id:
+elif "spaceinvaders" in env_id:
     env_id = "Gym-MinAtar/SpaceInvaders-v1"
 else:
     raise ValueError("game not found")

@@ -205,14 +205,14 @@ class Breakout(Game):
                     self.ball_pos, self.ball_dir
                 )
                 if self.bricks[front_pos[0], front_pos[1]]:
-                    reward = 1.0
+                    reward += 1.0
                     self.bricks[front_pos[0], front_pos[1]] = 0
                     self.brick_count -= 1
                     new_ball_pos = self.ball_pos
                     self.ball_dir[0] *= -1
                     self.contact_pos = front_pos
                 elif self.bricks[diag_pos[0], diag_pos[1]]:
-                    reward = 1.0
+                    reward += 1.0
                     self.bricks[diag_pos[0], diag_pos[1]] = 0
                     self.brick_count -= 1
                     new_ball_pos = self.ball_pos
@@ -220,7 +220,7 @@ class Breakout(Game):
                     self.ball_dir[1] *= -1
                     self.contact_pos = diag_pos
                 elif self.bricks[side_pos[0], side_pos[1]]:
-                    reward = 1.0
+                    reward += 1.0
                     self.bricks[side_pos[0], side_pos[1]] = 0
                     self.brick_count -= 1
                     new_ball_pos = self.ball_pos

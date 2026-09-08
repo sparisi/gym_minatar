@@ -65,7 +65,7 @@ class SpaceInvaders(Game):
         ), f"cannot fit {aliens_rows} alien rows in a board with {self.n_rows} rows"
 
         self.observation_space = gym.spaces.Box(
-            -1, 1, (self.n_rows, self.n_cols, 4), dtype=np.int8,
+            -1, 1, (self.n_rows, self.n_cols, 4),
         )  # fmt: skip
         self.action_space = gym.spaces.Discrete(4)
         self.action_map = {
